@@ -18,16 +18,21 @@ export default function RescueMap() {
       alert("Trình duyệt không hỗ trợ GPS");
       return;
     }
-
+  
     navigator.geolocation.getCurrentPosition(
       (p) => {
         const lat = p.coords.latitude;
         const lng = p.coords.longitude;
-
+  
+        console.log("GPS:", lat, lng); // 👈 xem có log không
+  
         setPos({ lat, lng });
-        setZoom(17); // ✅ zoom gần cho đẹp
+        setZoom(17);
       },
-      () => alert("Không lấy được vị trí"),
+      (err) => {
+        console.log(err);
+        alert("Không lấy được vị trí");
+      },
       { enableHighAccuracy: true }
     );
   };
@@ -42,11 +47,12 @@ export default function RescueMap() {
         <div className="map-wrapper">
           {/* GOOGLE MAP IFRAME */}
           <iframe
-            title="map"
-            src={`https://www.google.com/maps?q=${pos.lat},${pos.lng}&z=${zoom}&output=embed`}
-            loading="lazy"
-            allowFullScreen
-          />
+  key={`${pos.lat}-${pos.lng}`}   // 👈 ép React render lại
+  title="map"
+  src={`https://www.google.com/maps?q=${pos.lat},${pos.lng}&z=${zoom}&output=embed`}
+  loading="lazy"
+  allowFullScreen
+/>
 
           {/* GPS BUTTON */}
           <button className="gps-btn" onClick={locateUser} title="Vị trí của tôi">

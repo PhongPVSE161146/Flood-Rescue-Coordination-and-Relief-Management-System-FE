@@ -280,16 +280,20 @@ const EmergencyRequest = () => {
                 TÌNH TRẠNG CỤ THỂ (CHỌN CÁC MỤC ÁP DỤNG) *
               </label>
 
-              <div className={`checkbox-grid ${errors.specificConditions ? "error" : ""}`}>
-                <Checkbox.Group
-                  value={form.specificConditions}
-                  onChange={(v) => setForm({ ...form, specificConditions: v })}
-                >
-                  {SPECIFIC_CONDITION_OPTIONS.map((o) => (
-                    <Checkbox key={o.value} value={o.value}>{o.label}</Checkbox>
-                  ))}
-                </Checkbox.Group>
-              </div>
+              <div className="condition-wrapper">
+  <Checkbox.Group
+    value={form.specificConditions}
+    onChange={(v) => setForm({ ...form, specificConditions: v })}
+  >
+    <div className="condition-grid">
+      {SPECIFIC_CONDITION_OPTIONS.map((o) => (
+        <Checkbox key={o.value} value={o.value} className="condition-item">
+          {o.label}
+        </Checkbox>
+      ))}
+    </div>
+  </Checkbox.Group>
+</div>
               {errors.specificConditions && <p className="error-message">{errors.messages?.specificConditions}</p>}
             </div>
 
@@ -387,7 +391,7 @@ const EmergencyRequest = () => {
 
               <label>NHU CẦU ĐẶC BIỆT</label>
               <Input
-                placeholder="Nhu cầu đặc bi���t"
+                placeholder="Nhu cầu đặc biệt (nếu có)"
                 value={form.specialNeeds}
                 onChange={(e) =>
                   setForm({ ...form, specialNeeds: e.target.value })

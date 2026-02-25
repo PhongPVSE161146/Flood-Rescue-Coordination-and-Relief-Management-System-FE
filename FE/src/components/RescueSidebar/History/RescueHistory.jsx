@@ -1,6 +1,19 @@
 import { useState } from "react";
-import { Input, Button, Tag, Modal, Select } from "antd";
-import { EditOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  Input,
+  Button,
+  Tag,
+  Modal,
+  Select,
+  Spin,
+  Alert,
+} from "antd";
+import {
+  EditOutlined,
+  EyeOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
+import { getRescueHistoryByPhone } from "../../../api/service/historyApi";
 import "./RescueHistory.css";
 
 const { TextArea } = Input;
@@ -10,42 +23,84 @@ const RescueHistory = () => {
   const [phone, setPhone] = useState("");
   const [searched, setSearched] = useState(false);
   const [histories, setHistories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
 
-  const handleSearch = () => {
-    if (!phone) return;
+  const getStatusInfo = (statusId) => {
+    switch (statusId) {
+      case 1:
+        return { text: "Đang xử lý", color: "orange" };
+      case 2:
+        return { text: "Hoàn thành", color: "green" };
+      case 3:
+        return { text: "Đã hủy", color: "red" };
+      default:
+        return { text: "Không xác định", color: "blue" };
+    }
+  };
 
-    setHistories([
-      {
-        id: 1,
-        code: "#CH-9821",
-        status: "Hoàn thành",
-        color: "green",
-        time: "12/10/2023 14:30",
-        desc: "Hỗ trợ vận chuyển vật phẩm thiết yếu tại Quận 1...",
-        phone,
-        type: "Hỗ trợ dân sinh",
-      },
-      {
-        id: 2,
-        code: "#CH-9855",
-        status: "Đang xử lý",
-        color: "orange",
-        time: "Hôm nay, 09:15",
-        desc: "Cấp cứu y tế khẩn cấp, cán xe lăn tại đường Lê Lợi.",
-        phone,
-        type: "Y tế khẩn cấp",
-      },
-    ]);
+  const handleSearch = async () => {
+    if (!phone.trim()) {
+      setError("Vui lòng nhập số điện thoại");
+      return;
+    }
 
+    setLoading(true);
+    setError(null);
     setSearched(true);
+    setHistories([]);
+
+    try {
+      const data = await getRescueHistoryByPhone(phone);
+
+      const formattedData = data
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt) - new Date(a.createdAt)
+        )
+        .map((item) => {
+          const statusInfo = getStatusInfo(item.statusId);
+
+          return {
+            id: item.rescueRequestId,
+            code: `#CH-${item.rescueRequestId}`,
+            status: statusInfo.text,
+            color: statusInfo.color,
+            time: new Date(item.createdAt).toLocaleString(
+              "vi-VN",
+              {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            ),
+            desc: `Loại sự cố: ${item.requestType}`,
+            phone: item.contactPhone,
+            type: item.requestType,
+            image: item.imageUrls?.[0] || null,
+            lat: item.locationLat,
+            lng: item.locationLng,
+          };
+        });
+
+      setHistories(formattedData);
+    } catch (err) {
+      setError(
+        err.message ||
+          "Không tìm thấy lịch sử cứu hộ cho số điện thoại này"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="sidebar-top">
       <div className="history-title">
-        <span>⏱️</span>
-        <b>TRA CỨU LỊCH SỬ CỨU HỘ</b>
+        ⏱️ <b>TRA CỨU LỊCH SỬ CỨU HỘ</b>
       </div>
 
       <div className="history-input">
@@ -53,28 +108,67 @@ const RescueHistory = () => {
           placeholder="Nhập số điện thoại..."
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          disabled={loading}
         />
-        <Button type="primary" onClick={handleSearch}>
+        <Button
+          type="primary"
+          onClick={handleSearch}
+          loading={loading}
+        >
           Tra cứu
         </Button>
       </div>
 
-      {searched && (
+      {error && (
+        <Alert
+          message={error}
+          type="error"
+          showIcon
+          style={{ marginTop: 12 }}
+        />
+      )}
+
+      {searched && !loading && (
         <div className="history-list-title">
-          LỊCH SỬ YÊU CẦU CỦA BẠN ({histories.length})
+          LỊCH SỬ YÊU CẦU ({histories.length})
         </div>
       )}
 
-      {searched &&
+      {loading ? (
+        <div className="loading-box">
+          <Spin
+            indicator={
+              <LoadingOutlined
+                spin
+                style={{ fontSize: 32 }}
+              />
+            }
+          />
+          <p>Đang tải lịch sử...</p>
+        </div>
+      ) : (
         histories.map((item) => (
           <HistoryCard
             key={item.id}
             data={item}
             onEdit={() => setEditing(item)}
           />
-        ))}
+        ))
+      )}
 
-      <EditModal data={editing} onClose={() => setEditing(null)} />
+      {searched &&
+        !loading &&
+        histories.length === 0 &&
+        !error && (
+          <p className="empty-text">
+            Không có lịch sử cứu hộ.
+          </p>
+        )}
+
+      <EditModal
+        data={editing}
+        onClose={() => setEditing(null)}
+      />
     </div>
   );
 };
@@ -84,21 +178,39 @@ export default RescueHistory;
 /* ================= CARD ================= */
 
 function HistoryCard({ data, onEdit }) {
-  const isProcessing = data.status === "Đang xử lý";
+  const isProcessing =
+    data.status === "Đang xử lý";
 
   return (
     <div className={`history-card ${data.color}`}>
       <div className="history-row">
-        <span className="code">Mã: {data.code}</span>
-        <Tag color={data.color}>{data.status}</Tag>
+        <span className="code">
+          Mã: {data.code}
+        </span>
+        <Tag color={data.color}>
+          {data.status}
+        </Tag>
       </div>
 
       <div className="time">
-        <span>📅</span>
-        {data.time}
+        📅 {data.time}
       </div>
 
-      <div className="desc">{data.desc}</div>
+      <div className="desc">
+        {data.desc}
+      </div>
+
+      <div className="phone">
+        📞 {data.phone}
+      </div>
+
+      {data.image && (
+        <img
+          src={`http://localhost:8080${data.image}`}
+          alt="rescue"
+          className="history-image"
+        />
+      )}
 
       <div className="history-action">
         {isProcessing ? (
@@ -146,17 +258,25 @@ function EditModal({ data, onClose }) {
 
         <div>
           <label>Loại sự cố</label>
-          <Select defaultValue={data.type} style={{ width: "100%" }}>
-            <Option value="Y tế khẩn cấp">Y tế khẩn cấp</Option>
-            <Option value="Hỏa hoạn">Hỏa hoạn</Option>
-            <Option value="Tai nạn giao thông">Tai nạn giao thông</Option>
-            <Option value="Hỗ trợ dân sinh">Hỗ trợ dân sinh</Option>
+          <Select
+            defaultValue={data.type}
+            style={{ width: "100%" }}
+          >
+            <Option value="TrafficAccident">
+              Tai nạn giao thông
+            </Option>
+            <Option value="FireExplosion">
+              Hỏa hoạn
+            </Option>
           </Select>
         </div>
 
         <div>
-          <label>Mô tả tình hình</label>
-          <TextArea rows={4} defaultValue={data.desc} />
+          <label>Mô tả</label>
+          <TextArea
+            rows={4}
+            defaultValue={data.desc}
+          />
         </div>
       </div>
     </Modal>

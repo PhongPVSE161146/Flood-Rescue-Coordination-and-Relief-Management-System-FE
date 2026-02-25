@@ -164,19 +164,6 @@ label {
   margin-top: 8px;
 }
 
-/* Checkbox style */
-.checkbox-grid .ant-checkbox-wrapper {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 13px;
-  transition: all 0.2s ease;
-}
-
-.checkbox-grid .ant-checkbox-wrapper:hover {
-  border-color: #f59e0b;
-}
 
 /* Khi được chọn */
 .checkbox-grid .ant-checkbox-checked + span {
