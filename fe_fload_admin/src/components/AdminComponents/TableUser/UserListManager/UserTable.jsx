@@ -4,78 +4,78 @@ import { EditOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { getAllUser } from "../../../../../api/axios/AdminApi/userApi";
 
-export default function UserTable({ onRowClick, onEdit }) {
+export default function UserTable({ onRowClick, onEdit, loading, users}) {
 
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-
-  useEffect(() => {
-
-    fetchUsers();
-
-  }, []);
+  // const [users, setUsers] = useState([]);
+  // const [loading, setLoading] = useState(false);
 
 
-  /**
-   * FETCH USERS FROM API
-   */
-  const fetchUsers = async () => {
+  // useEffect(() => {
 
-    try {
+  //   fetchUsers();
 
-      setLoading(true);
+  // }, []);
 
-      const data = await getAllUser();
 
-      if (!Array.isArray(data)) {
+  // /**
+  //  * FETCH USERS FROM API
+  //  */
+  // const fetchUsers = async () => {
 
-        setUsers([]);
-        return;
+  //   try {
 
-      }
+  //     setLoading(true);
 
-      const validUsers = data.filter(
-        user => user.roleName && user.roleName.trim() !== ""
-      );
+  //     const data = await getAllUser();
 
-      const mappedUsers = validUsers.map(user => ({
+  //     if (!Array.isArray(data)) {
 
-        id: user.userId,
+  //       setUsers([]);
+  //       return;
 
-        name: user.fullName ?? "Unknown",
+  //     }
 
-        phone: user.phone ?? "N/A",
+  //     const validUsers = data.filter(
+  //       user => user.roleName && user.roleName.trim() !== ""
+  //     );
 
-        role: user.roleName,
+  //     const mappedUsers = validUsers.map(user => ({
 
-        roleColor: getRoleColor(user.roleName),
+  //       id: user.userId,
 
-        area: user.areaId ? `Area ${user.areaId}` : "N/A",
+  //       name: user.fullName ?? "Unknown",
 
-        status: "Hoạt động",
+  //       phone: user.phone ?? "N/A",
 
-        statusColor: "green",
+  //       role: user.roleName,
 
-      }));
+  //       roleColor: getRoleColor(user.roleName),
 
-      setUsers(mappedUsers);
+  //       area: user.areaId ? `Area ${user.areaId}` : "N/A",
 
-    }
-    catch (error) {
+  //       status: "Hoạt động",
 
-      console.error(error);
+  //       statusColor: "green",
 
-      setUsers([]);
+  //     }));
 
-    }
-    finally {
+  //     setUsers(mappedUsers);
 
-      setLoading(false);
+  //   }
+  //   catch (error) {
 
-    }
+  //     console.error(error);
 
-  };
+  //     setUsers([]);
+
+  //   }
+  //   finally {
+
+  //     setLoading(false);
+
+  //   }
+
+  // };
 
 
   /**

@@ -4,20 +4,38 @@ import {
   Button,
   Tag,
   Modal,
-  Select,
   Spin,
   Alert,
+  message
 } from "antd";
 import {
   EditOutlined,
   EyeOutlined,
   LoadingOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
-import { getRescueHistoryByPhone } from "../../../api/service/historyApi";
+
+import {
+  getRescueHistoryByPhone,
+  deleteRescueRequest
+} from "../../../api/service/historyApi";
+
+import EditRescueModal from "../EditResscue/EditRescueModal";
 import "./RescueHistory.css";
 
-const { TextArea } = Input;
-const { Option } = Select;
+const MAIN_INCIDENT_OPTIONS = [
+  { value: "MedicalEmergency", label: "Y tế khẩn cấp" },
+  { value: "TrafficAccident", label: "Tai nạn giao thông" },
+  { value: "FireExplosion", label: "Cháy nổ" },
+  { value: "DisasterFlood", label: "Ngập lụt" },
+];
+
+const getIncidentLabel = (value) => {
+  const found = MAIN_INCIDENT_OPTIONS.find(
+    (item) => item.value === value
+  );
+  return found ? found.label : value;
+};
 
 const RescueHistory = () => {
   const [phone, setPhone] = useState("");
@@ -55,9 +73,8 @@ const RescueHistory = () => {
       const data = await getRescueHistoryByPhone(phone);
 
       const formattedData = data
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
+        .sort((a, b) =>
+          new Date(b.createdAt) - new Date(a.createdAt)
         )
         .map((item) => {
           const statusInfo = getStatusInfo(item.statusId);
@@ -77,12 +94,8 @@ const RescueHistory = () => {
                 minute: "2-digit",
               }
             ),
-            desc: `Loại sự cố: ${item.requestType}`,
             phone: item.contactPhone,
             type: item.requestType,
-            image: item.imageUrls?.[0] || null,
-            lat: item.locationLat,
-            lng: item.locationLng,
           };
         });
 
@@ -90,11 +103,38 @@ const RescueHistory = () => {
     } catch (err) {
       setError(
         err.message ||
-          "Không tìm thấy lịch sử cứu hộ cho số điện thoại này"
+        "Không tìm thấy lịch sử cứu hộ cho số điện thoại này"
       );
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content: "Bạn có chắc chắn muốn xóa yêu cầu này?",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+
+      onOk: async () => {
+        try {
+          await deleteRescueRequest(id);
+
+          setHistories((prev) =>
+            prev.filter((item) => item.id !== id)
+          );
+
+          message.success("Đã xóa yêu cầu cứu hộ thành công ✅");
+        } catch (err) {
+          Modal.error({
+            title: "Lỗi",
+            content: err.message,
+          });
+        }
+      },
+    });
   };
 
   return (
@@ -138,10 +178,7 @@ const RescueHistory = () => {
         <div className="loading-box">
           <Spin
             indicator={
-              <LoadingOutlined
-                spin
-                style={{ fontSize: 32 }}
-              />
+              <LoadingOutlined spin style={{ fontSize: 32 }} />
             }
           />
           <p>Đang tải lịch sử...</p>
@@ -152,6 +189,7 @@ const RescueHistory = () => {
             key={item.id}
             data={item}
             onEdit={() => setEditing(item)}
+            onDelete={() => handleDelete(item.id)}
           />
         ))
       )}
@@ -165,9 +203,18 @@ const RescueHistory = () => {
           </p>
         )}
 
-      <EditModal
+      <EditRescueModal
         data={editing}
         onClose={() => setEditing(null)}
+        onUpdated={(updatedData) => {
+          setHistories((prev) =>
+            prev.map((item) =>
+              item.id === editing.id
+                ? { ...item, ...updatedData }
+                : item
+            )
+          );
+        }}
       />
     </div>
   );
@@ -177,7 +224,7 @@ export default RescueHistory;
 
 /* ================= CARD ================= */
 
-function HistoryCard({ data, onEdit }) {
+function HistoryCard({ data, onEdit, onDelete }) {
   const isProcessing =
     data.status === "Đang xử lý";
 
@@ -193,92 +240,51 @@ function HistoryCard({ data, onEdit }) {
       </div>
 
       <div className="time">
-        📅 {data.time}
+        Thời Gian : {data.time}
       </div>
 
       <div className="desc">
-        {data.desc}
+        Loại sự cố: {getIncidentLabel(data.type)}
       </div>
 
       <div className="phone">
         📞 {data.phone}
       </div>
 
-      {/* {data.image && (
-        <img
-          src={`http://localhost:8080${data.image}`}
-          alt="rescue"
-          className="history-image"
-        />
-      )} */}
-
       <div className="history-action">
         {isProcessing ? (
-          <Button
-            size="small"
-            type="text"
-            icon={<EditOutlined />}
-            onClick={onEdit}
-          >
-            Chỉnh sửa
-          </Button>
+          <>
+            <Button
+              size="small"
+              type="text"
+              icon={<EditOutlined />}
+              onClick={onEdit}
+              className="action-btn edit-btn"
+            >
+              Chỉnh sửa
+            </Button>
+
+            <Button
+              size="small"
+              type="text"
+              icon={<DeleteOutlined />}
+              onClick={onDelete}
+              className="action-btn delete-btn"
+            >
+              Xóa
+            </Button>
+          </>
         ) : (
           <Button
             size="small"
             type="text"
             icon={<EyeOutlined />}
+            className="action-btn view-btn"
           >
             Xem chi tiết
           </Button>
         )}
       </div>
     </div>
-  );
-}
-
-/* ================= MODAL ================= */
-
-function EditModal({ data, onClose }) {
-  if (!data) return null;
-
-  return (
-    <Modal
-      open
-      title="Chỉnh sửa yêu cầu cứu trợ"
-      onCancel={onClose}
-      onOk={onClose}
-      okText="Lưu thay đổi"
-      cancelText="Hủy"
-    >
-      <div className="modal-form">
-        <div>
-          <label>Số điện thoại</label>
-          <Input defaultValue={data.phone} />
-        </div>
-
-        <div>
-          <label>Loại sự cố</label>
-          <Select
-            defaultValue={data.type}
-            style={{ width: "100%" }}
-          >
-            <Option value="TrafficAccident">
-              Tai nạn giao thông
-            </Option>
-            <Option value="FireExplosion">
-              Hỏa hoạn
-            </Option>
-          </Select>
-        </div>
-
-        <div>
-          <label>Mô tả</label>
-          <TextArea
-            rows={4}
-            defaultValue={data.desc}
-          />
-        </div>
-      </div>
-    </Modal>
   );
 }

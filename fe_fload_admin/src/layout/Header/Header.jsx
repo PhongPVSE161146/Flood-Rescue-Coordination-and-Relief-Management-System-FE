@@ -11,7 +11,7 @@ export default function Header() {
 
   const roleInfo = {
     admin: {
-      title: "Rescue Admin",
+      title: " Admin",
       subtitle: "System Management",
       icon: "🛡️",
     },
@@ -25,7 +25,7 @@ export default function Header() {
       subtitle: "Dispatch & Monitoring",
       icon: "🗺️",
     },
-    rescue: {
+    rescueteam: {
       title: "Rescue Team",
       subtitle: "Field Operations",
       icon: "🚑",

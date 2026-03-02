@@ -19,3 +19,47 @@ export const getRescueHistoryByPhone = async (phone) => {
     throw new Error(errMsg);
   }
 };
+// 2. Xóa yêu cầu cứu hộ theo ID (DELETE)
+export const deleteRescueRequest = async (id) => {
+  if (!id) throw new Error("Thiếu ID yêu cầu");
+
+  try {
+    const response = await axiosInstance.delete(
+      `/api/RescueRequest/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi xóa yêu cầu:", error);
+    const errMsg =
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể xóa yêu cầu";
+    throw new Error(errMsg);
+  }
+};
+// ================= UPDATE RESCUE REQUEST =================
+
+export const updateRescueRequest = async (id, payload) => {
+  if (!id) throw new Error("Thiếu ID yêu cầu");
+
+  try {
+    const response = await axiosInstance.put(
+      `/api/RescueRequest/${id}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi cập nhật yêu cầu:", error);
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Cập nhật thất bại"
+    );
+  }
+};

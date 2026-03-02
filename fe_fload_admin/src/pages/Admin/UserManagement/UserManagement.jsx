@@ -147,8 +147,12 @@ export default function UserManagement() {
       }
       catch {
     
+        
         message.error("Tạo user thất bại");
     
+      } finally {
+        fetchUsers();
+        form.resetFields();
       }
     
     };
