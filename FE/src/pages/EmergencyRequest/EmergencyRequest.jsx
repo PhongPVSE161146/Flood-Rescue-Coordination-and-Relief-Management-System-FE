@@ -363,7 +363,8 @@ useEffect(() => {
                 <UserOutlined /> 1. THÔNG TIN NGƯỜI GỬI YÊU CẦU
               </h4>
 
-              <label>HỌ VÀ TÊN NGƯỜI GỬI *</label>
+              <label>HỌ VÀ TÊN NGƯỜI GỬI{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
               <Input
                 placeholder="Họ và tên"
                 status={errors.fullname ? "error" : ""}
@@ -385,7 +386,8 @@ useEffect(() => {
 
               <div className="form-row">
                 <div>
-                  <label>SỐ ĐIỆN THOẠI CHÍNH *</label>
+                  <label>SỐ ĐIỆN THOẠI CHÍNH{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
                     prefix={<PhoneOutlined />}
                     placeholder="SĐT chính"
@@ -417,7 +419,8 @@ useEffect(() => {
               </h4>
 
               <label className="field-label">
-                LOẠI SỰ CỐ CHÍNH *
+                LOẠI SỰ CỐ CHÍNH{" "}
+                <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span>
               </label>
               <Select
                 className="full-width"
@@ -443,7 +446,8 @@ useEffect(() => {
               {errors.mainIncidentType && <p className="error-message">{errors.messages?.mainIncidentType}</p>}
 
               <label className="field-label mt">
-                TÌNH TRẠNG CỤ THỂ (CHỌN CÁC MỤC ÁP DỤNG) *
+                TÌNH TRẠNG CỤ THỂ (CHỌN CÁC MỤC ÁP DỤNG){" "}
+                <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span>
               </label>
 
               <div className="condition-wrapper">
@@ -479,7 +483,8 @@ useEffect(() => {
 
               <div className="location-grid">
                 <div className="location-left">
-                  <label>ĐỊA CHỈ HIỆN TẠI *</label>
+                  <label>ĐỊA CHỈ HIỆN TẠI{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
                     placeholder="Địa chỉ sẽ tự động điền theo GPS"
                     value={address}
@@ -488,7 +493,8 @@ useEffect(() => {
                   />
                   {errors.gps && <p className="error-message">{errors.messages?.gps}</p>}
 
-                  <label>GHI CHÚ ĐIỂM NHẬN DẠNG</label>
+                  <label>GHI CHÚ ĐIỂM NHẬN DẠNG{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
 <Input
   placeholder="Gần cây đa, đối diện tiệm thuốc..."
   value={form.landmarkNote}
@@ -520,12 +526,6 @@ useEffect(() => {
     }
   }}
 />
-{/* 
-{errors.landmarkNote && (
-  <p className="error-message">
-    {errors.messages?.landmarkNote}
-  </p>
-)} */}
 {errors.landmarkNote && <p className="error-message">{errors.messages?.landmarkNote}</p>}
                   <Button
                     type="primary"
@@ -562,7 +562,8 @@ useEffect(() => {
 
               <div className="form-row">
                 <div>
-                  <label>SỐ LƯỢNG NGƯỜI GẶP NẠN</label>
+                  <label>SỐ LƯỢNG NGƯỜI GẶP NẠN{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <InputNumber
                     style={{ width: "100%" }}
                     placeholder="Số người gặp nạn"
@@ -616,7 +617,8 @@ useEffect(() => {
                   {errors.victimCount && <p className="error-message">{errors.messages?.victimCount}</p>}
                 </div>
                 <div>
-                  <label>DỤNG CỤ CỨU HỘ HIỆN CÓ</label>
+                  <label>DỤNG CỤ CỨU HỘ HIỆN CÓ{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
                     placeholder="Dụng cụ cứu hộ"
                     value={form.availableRescueTools}
@@ -653,7 +655,8 @@ useEffect(() => {
                 </div>
               </div>
 
-              <label>NHU CẦU ĐẶC BIỆT</label>
+              <label>NHU CẦU ĐẶC BIỆT{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
               <Input
                 placeholder="Nhu cầu đặc biệt (nếu có)"
                 value={form.specialNeeds}
@@ -684,7 +687,8 @@ useEffect(() => {
                 }}
               />
              {errors.specialNeeds && <p className="error-message">{errors.messages?.specialNeeds}</p>}
-              <label>MÔ TẢ CHI TIẾT *</label>
+              <label>MÔ TẢ CHI TIẾT{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
               <TextArea
                 rows={4}
                 placeholder="Mô tả chi tiết"
@@ -708,7 +712,8 @@ useEffect(() => {
 
             {/* ===== 5 ===== */}
             <div className="form-section section-5">
-              <h4>📷 5. HÌNH ẢNH HIỆN TRƯỜNG</h4>
+              <h4>📷 5. HÌNH ẢNH HIỆN TRƯỜNG{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></h4>
 
               <Upload
                 listType="picture"
