@@ -1,338 +1,341 @@
-import { useState } from "react";
-import {
-  Button,
-  Tag,
-  Checkbox,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Drawer,
-  Divider,
-} from "antd";
+import { useState, useEffect } from "react";
+import { Button, Drawer, Form, message } from "antd";
+
 import {
   PlusOutlined,
   TeamOutlined,
+  UserOutlined,
+  SafetyOutlined,
   ThunderboltOutlined,
   CheckCircleOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import "./userManagement.css";
 
-/* ================= CONSTANT ================= */
+import "./UserManagement.css";
 
-const ROLE_COLOR = {
-  "RESCUE TEAM": "blue",
-  COORDINATOR: "purple",
-  MANAGER: "gold",
-  ADMIN: "red",
-};
+import UserTable from "../../../components/AdminComponents/TableUser/UserListManager/UserTable";
+import UserFormModal from "../../../components/AdminComponents/TableUser/FormModal/UserFormModal";
+import UserDetail from "../../../components/AdminComponents/TableUser/UserListManager/UserDetail";
+import StatCard from "../../../components/AdminComponents/TableUser/FormModal/StatCard";
 
-const STATUS_COLOR = {
-  "Hoạt động": "green",
-  "Nghỉ phép": "orange",
-  Khóa: "red",
-};
+import {
+  registerUser,
+  getAllUser,
+} from "../../../../api/axios/AdminApi/userApi";
 
-/* ================= MAIN ================= */
 
 export default function UserManagement() {
+
   const [form] = Form.useForm();
 
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "Nguyễn Văn An",
-      email: "an.nguyen@rescue.vn",
-      phone: "0912345678",
-      address: "123 Đường Láng, Hà Nội",
-      role: "RESCUE TEAM",
-      roleColor: "blue",
-      department: "Đội Cứu Hộ 1",
-      area: "Hà Nội - Đội 1",
-      status: "Hoạt động",
-      statusColor: "green",
-      last: "Vừa xong",
-      joinDate: "15/01/2024",
-      notes: "",
-    },
-  ]);
+  const [users, setUsers] = useState([]);
+
+  const [loading, setLoading] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+
   const [selectedUser, setSelectedUser] = useState(null);
 
-  /* ================= HANDLER ================= */
+  const [isEdit, setIsEdit] = useState(false);
 
-  const openCreateModal = () => {
-    setIsEdit(false);
-    form.resetFields();
-    setModalOpen(true);
-  };
+  const [roleFilter, setRoleFilter] = useState("ALL");
 
-  const openEditModal = (user) => {
-    setSelectedUser(user);
-    setIsEdit(true);
-    form.setFieldsValue(user);
-    setDrawerOpen(false);
-    setModalOpen(true);
-  };
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
+  useEffect(() => {
 
-    if (isEdit) {
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === selectedUser.id
-            ? {
-                ...u,
-                ...values,
-                roleColor: ROLE_COLOR[values.role],
-                statusColor: STATUS_COLOR[values.status],
-              }
-            : u
-        )
-      );
-    } else {
-      setUsers((prev) => [
-        {
-          id: Date.now(),
-          ...values,
-          roleColor: ROLE_COLOR[values.role],
-          statusColor: STATUS_COLOR[values.status],
-          last: "Vừa xong",
-          joinDate: new Date().toLocaleDateString(),
-        },
-        ...prev,
-      ]);
+    fetchUsers();
+
+  }, []);
+
+
+
+  const fetchUsers = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const data = await getAllUser();
+
+      if (!Array.isArray(data)) return;
+
+      const validUsers = data.filter(u => u.roleName);
+
+      const mappedUsers = validUsers.map(user => ({
+
+        id: user.userId,
+        name: user.fullName,
+        phone: user.phone,
+        role: user.roleName,
+      
+        areaId: user.areaId, // 🔥 QUAN TRỌNG
+      
+        status: user.status || "Hoạt động",
+        raw: user,
+      
+      }));
+      setUsers(mappedUsers);
+
+    }
+    catch(error){
+
+      message.error("Không tải được user");
+
+    }
+    finally{
+
+      setLoading(false);
+
     }
 
-    setModalOpen(false);
-    setIsEdit(false);
-    form.resetFields();
   };
 
-  /* ================= RENDER ================= */
+  const filteredUsers =
+  roleFilter === "ALL"
+    ? users
+    : users.filter(u => u.role === roleFilter);
+
+    const handleSubmit = async () => {
+
+      try {
+    
+        const values = await form.validateFields();
+    
+        const res = await registerUser(values);
+    
+        message.success("Tạo user thành công");
+    
+        setModalOpen(false);
+    
+        form.resetFields();
+    
+    
+        // thêm user mới vào state ngay lập tức
+        const newUser = {
+    
+          id: Date.now(), // tạm (hoặc res.userId nếu API trả)
+    
+          name: values.name,
+    
+          phone: values.phone,
+    
+          role:
+            values.roleId === 2
+              ? "Manager"
+              : values.roleId === 3
+              ? "RescueTeam"
+              : values.roleId === 4
+              ? "RescueCoordinator"
+              : "User",
+    
+          area: "N/A",
+    
+          status: "Hoạt động",
+    
+        };
+    
+    
+        setUsers(prev => [newUser, ...prev]);
+    
+      }
+      catch {
+    
+        
+        message.error("Tạo user thất bại");
+    
+      } finally {
+        fetchUsers();
+        form.resetFields();
+      }
+    
+    };
+
+
+
+  const openCreateModal = () => {
+
+    setIsEdit(false);
+
+    form.resetFields();
+
+    setModalOpen(true);
+
+  };
+
+
+  const openEditModal = (user) => {
+
+    setSelectedUser(user);
+
+    setIsEdit(true);
+
+    form.setFieldsValue(user);
+
+    setModalOpen(true);
+
+  };
+
+
+
+  // STAT CALCULATE
+
+  const totalUsers = users.length;
+
+  const totalAdmin = users.filter(u => u.role === "Admin").length;
+
+  const totalManager = users.filter(u => u.role === "Manager").length;
+
+  const totalCoordinator = users.filter(
+    u => u.role === "RescueCoordinator"
+  ).length;
+
+  const totalRescue = users.filter(
+    u => u.role === "RescueTeam"
+  ).length;
+
+  const totalActive = users.length;
+
+
 
   return (
-    <div className="user-page">
+
+    <div className="userManagement">
+
+
       {/* HEADER */}
-      <div className="page-header">
+
+      <div className="userManagement__header">
+
         <div>
-          <h2>Danh sách người dùng</h2>
-          <p>Quản lý thành viên hệ thống cứu hộ</p>
+
+          <h2 className="userManagement__title">
+
+            Quản lý người dùng
+
+          </h2>
+
+          <p className="userManagement__subtitle">
+
+            Dashboard quản lý hệ thống
+
+          </p>
+
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+
+
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          size="large"
+          onClick={openCreateModal}
+        >
           Tạo người dùng
         </Button>
+
       </div>
+
+
 
       {/* STAT */}
-      <div className="stat-cards">
-        <StatCard title="TỔNG NGƯỜI DÙNG" value={users.length} icon={<TeamOutlined />} />
-        <StatCard
-          title="RESCUE TEAM"
-          value={users.filter((u) => u.role === "RESCUE TEAM").length}
-          icon={<ThunderboltOutlined />}
-        />
-        <StatCard
-          title="ĐANG HOẠT ĐỘNG"
-          value={users.filter((u) => u.status === "Hoạt động").length}
-          icon={<CheckCircleOutlined />}
-        />
-      </div>
+
+      <div className="userManagement__stats">
+
+<StatCard
+  title="Tổng người dùng"
+  value={totalUsers}
+  type="total"
+  active={roleFilter === "ALL"}
+  onClick={() => setRoleFilter("ALL")}
+/>
+
+<StatCard
+  title="Admin"
+  value={totalAdmin}
+  type="admin"
+  active={roleFilter === "Admin"}
+  onClick={() => setRoleFilter("Admin")}
+/>
+
+<StatCard
+  title="Manager"
+  value={totalManager}
+  type="manager"
+  active={roleFilter === "Manager"}
+  onClick={() => setRoleFilter("Manager")}
+/>
+
+<StatCard
+  title="Coordinator"
+  value={totalCoordinator}
+  type="RescueCoordinator"
+  active={roleFilter === "RescueCoordinator"}
+  onClick={() => setRoleFilter("RescueCoordinator")}
+/>
+
+<StatCard
+  title="Rescue Team"
+  value={totalRescue}
+  type="RescueTeam"
+  active={roleFilter === "RescueTeam"}
+  onClick={() => setRoleFilter("RescueTeam")}
+/>
+
+</div>
+
+
 
       {/* TABLE */}
-      <div className="table-box">
-        <table>
-          <thead>
-            <tr>
-              <th />
-              <th>Người dùng</th>
-              <th>Vai trò</th>
-              <th>Khu vực</th>
-              <th>Trạng thái</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr
-                key={u.id}
-                onClick={() => {
-                  setSelectedUser(u);
-                  setDrawerOpen(true);
-                }}
-              >
-                <td><Checkbox /></td>
-                <td>
-                  <b>{u.name}</b>
-                  <div>{u.email}</div>
-                </td>
-                <td><Tag color={u.roleColor}>{u.role}</Tag></td>
-                <td>{u.area}</td>
-                <td>
-                  <span className={`status ${u.statusColor}`}>{u.status}</span>
-                </td>
-                <td>
-                  <EditOutlined onClick={() => openEditModal(u)} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+      <UserTable
+        users={users}
+        loading={loading}
+        onRowClick={(user)=>{
+          setSelectedUser(user);
+          setDrawerOpen(true);
+        }}
+        onEdit={openEditModal}
+      />
+
+
 
       {/* DRAWER */}
-      <Drawer
+
+      {/* <Drawer
         open={drawerOpen}
-        width={520}
-        onClose={() => setDrawerOpen(false)}
-        title="Chi tiết người dùng"
+        width={500}
+        onClose={()=>setDrawerOpen(false)}
+        title="Chi tiết user"
         extra={
           <Button
             type="primary"
             icon={<EditOutlined />}
-            onClick={() => openEditModal(selectedUser)}
+            onClick={()=>openEditModal(selectedUser)}
           >
             Chỉnh sửa
           </Button>
         }
       >
-        {selectedUser && <UserDetail user={selectedUser} />}
-      </Drawer>
+
+        <UserDetail user={selectedUser} />
+
+      </Drawer> */}
+
+
 
       {/* MODAL */}
-      <Modal
+
+      <UserFormModal
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        onOk={handleSubmit}
-        width={720}
-        title={isEdit ? "Chỉnh sửa người dùng" : "Tạo người dùng mới"}
-        okText={isEdit ? "Lưu thay đổi" : "Tạo người dùng"}
-      >
-        <UserForm form={form} />
-      </Modal>
+        onCancel={()=>setModalOpen(false)}
+        onSubmit={handleSubmit}
+        isEdit={isEdit}
+        form={form}
+      />
+
     </div>
+
   );
+
 }
-
-/* ================= SUB ================= */
-
-function StatCard({ title, value, icon }) {
-  return (
-    <div className="stat-card">
-      {icon}
-      <h3>{value}</h3>
-      <p>{title}</p>
-    </div>
-  );
-}
-
-function UserDetail({ user }) {
-  return (
-    <div className="user-detail-box">
-      <Section title="Thông tin liên hệ">
-        <Item label="Họ tên" value={user.name} />
-        <Item label="Email" value={user.email} />
-        <Item label="Điện thoại" value={user.phone} />
-        <Item label="Địa chỉ" value={user.address} />
-      </Section>
-
-      <Section title="Thông tin công việc">
-        <Item label="Vai trò" value={user.role} />
-        <Item label="Bộ phận" value={user.department} />
-        <Item label="Khu vực" value={user.area} />
-        <Item label="Trạng thái" value={user.status} />
-        <Item label="Ngày tham gia" value={user.joinDate} />
-      </Section>
-    </div>
-  );
-}
-
-function Section({ title, children }) {
-  return (
-    <>
-      <h4 style={{ marginTop: 16 }}>{title}</h4>
-      {children}
-    </>
-  );
-}
-
-function Item({ label, value }) {
-  return (
-    <div className="detail-row">
-      <span>{label}</span>
-      <b>{value}</b>
-    </div>
-  );
-}
-
-/* ================= FORM ================= */
-
-function UserForm({ form }) {
-  return (
-    <Form layout="vertical" form={form}>
-      <Divider orientation="left">📋 Thông tin cơ bản</Divider>
-
-      <div className="form-grid">
-        <Form.Item label="Họ và tên" name="name" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-
-        <Form.Item
-          label="Điện thoại"
-          name="phone"
-          rules={[
-            { required: true },
-            { pattern: /^0\d{9}$/, message: "SĐT không hợp lệ" },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-      </div>
-
-      <Divider orientation="left">💼 Thông tin công việc</Divider>
-
-      <div className="form-grid">
-        <Form.Item label="Vai trò" name="role" rules={[{ required: true }]}>
-          <Select>
-            <Select.Option value="RESCUE TEAM">Rescue Team</Select.Option>
-            <Select.Option value="COORDINATOR">Coordinator</Select.Option>
-            <Select.Option value="MANAGER">Manager</Select.Option>
-          </Select>
-        </Form.Item>
-
-        <Form.Item label="Bộ phận" name="department" rules={[{ required: true }]}>
-          <Select>
-            <Select.Option value="Đội Cứu Hộ 1">Đội Cứu Hộ 1</Select.Option>
-            <Select.Option value="Đội Cứu Hộ 2">Đội Cứu Hộ 2</Select.Option>
-          </Select>
-        </Form.Item>
-        <Form.Item label="Trạng thái" name="status" initialValue="Hoạt động">
-          <Select>
-            <Select.Option value="Hoạt động">Hoạt động</Select.Option>
-            <Select.Option value="Khóa">Khóa</Select.Option>
-          </Select>
-        </Form.Item>
-      </div>
-
-      <Divider orientation="left">🔐 Bảo mật</Divider>
-
-      <Form.Item
-        label="Mật khẩu"
-        name="password"
-        rules={[{ required: true }, { min: 6 }]}
-      >
-        <Input.Password />
-      </Form.Item>
-
-      <Form.Item label="Ghi chú" name="notes">
-        <Input.TextArea rows={3} />
-      </Form.Item>
-    </Form>
-  );
-}
-

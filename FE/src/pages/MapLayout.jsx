@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import MapHeader from "../components/MapHeader/MapHeader";
+import MapHeader from "../Layout/MapHeader/MapHeader";
 
 const MapLayout = () => {
   return (

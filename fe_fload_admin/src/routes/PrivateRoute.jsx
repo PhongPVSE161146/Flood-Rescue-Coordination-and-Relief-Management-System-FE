@@ -13,7 +13,7 @@ export default function RequireAuth({ children, role }) {
       admin: "/admin/user",
       manager: "/manager",
       coordinator: "/coordinator",
-      rescue: "/rescue",
+      rescueteam: "/rescueTeam",
     };
 
     return (

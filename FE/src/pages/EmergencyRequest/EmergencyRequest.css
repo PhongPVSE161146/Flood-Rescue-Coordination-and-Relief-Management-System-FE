@@ -1,4 +1,4 @@
-/* ===== PAGE ===== */
+/* ================= PAGE ================= */
 .emergency-page {
   background: #f6f7f9;
   padding: 24px 0;
@@ -12,22 +12,11 @@
   gap: 24px;
 }
 
-/* ===== LEFT ===== */
+/* ================= LEFT FORM ================= */
 .emergency-form {
   background: #fff;
   padding: 24px;
   border-radius: 20px;
-}
-
-.emergency-badge {
-  display: inline-block;
-  background: #fee2e2;
-  color: #b91c1c;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 999px;
-  margin-bottom: 12px;
 }
 
 .emergency-form h2 {
@@ -40,7 +29,7 @@
   margin-bottom: 18px;
 }
 
-/* ===== FORM SECTION BASE ===== */
+/* ================= FORM SECTION ================= */
 .form-section {
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -55,108 +44,30 @@
   margin-bottom: 12px;
 }
 
-/* ===== SECTION COLORS ===== */
-.section-1 { border-left: 4px solid #3b82f6; }
+/* Section colors */
+.section-1 { border-left: 4px solid #b41919; }
 .section-2 { border-left: 4px solid #f59e0b; }
-.section-3 { border-left: 4px solid #10b981; }
+.section-3 { border-left: 4px solid #2563eb; }
 .section-4 { border-left: 4px solid #8b5cf6; }
 .section-5 { border-left: 4px solid #ec4899; }
 
-/* ===== LABEL ===== */
+/* ================= LABEL ================= */
 label {
   font-size: 12px;
   font-weight: 600;
   margin: 6px 0;
   display: block;
+  color: #111827;
 }
 
-/* ===== ROW ===== */
+/* ================= ROW ================= */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-/* ===== CHECKBOX ===== */
-.checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-/* ===== GPS ===== */
-.gps-btn {
-  margin-top: 12px;
-  height: 44px;
-  font-weight: 700;
-}
-
-/* ===== SUBMIT ===== */
-.submit-btn {
-  height: 56px;
-  background: #c0392b;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 800;
-  border-radius: 16px;
-}
-
-/* ===== RIGHT ===== */
-.emergency-info {
-  position: sticky;
-  top: 90px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.hotline-box {
-  background: #b91c1c;
-  color: #fff;
-  border-radius: 18px;
-  padding: 16px;
-}
-
-.hotline {
-  background: rgba(255,255,255,0.15);
-  padding: 10px;
-  border-radius: 10px;
-  margin-top: 8px;
-  font-weight: 700;
-}
-
-.note-box,
-.status-box {
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  font-size: 13px;
-}
-
-/* ================= SECTION 2 ================= */
-.section-2 {
-  border-left: 4px solid #f59e0b;
-}
-
-.section-2 .section-title {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.field-label {
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  display: block;
-  color: #111827;
-}
-
-.full-width {
-  width: 100%;
-}
-
-/* ===== CHECKBOX GRID (GIỐNG ẢNH) ===== */
+/* ================= CHECKBOX GRID ================= */
 .checkbox-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -164,30 +75,17 @@ label {
   margin-top: 8px;
 }
 
-/* Checkbox style */
 .checkbox-grid .ant-checkbox-wrapper {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 10px;
   font-size: 13px;
-  transition: all 0.2s ease;
 }
 
-.checkbox-grid .ant-checkbox-wrapper:hover {
-  border-color: #f59e0b;
-}
-
-/* Khi được chọn */
 .checkbox-grid .ant-checkbox-checked + span {
   font-weight: 600;
 }
-
-/* ================= SECTION 3 ================= */
-.section-3 {
-  border-left: 4px solid #2563eb;
+.full-width {
+  width: 100%;
 }
-
+/* ================= LOCATION ================= */
 .location-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -195,23 +93,6 @@ label {
   align-items: start;
 }
 
-/* LEFT */
-.location-left label {
-  font-size: 12px;
-  font-weight: 600;
-  margin: 6px 0;
-  display: block;
-}
-
-.gps-btn {
-  margin-top: 14px;
-  height: 48px;
-  font-weight: 700;
-  background: #3b82f6;
-  border-radius: 12px;
-}
-
-/* RIGHT MAP */
 .location-map {
   width: 100%;
   height: 260px;
@@ -219,80 +100,8 @@ label {
   overflow: hidden;
   border: 1px solid #e5e7eb;
 }
-/* ================= SECTION 5 ================= */
-.section-5 {
-  border-left: 4px solid #ec4899;
-}
 
-/* Upload wrapper */
-.emergency-upload {
-  width: 100%;
-}
-
-/* Dropzone */
-.upload-dropzone {
-  width: 100%;
-  min-height: 140px;
-
-  border: 2px dashed #ec4899;
-  border-radius: 18px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  background: linear-gradient(
-    180deg,
-    #fff1f2,
-    #ffffff
-  );
-
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-/* Hover */
-.upload-dropzone:hover {
-  background: #ffe4e6;
-  border-color: #db2777;
-  transform: translateY(-2px);
-}
-
-/* Icon */
-.upload-icon {
-  font-size: 34px;
-  color: #db2777;
-  margin-bottom: 8px;
-}
-
-/* Title */
-.upload-title {
-  font-size: 14px;
-  font-weight: 800;
-  color: #9f1239;
-  margin-bottom: 4px;
-}
-
-/* Subtitle */
-.upload-sub {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* Uploaded image list */
-.emergency-upload .ant-upload-list {
-  margin-top: 12px;
-}
-
-/* Hide default upload button style */
-.emergency-upload .ant-upload {
-  width: 100%;
-  border: none;
-  background: none;
-}
-
-/* ================= GPS LOCATE BUTTON ================= */
+/* ================= GPS BUTTON ================= */
 .gps-locate-btn {
   width: 100%;
   height: 52px;
@@ -310,35 +119,257 @@ label {
   transition: all 0.25s ease;
 }
 
-/* Hover */
 .gps-locate-btn:hover {
   background: linear-gradient(135deg, #1e40af, #2563eb);
   transform: translateY(-1px);
   box-shadow: 0 14px 30px rgba(37, 99, 235, 0.45);
 }
 
-/* Active */
 .gps-locate-btn:active {
   transform: translateY(0);
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
 }
 
-/* Loading */
 .gps-locate-btn.ant-btn-loading {
   background: linear-gradient(135deg, #93c5fd, #60a5fa);
   box-shadow: none;
 }
 
-/* Disabled */
 .gps-locate-btn:disabled {
   background: #c7d2fe;
   color: #fff;
   cursor: not-allowed;
 }
-/* .error-message {
+
+/* ================= UPLOAD ================= */
+.emergency-upload {
+  width: 100%;
+}
+
+.upload-dropzone {
+  width: 100%;
+  min-height: 140px;
+
+  border: 2px dashed #ec4899;
+  border-radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(180deg, #fff1f2, #ffffff);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.upload-dropzone:hover {
+  background: #ffe4e6;
+  border-color: #db2777;
+  transform: translateY(-2px);
+}
+
+.upload-icon {
+  font-size: 34px;
+  color: #db2777;
+  margin-bottom: 8px;
+}
+
+.upload-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #9f1239;
+  margin-bottom: 4px;
+}
+
+.upload-sub {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.emergency-upload .ant-upload {
+  width: 100%;
+  border: none;
+  background: none;
+}
+
+.emergency-upload .ant-upload-list {
+  margin-top: 12px;
+}
+
+/* ================= SUBMIT BUTTON ================= */
+.submit-btn {
+  height: 56px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  border-radius: 16px;
+  border: none;
+  transition: 0.2s ease;
+}
+
+.submit-btn:hover {
+  background: #a93226;
+}
+
+/* ================= RIGHT SIDEBAR ================= */
+/* ================= SIDEBAR ================= */
+.emergency-info {
+  position: sticky;
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ===== CARD BASE ===== */
+.info-card {
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+  transition: 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+}
+
+/* ===== HEADER ===== */
+.card-header {
+  padding: 14px 18px;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.card-header.red {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+}
+
+.card-header.blue {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+.card-header.green {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+/* ===== BODY ===== */
+.card-body {
+  padding: 16px;
+}
+
+/* ===== HOTLINE ITEMS ===== */
+.hotline-item {
+  background: #f3f4f6;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  font-weight: 700;
+  transition: 0.25s ease;
+}
+
+.hotline-item:hover {
+  background: #e5e7eb;
+  transform: scale(1.02);
+}
+
+/* ===== GUIDE LIST ===== */
+.guide-list {
+  padding-left: 18px;
+  margin: 0;
+
+}
+
+.guide-list li {
+  margin-bottom: 8px;
+  font-size: 18px;
+  color: #374151;
+font-weight: bolder;
+}
+
+/* ===== STATUS ===== */
+.status-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: #065f46;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  background: #22c55e;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 1.6s infinite;
+  opacity: 0.7;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  70% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.status-update {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ================= ERROR MESSAGE ================= */
+.error-message {
   color: #ff4d4f;
   font-size: 12px;
   margin-top: 4px;
   margin-bottom: 8px;
   display: block;
-} */
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 992px) {
+  .emergency-container {
+    grid-template-columns: 1fr;
+  }
+
+  .emergency-info {
+    position: relative;
+    top: 0;
+  }
+
+  .location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+}

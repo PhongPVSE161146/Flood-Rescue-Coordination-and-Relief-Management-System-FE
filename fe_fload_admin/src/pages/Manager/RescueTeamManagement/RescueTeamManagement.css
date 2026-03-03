@@ -57,14 +57,21 @@
   /* ============================================================
      STATS GRID
      ============================================================ */
-  
+/*   
   .stat-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 20px;
     margin-bottom: 32px;
-  }
+  } */
   
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 36px;
+}
+
   @media (max-width: 1200px) {
     .stat-grid {
       grid-template-columns: repeat(2, 1fr);

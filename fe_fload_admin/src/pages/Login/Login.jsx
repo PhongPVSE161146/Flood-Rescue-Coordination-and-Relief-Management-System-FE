@@ -25,43 +25,69 @@ export default function Login() {
   const redirectByRole = {
     admin: "/admin",
     manager: "/manager",
+    rescueteam: "/rescueTeam",
     coordinator: "/coordinator",
-    rescue: "/rescue",
   };
 
   const handleLogin = async () => {
+
     const e = {};
+  
     if (!phone) e.phone = "Nhập số điện thoại";
+  
     if (!password) e.password = "Nhập mật khẩu";
+  
     setErrors(e);
+  
     if (Object.keys(e).length) return;
-
+  
     try {
+  
       const res = await loginApi({ phone, password });
-      const { token, user } = res.data;
-      const role = user.roleName.toLowerCase();
-
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("isAuth", "true");
-
-       // ✅ THÔNG BÁO THÀNH CÔNG
-       AuthNotify.success(
-        "Đăng nhập thành công",
-        `Chào mừng ${user.fullName}`
+  
+      console.log("LOGIN RESPONSE:", res);
+  
+      // FIX TOKEN STORAGE
+      localStorage.setItem(
+        "accessToken",
+        res.token
       );
-
-    // delay nhẹ để thấy notify
-    setTimeout(() => {
+  
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.user)
+      );
+  
+      localStorage.setItem(
+        "role",
+        res.user.roleName.toLowerCase()
+      );
+  
+      localStorage.setItem(
+        "isAuth",
+        "true"
+      );
+  
+      AuthNotify.success(
+        "Đăng nhập thành công",
+        `Chào mừng ${res.user.fullName}`
+      );
+  
+      const role = res.user.roleName.toLowerCase();
+  
       navigate(redirectByRole[role], { replace: true });
-    }, 300);
-
-      navigate(redirectByRole[role], { replace: true });
-    } catch {
-      AuthNotify.error("Sai số điện thoại hoặc mật khẩu");
-      setErrors({ password: "Sai số điện thoại hoặc mật khẩu" });
+  
     }
+    catch (error) {
+  
+      console.error(error);
+  
+      AuthNotify.error(
+        "Sai số điện thoại hoặc mật khẩu"
+      );
+  
+    }
+  
   };
 
   return (
@@ -130,7 +156,7 @@ export default function Login() {
               fullWidth
               variant="filled"
               type={show ? "text" : "password"}
-              placeholder="••••••••"
+              placeholder="Mật Khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={!!errors.password}

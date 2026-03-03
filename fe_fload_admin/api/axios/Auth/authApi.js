@@ -1,19 +1,88 @@
-import axios from "axios";
+// src/api/authApi.js
 
-const API_URL = import.meta.env.VITE_API_URL;
+import axiosInstance from "../../axiosInstance";
 
-export const loginApi = ({ phone, password }) => {
-  return axios.post(
-    `${API_URL}/api/User/login`,
+export const loginApi = async ({ phone, password }) => {
+
+  const response = await axiosInstance.post(
+    "/api/User/login",
     {
       phone: phone.trim(),
-      password: password.trim(), // Loại bỏ khoảng trắng thừa nếu có
-    },
-    {
-      headers: {
-        Accept: "*/*",
-        "Content-Type": "application/json",
-      },
+      password: password.trim(),
     }
   );
+
+  return response.data;
+};
+
+export const getUserProfile = async () => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/User/profile"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("PROFILE ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+
+  }
+
+};
+
+export const updateUserProfile = async (data) => {
+
+  const response = await axiosInstance.put(
+    "/api/User/profile",
+    data
+  );
+  
+
+  return response.data;
+
+}
+export const getProvinces = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/api/geographic-areas/provinces",
+      {
+        headers: {
+          accept: "text/plain", // nếu API yêu cầu text/plain
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET PROVINCES ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+  }
+};
+export const getWardsByProvince = async (provinceId) => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/geographic-areas/provinces/${provinceId}/wards`,
+      {
+        headers: {
+          accept: "text/plain", // đổi thành application/json nếu API trả JSON
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET WARDS ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+  }
 };

@@ -1,9 +1,7 @@
-
-
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
-import EmergencyHeader from "../../components/EmergencyHeader/EmergencyHeader";
-import EmergencyFooter from "../../components/EmergencyFooter/EmergencyFooter";
+import EmergencyHeader from "../../Layout/EmergencyHeader/EmergencyHeader";
+import EmergencyFooter from "../../Layout/EmergencyFooter/EmergencyFooter";
 import EmergencyNotify from "../../utils/EmergencyNotify";
 
 import {
@@ -17,9 +15,7 @@ import {
 } from "antd";
 import {
   PhoneOutlined,
-  EnvironmentOutlined,
   UploadOutlined,
-  WarningOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { createRescueRequest } from "../../api/service/emergencyApi";
@@ -34,6 +30,7 @@ const MAIN_INCIDENT_OPTIONS = [
   { value: "FireExplosion", label: "Cháy nổ" },
   { value: "DisasterFlood", label: "Ngập lụt" },
 ];
+
 const SPECIFIC_CONDITION_OPTIONS = [
   { value: "SevereFlood", label: "Ngập nặng" },
   { value: "FireExplosion", label: "Cháy nổ" },
@@ -42,6 +39,7 @@ const SPECIFIC_CONDITION_OPTIONS = [
   { value: "ElderlyOrChildren", label: "Người già/trẻ em" },
   { value: "PowerOrCommunicationOutage", label: "Mất điện/liên lạc" },
 ];
+
 const DEFAULT_AREA_ID = 1;
 
 const EmergencyRequest = () => {
@@ -50,6 +48,30 @@ const EmergencyRequest = () => {
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const [startTime] = useState(new Date()); // thời điểm hệ thống active
+const [timeAgo, setTimeAgo] = useState("Vừa xong");
+
+useEffect(() => {
+  const updateTime = () => {
+    const now = new Date();
+    const diffMinutes = Math.floor((now - startTime) / 60000);
+
+    if (diffMinutes <= 0) {
+      setTimeAgo("Vừa xong");
+    } else if (diffMinutes === 1) {
+      setTimeAgo("1 phút trước");
+    } else {
+      setTimeAgo(`${diffMinutes} phút trước`);
+    }
+  };
+
+  updateTime(); // chạy lần đầu
+
+  const interval = setInterval(updateTime, 60000); // mỗi 1 phút
+
+  return () => clearInterval(interval);
+}, [startTime]);
 
   const [form, setForm] = useState({
     fullname: "",
@@ -65,41 +87,125 @@ const EmergencyRequest = () => {
     images: [],
   });
 
-  /* ===== VALIDATE ALL FIELDS ===== */
+  /* ================= VALIDATE ================= */
   const validateForm = () => {
     const newErrors = {};
     const errorMessages = {};
-
+  
+    /* ===== 1. FULLNAME ===== */
     if (!form.fullname?.trim()) {
       newErrors.fullname = true;
       errorMessages.fullname = "Vui lòng nhập họ và tên";
+    } else if (form.fullname.trim().length < 3) {
+      newErrors.fullname = true;
+      errorMessages.fullname = "Họ tên phải ít nhất 3 ký tự";
     }
+  
+    /* ===== 2. PRIMARY PHONE ===== */
+    const phoneRegex = /^(0[0-9]{9})$/;
+  
     if (!form.primaryPhone?.trim()) {
       newErrors.primaryPhone = true;
       errorMessages.primaryPhone = "Vui lòng nhập số điện thoại chính";
+    } else if (!phoneRegex.test(form.primaryPhone.trim())) {
+      newErrors.primaryPhone = true;
+      errorMessages.primaryPhone = "Số điện thoại phải gồm 10 số và bắt đầu bằng 0";
     }
+  
+    /* ===== 3. BACKUP PHONE (KHÔNG BẮT BUỘC NHƯNG PHẢI ĐÚNG FORMAT NẾU NHẬP) ===== */
+    if (form.backupPhone?.trim()) {
+      if (!phoneRegex.test(form.backupPhone.trim())) {
+        newErrors.backupPhone = true;
+        errorMessages.backupPhone = "Số điện thoại phụ không hợp lệ";
+      }
+  
+      if (form.backupPhone.trim() === form.primaryPhone.trim()) {
+        newErrors.backupPhone = true;
+        errorMessages.backupPhone = "SĐT phụ không được trùng SĐT chính";
+      }
+    }
+  
+    /* ===== 4. MAIN INCIDENT ===== */
     if (!form.mainIncidentType) {
       newErrors.mainIncidentType = true;
       errorMessages.mainIncidentType = "Vui lòng chọn loại sự cố";
     }
+  
+    /* ===== 5. SPECIFIC CONDITIONS ===== */
     if (!form.specificConditions?.length) {
       newErrors.specificConditions = true;
       errorMessages.specificConditions = "Vui lòng chọn ít nhất một tình trạng";
     }
-    if (!form.detailDescription?.trim()) {
-      newErrors.detailDescription = true;
-      errorMessages.detailDescription = "Vui lòng nhập mô tả chi tiết";
-    }
+  
+    /* ===== 6. GPS ===== */
     if (!gps) {
       newErrors.gps = true;
       errorMessages.gps = "Vui lòng lấy tọa độ GPS";
     }
+  
+    /* ===== 7. VICTIM COUNT ===== */
+    if (form.victimCount === "" || form.victimCount === null) {
+      newErrors.victimCount = true;
+      errorMessages.victimCount =
+        "Vui lòng nhập số người gặp nạn (0 nếu không có)";
+    } else if (isNaN(form.victimCount) || Number(form.victimCount) < 0) {
+      newErrors.victimCount = true;
+      errorMessages.victimCount = "Số người gặp nạn không hợp lệ";
+    }
+    /* ===== 8. AVAILABLE RESCUE TOOLS ===== */
+    if(!form.availableRescueTools?.trim()) {
+      newErrors.availableRescueTools = true;
+      errorMessages.availableRescueTools = "Vui lòng nhập dụng cụ cứu hộ hiện có (nếu không có thì ghi 'Không')";
+    } else
+    if (form.availableRescueTools?.length > 200) {
+      newErrors.availableRescueTools = true;
+      errorMessages.availableRescueTools = "Dụng cụ cứu hộ tối đa 200 ký tự";
+    }
+  
+    /* ===== 9. SPECIAL NEEDS ===== */
+    if(!form.specialNeeds?.trim()) {
+      newErrors.specialNeeds = true;
+      errorMessages.specialNeeds = "Vui lòng nhập nhu cầu đặc biệt (nếu có, nếu không có thì ghi 'Không')";
+    } else
+    if (form.specialNeeds?.length > 200) {
+      newErrors.specialNeeds = true;
+      errorMessages.specialNeeds = "Nhu cầu đặc biệt tối đa 200 ký tự";
+    }
+  
+    /* ===== 10. DETAIL DESCRIPTION ===== */
+    if (!form.detailDescription?.trim()) {
+      newErrors.detailDescription = true;
+      errorMessages.detailDescription = "Vui lòng nhập mô tả chi tiết";
+    } else if (form.detailDescription.trim().length < 10) {
+      newErrors.detailDescription = true;
+      errorMessages.detailDescription = "Mô tả phải ít nhất 10 ký tự";
+    }
+  
+    /* ===== 11. LANDMARK NOTE ===== */
+    if (!form.landmarkNote?.trim()) {
+      newErrors.landmarkNote = true;
+      errorMessages.landmarkNote = "Vui lòng nhập ghi chú điểm nhận dạng";
 
+    } else if (form.landmarkNote.trim().length > 50) {
+      newErrors.landmarkNote = true;
+      errorMessages.landmarkNote = "Ghi chú tối đa 50 ký tự";
+    }
+  
+    /* ===== 12. IMAGES (OPTIONAL NHƯNG GIỚI HẠN SỐ LƯỢNG) ===== */
+    if (!form.images || form.images.length === 0) {
+      newErrors.images = true;
+      errorMessages.images = "Vui lòng tải lên ít nhất một hình ảnh";
+    } else if (form.images.length > 5) {
+      newErrors.images = true;
+      errorMessages.images = "Tối đa 5 hình ảnh";
+    }
+  
     setErrors({ ...newErrors, messages: errorMessages });
+  
     return Object.keys(newErrors).length === 0;
   };
 
-  /* ===== GPS ===== */
+  /* ================= GPS ================= */
   const handleGetGPS = () => {
     if (!navigator.geolocation) {
       message.error("Trình duyệt không hỗ trợ GPS");
@@ -107,12 +213,19 @@ const EmergencyRequest = () => {
     }
 
     setLoadingGPS(true);
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+
         setGps({ lat, lng });
-        setErrors(prev => ({ ...prev, gps: false }));
+
+        setErrors(prev => ({
+          ...prev,
+          gps: false,
+          messages: { ...(prev.messages || {}), gps: "" }
+        }));
 
         try {
           const res = await fetch(
@@ -134,44 +247,73 @@ const EmergencyRequest = () => {
     );
   };
 
-  /* ===== SUBMIT API ===== */
+  /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!validateForm()) return;
+
+    const usedPhones = JSON.parse(localStorage.getItem("usedRescuePhones") || "[]");
+
+    if (usedPhones.includes(form.primaryPhone.trim())) {
+      setErrors(prev => ({
+        ...prev,
+        primaryPhone: true,
+        messages: {
+          ...(prev.messages || {}),
+          primaryPhone: "Số điện thoại này đã gửi yêu cầu trước đó"
+        }
+      }));
       return;
     }
 
     const fd = new FormData();
+
     fd.append("Fullname", form.fullname.trim());
     fd.append("PrimaryPhone", form.primaryPhone.trim());
-    if (form.backupPhone?.trim()) fd.append("BackupPhone", form.backupPhone.trim());
-    fd.append("MainIncidentType", form.mainIncidentType);
-    (form.specificConditions || []).forEach((v) => {
-      fd.append("SpecificConditions", v);
-    });
+    // if (form.backupPhone.trim())
+    //   fd.append("BackupPhone", form.backupPhone.trim());
 
-    const victimCount = form.victimCount ? Number(form.victimCount) : "";
-    if (victimCount !== "") fd.append("VictimCount", victimCount);
-    fd.append("AvailableRescueTools", form.availableRescueTools ?? "");
-    fd.append("SpecialNeeds", form.specialNeeds ?? "");
-    fd.append("DetailDescription", form.detailDescription ?? "");
-    fd.append("LandmarkNote", form.landmarkNote ?? "");
+    fd.append("MainIncidentType", form.mainIncidentType);
+
+    form.specificConditions.forEach(v =>
+      fd.append("SpecificConditions", v)
+    );
+    form.landmarkNote && fd.append("LandmarkNote", form.landmarkNote);
+
+
+    if (form.victimCount !== "")
+      fd.append("VictimCount", Number(form.victimCount));
+
+    fd.append("AvailableRescueTools", form.availableRescueTools);
+    fd.append("SpecialNeeds", form.specialNeeds);
+    fd.append("DetailDescription", form.detailDescription);
+    fd.append("LandmarkNote", form.landmarkNote);
     fd.append("CurrentAddress", address);
-    fd.append("LocationLat", String(gps.lat));
-    fd.append("LocationLng", String(gps.lng));
+
+    if (gps) {
+      fd.append("LocationLat", String(gps.lat));
+      fd.append("LocationLng", String(gps.lng));
+    }
+
     fd.append("AreaId", DEFAULT_AREA_ID);
 
-    (form.images || []).forEach((file) => {
-      const raw = file?.originFileObj ?? file;
-      if (raw instanceof File) fd.append("Images", raw);
+    form.images.forEach(file => {
+      const raw = file.originFileObj;
+      if (raw) fd.append("Images", raw);
     });
 
     try {
       await createRescueRequest(fd);
 
+      localStorage.setItem(
+        "usedRescuePhones",
+        JSON.stringify([...usedPhones, form.primaryPhone.trim()])
+      );
+
       EmergencyNotify.success(
         "Tạo yêu cầu thành công",
-        "Yêu cầu cứu hộ đã được gửi tới hệ thống"
+        "Yêu cầu cứu hộ đã được gửi"
       );
+
       setForm({
         fullname: "",
         primaryPhone: "",
@@ -185,12 +327,19 @@ const EmergencyRequest = () => {
         landmarkNote: "",
         images: [],
       });
-      setErrors({});
+
       setGps(null);
       setAddress("");
+      setErrors({});
+
       setTimeout(() => navigate("/map"), 2000);
     } catch (err) {
-      const msg = err.response?.data?.title || err.response?.data?.message || err.message || "Gửi yêu cầu thất bại";
+      const msg =
+        err.response?.data?.title ||
+        err.response?.data?.message ||
+        err.message ||
+        "Gửi yêu cầu thất bại";
+
       EmergencyNotify.error("Lỗi", msg);
     }
   };
@@ -214,41 +363,52 @@ const EmergencyRequest = () => {
                 <UserOutlined /> 1. THÔNG TIN NGƯỜI GỬI YÊU CẦU
               </h4>
 
-              <label>HỌ VÀ TÊN NGƯỜI GỬI *</label>
+              <label>HỌ VÀ TÊN NGƯỜI GỬI{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
               <Input
                 placeholder="Họ và tên"
                 status={errors.fullname ? "error" : ""}
                 value={form.fullname}
-                onChange={(e) =>
-                  setForm({ ...form, fullname: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setForm({ ...form, fullname: value });
+                
+                  if (value.trim()) {
+                    setErrors(prev => ({
+                      ...prev,
+                      fullname: false,
+                      messages: { ...prev.messages, fullname: "" }
+                    }));
+                  }
+                }}
               />
               {errors.fullname && <p className="error-message">{errors.messages?.fullname}</p>}
 
               <div className="form-row">
                 <div>
-                  <label>SỐ ĐIỆN THOẠI CHÍNH *</label>
+                  <label>SỐ ĐIỆN THOẠI CHÍNH{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
                     prefix={<PhoneOutlined />}
                     placeholder="SĐT chính"
                     status={errors.primaryPhone ? "error" : ""}
                     value={form.primaryPhone}
-                    onChange={(e) =>
-                      setForm({ ...form, primaryPhone: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setForm({ ...form, primaryPhone: value });
+                    
+                      if (value.trim()) {
+                        setErrors(prev => ({
+                          ...prev,
+                          primaryPhone: false,
+                          messages: { ...prev.messages, primaryPhone: "" }
+                        }));
+                      }
+                    }}
                   />
                   {errors.primaryPhone && <p className="error-message">{errors.messages?.primaryPhone}</p>}
                 </div>
-                <div>
-                  <label>SỐ ĐIỆN THOẠI DỰ PHÒNG</label>
-                  <Input
-                    placeholder="SĐT dự phòng"
-                    value={form.backupPhone}
-                    onChange={(e) =>
-                      setForm({ ...form, backupPhone: e.target.value })
-                    }
-                  />
-                </div>
+            
               </div>
             </div>
 
@@ -259,16 +419,25 @@ const EmergencyRequest = () => {
               </h4>
 
               <label className="field-label">
-                LOẠI SỰ CỐ CHÍNH *
+                LOẠI SỰ CỐ CHÍNH{" "}
+                <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span>
               </label>
               <Select
                 className="full-width"
                 placeholder="Chọn loại sự cố"
                 status={errors.mainIncidentType ? "error" : ""}
                 value={form.mainIncidentType || undefined}
-                onChange={(v) =>
-                  setForm({ ...form, mainIncidentType: v })
-                }
+                onChange={(v) => {
+                  setForm({ ...form, mainIncidentType: v });
+                
+                  if (v) {
+                    setErrors(prev => ({
+                      ...prev,
+                      mainIncidentType: false,
+                      messages: { ...prev.messages, mainIncidentType: "" }
+                    }));
+                  }
+                }}
               >
                 {MAIN_INCIDENT_OPTIONS.map((o) => (
                   <Option key={o.value} value={o.value}>{o.label}</Option>
@@ -277,19 +446,34 @@ const EmergencyRequest = () => {
               {errors.mainIncidentType && <p className="error-message">{errors.messages?.mainIncidentType}</p>}
 
               <label className="field-label mt">
-                TÌNH TRẠNG CỤ THỂ (CHỌN CÁC MỤC ÁP DỤNG) *
+                TÌNH TRẠNG CỤ THỂ (CHỌN CÁC MỤC ÁP DỤNG){" "}
+                <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span>
               </label>
 
-              <div className={`checkbox-grid ${errors.specificConditions ? "error" : ""}`}>
-                <Checkbox.Group
-                  value={form.specificConditions}
-                  onChange={(v) => setForm({ ...form, specificConditions: v })}
-                >
-                  {SPECIFIC_CONDITION_OPTIONS.map((o) => (
-                    <Checkbox key={o.value} value={o.value}>{o.label}</Checkbox>
-                  ))}
-                </Checkbox.Group>
-              </div>
+              <div className="condition-wrapper">
+  <Checkbox.Group
+    value={form.specificConditions}
+    onChange={(v) => {
+      setForm({ ...form, specificConditions: v });
+    
+      if (v.length > 0) {
+        setErrors(prev => ({
+          ...prev,
+          specificConditions: false,
+          messages: { ...prev.messages, specificConditions: "" }
+        }));
+      }
+    }}
+  >
+    <div className="condition-grid">
+      {SPECIFIC_CONDITION_OPTIONS.map((o) => (
+        <Checkbox key={o.value} value={o.value} className="condition-item">
+          {o.label}
+        </Checkbox>
+      ))}
+    </div>
+  </Checkbox.Group>
+</div>
               {errors.specificConditions && <p className="error-message">{errors.messages?.specificConditions}</p>}
             </div>
 
@@ -299,7 +483,8 @@ const EmergencyRequest = () => {
 
               <div className="location-grid">
                 <div className="location-left">
-                  <label>ĐỊA CHỈ HIỆN TẠI *</label>
+                  <label>ĐỊA CHỈ HIỆN TẠI{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
                     placeholder="Địa chỉ sẽ tự động điền theo GPS"
                     value={address}
@@ -308,13 +493,40 @@ const EmergencyRequest = () => {
                   />
                   {errors.gps && <p className="error-message">{errors.messages?.gps}</p>}
 
-                  <label>GHI CHÚ ĐIỂM NHẬN DẠNG</label>
-                  <Input
-                    placeholder="Gần cây đa, đối diện tiệm thuốc..."
-                    value={form.landmarkNote}
-                    onChange={(e) => setForm({ ...form, landmarkNote: e.target.value })}
-                  />
+                  <label>GHI CHÚ ĐIỂM NHẬN DẠNG{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
+<Input
+  placeholder="Gần cây đa, đối diện tiệm thuốc..."
+  value={form.landmarkNote}
+  status={errors.landmarkNote ? "error" : ""}
+  onChange={(e) => {
+    const value = e.target.value;
 
+    setForm({ ...form, landmarkNote: value });
+
+    // Giới hạn 200 ký tự
+    if (value.length > 200) {
+      setErrors(prev => ({
+        ...prev,
+        landmarkNote: true,
+        messages: {
+          ...(prev.messages || {}),
+          landmarkNote: "Ghi chú tối đa 200 ký tự"
+        }
+      }));
+    } else {
+      setErrors(prev => ({
+        ...prev,
+        landmarkNote: false,
+        messages: {
+          ...(prev.messages || {}),
+          landmarkNote: ""
+        }
+      }));
+    }
+  }}
+/>
+{errors.landmarkNote && <p className="error-message">{errors.messages?.landmarkNote}</p>}
                   <Button
                     type="primary"
                     className="gps-locate-btn"
@@ -350,15 +562,45 @@ const EmergencyRequest = () => {
 
               <div className="form-row">
                 <div>
-                  <label>SỐ LƯỢNG NGƯỜI GẶP NẠN</label>
+                  <label>SỐ LƯỢNG NGƯỜI GẶP NẠN{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <InputNumber
                     style={{ width: "100%" }}
                     placeholder="Số người gặp nạn"
                     min={0}
                     value={form.victimCount}
-                    onChange={(value) =>
-                      setForm({ ...form, victimCount: value })
-                    }
+                    onChange={(value) => {
+                      setForm({ ...form, victimCount: value });
+                    
+                      if (value === "" || value === null) {
+                        setErrors(prev => ({
+                          ...prev,
+                          victimCount: true,
+                          messages: {
+                            ...(prev.messages || {}),
+                            victimCount: "Vui lòng nhập số người gặp nạn (0 nếu không có)"
+                          }
+                        }));
+                      } else if (value < 0) {
+                        setErrors(prev => ({
+                          ...prev,
+                          victimCount: true,
+                          messages: {
+                            ...(prev.messages || {}),
+                            victimCount: "Số người gặp nạn không hợp lệ"
+                          }
+                        }));
+                      } else {
+                        setErrors(prev => ({
+                          ...prev,
+                          victimCount: false,
+                          messages: {
+                            ...(prev.messages || {}),
+                            victimCount: ""
+                          }
+                        }));
+                      }
+                    }}
                     onKeyDown={(e) => {
                       if (
                         !/[0-9]/.test(e.key) &&
@@ -372,44 +614,106 @@ const EmergencyRequest = () => {
                       }
                     }}
                   />
+                  {errors.victimCount && <p className="error-message">{errors.messages?.victimCount}</p>}
                 </div>
                 <div>
-                  <label>DỤNG CỤ CỨU HỘ HIỆN CÓ</label>
+                  <label>DỤNG CỤ CỨU HỘ HIỆN CÓ{" "}
+                  <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
                     placeholder="Dụng cụ cứu hộ"
                     value={form.availableRescueTools}
-                    onChange={(e) =>
-                      setForm({ ...form, availableRescueTools: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                    
+                      setForm({ ...form, availableRescueTools: value });
+                    
+                      // Nếu hợp lệ thì clear lỗi
+                      if (value.length <= 200) {
+                        setErrors(prev => ({
+                          ...prev,
+                          availableRescueTools: false,
+                          messages: {
+                            ...(prev.messages || {}),
+                            availableRescueTools: ""
+                          }
+                        }));
+                      } else {
+                        setErrors(prev => ({
+                          ...prev,
+                          availableRescueTools: true,
+                          messages: {
+                            ...(prev.messages || {}),
+                            availableRescueTools: "Tối đa 200 ký tự"
+                          }
+                        }));
+                      }
+                    }}
+
+
                   />
+                  {errors.availableRescueTools && <p className="error-message">{errors.messages?.availableRescueTools}</p>}
                 </div>
               </div>
 
-              <label>NHU CẦU ĐẶC BIỆT</label>
+              <label>NHU CẦU ĐẶC BIỆT{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
               <Input
-                placeholder="Nhu cầu đặc bi���t"
+                placeholder="Nhu cầu đặc biệt (nếu có)"
                 value={form.specialNeeds}
-                onChange={(e) =>
-                  setForm({ ...form, specialNeeds: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                
+                  setForm({ ...form, specialNeeds: value });
+                
+                  if (value.length > 50) {
+                    setErrors(prev => ({
+                      ...prev,
+                      specialNeeds: true,
+                      messages: {
+                        ...(prev.messages || {}),
+                        specialNeeds: "Nhu cầu đặc biệt tối đa 50 ký tự"
+                      }
+                    }));
+                  } else {
+                    setErrors(prev => ({
+                      ...prev,
+                      specialNeeds: false,
+                      messages: {
+                        ...(prev.messages || {}),
+                        specialNeeds: ""
+                      }
+                    }));
+                  }
+                }}
               />
-
-              <label>MÔ TẢ CHI TIẾT *</label>
+             {errors.specialNeeds && <p className="error-message">{errors.messages?.specialNeeds}</p>}
+              <label>MÔ TẢ CHI TIẾT{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
               <TextArea
                 rows={4}
                 placeholder="Mô tả chi tiết"
                 status={errors.detailDescription ? "error" : ""}
                 value={form.detailDescription}
-                onChange={(e) =>
-                  setForm({ ...form, detailDescription: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setForm({ ...form, detailDescription: value });
+                
+                  if (value.trim()) {
+                    setErrors(prev => ({
+                      ...prev,
+                      detailDescription: false,
+                      messages: { ...prev.messages, detailDescription: "" }
+                    }));
+                  }
+                }}
               />
               {errors.detailDescription && <p className="error-message">{errors.messages?.detailDescription}</p>}
             </div>
 
             {/* ===== 5 ===== */}
             <div className="form-section section-5">
-              <h4>📷 5. HÌNH ẢNH HIỆN TRƯỜNG</h4>
+              <h4>📷 5. HÌNH ẢNH HIỆN TRƯỜNG{" "}
+              <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></h4>
 
               <Upload
                 listType="picture"
@@ -420,6 +724,7 @@ const EmergencyRequest = () => {
                   setForm({ ...form, images: fileList })
                 }
               >
+                
                 <div className="upload-dropzone">
                   <UploadOutlined className="upload-icon" />
                   <p className="upload-title">
@@ -430,6 +735,7 @@ const EmergencyRequest = () => {
                   </span>
                 </div>
               </Upload>
+              {errors.images && <p className="error-message">{errors.messages?.images}</p>}
             </div>
 
             <Button block className="submit-btn" onClick={handleSubmit}>
@@ -439,27 +745,56 @@ const EmergencyRequest = () => {
 
           {/* ================= RIGHT ================= */}
           <aside className="emergency-info">
-            <div className="hotline-box">
-              <h3>📞 HOTLINE KHẨN CẤP</h3>
-              <div className="hotline red">113 – CẢNH SÁT</div>
-              <div className="hotline orange">114 – CỨU HỎA</div>
-              <div className="hotline green">115 – CẤP CỨU</div>
-            </div>
 
-            <div className="note-box">
-              <h4>HƯỚNG DẪN AN TOÀN</h4>
-              <ul>
-                <li>Giữ điện thoại luôn bật.</li>
-                <li>Di chuyển đến nơi an toàn.</li>
-                <li>Dùng đèn pin hoặc vật sáng.</li>
-              </ul>
-            </div>
+{/* ===== BOX 1: HOTLINE ===== */}
+<div className="info-card hotline-card">
+  <div className="card-header red">
+    <span>📞 HOTLINE KHẨN CẤP</span>
+  </div>
 
-            <div className="status-box">
-              🟢 HỆ THỐNG ĐANG HOẠT ĐỘNG
-              <span>Cập nhật: 1 phút trước</span>
-            </div>
-          </aside>
+  <div className="card-body">
+    <div className="hotline-item">🚓 113 – CẢNH SÁT</div>
+    <div className="hotline-item">🔥 114 – CỨU HỎA</div>
+    <div className="hotline-item">🚑 115 – CẤP CỨU</div>
+  </div>
+</div>
+
+{/* ===== BOX 2: HƯỚNG DẪN ===== */}
+<div className="info-card guide-card">
+  <div className="card-header blue">
+    <span>📘 HƯỚNG DẪN AN TOÀN</span>
+  </div>
+
+  <div className="card-body">
+    <ul className="guide-list">
+      <li>Giữ điện thoại luôn bật.</li>
+      <li>Di chuyển đến nơi an toàn.</li>
+      <li>Dùng đèn pin hoặc vật sáng.</li>
+    </ul>
+  </div>
+</div>
+
+{/* ===== BOX 3: TRẠNG THÁI ===== */}
+<div className="info-card status-card">
+  <div className="card-header green">
+    <span>TRẠNG THÁI HỆ THỐNG</span>
+  </div>
+
+  <div className="card-body status-body">
+    <div className="status-line">
+      <span className="status-dot"></span>
+      <span className="status-text">
+        HỆ THỐNG : ĐANG HOẠT ĐỘNG
+      </span>
+    </div>
+
+    <div className="status-update">
+  Cập nhật: {timeAgo}
+</div>
+  </div>
+</div>
+
+</aside>
         </div>
       </main>
 

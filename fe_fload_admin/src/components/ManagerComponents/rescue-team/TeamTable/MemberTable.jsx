@@ -1,37 +1,70 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Tag, Spin, message, Modal } from 'antd';
-import { EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { getRescueTeamMembers, deleteTeamMember } from '../../../../../api/axios/ManagerApi/rescueTeamApi'; // điều chỉnh đường dẫn nếu cần
+import {
+  Button,
+  Tag,
+  Spin,
+  message,
+  Modal
+} from 'antd';
+
+import {
+  ExclamationCircleOutlined,
+  PlusOutlined
+} from '@ant-design/icons';
+
+import {
+  getRescueTeamMembers,
+  deleteTeamMember
+} from '../../../../../api/axios/ManagerApi/rescueTeamApi';
+
 import './MemberTable.css';
+import CreateMemberModal from "../CreateTeam/CreateMemberModal";
+
+/* ✅ MUI */
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Stack from '@mui/material/Stack';
+
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function MemberTable({ teamId }) {
+
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [createOpen, setCreateOpen] = useState(false);
 
-  // Fetch danh sách thành viên
   const fetchMembers = async () => {
+
     if (!teamId) return;
+
     try {
       setLoading(true);
+
       const response = await getRescueTeamMembers(teamId);
       const data = response.data;
 
       if (Array.isArray(data)) {
         setMembers(data);
-      } else if (Array.isArray(data?.data)) {
+      }
+      else if (Array.isArray(data?.data)) {
         setMembers(data.data);
-      } else if (Array.isArray(data?.items)) {
+      }
+      else if (Array.isArray(data?.items)) {
         setMembers(data.items);
-      } else {
-        console.error("API không trả về mảng:", data);
+      }
+      else {
         setMembers([]);
       }
-    } catch (error) {
-      console.error('Lỗi khi lấy danh sách thành viên:', error);
-      message.error('Không thể tải danh sách thành viên đội.');
-    } finally {
+
+    }
+    catch (error) {
+      console.error(error);
+      message.error('Không thể tải danh sách thành viên');
+    }
+    finally {
       setLoading(false);
     }
   };
@@ -40,31 +73,25 @@ export default function MemberTable({ teamId }) {
     fetchMembers();
   }, [teamId]);
 
-  // Xử lý xóa thành viên
   const handleDeleteMember = (userId, fullName) => {
+
     Modal.confirm({
       title: 'Xác nhận xóa',
       icon: <ExclamationCircleOutlined />,
-      content: `Bạn có chắc chắn muốn xóa thành viên "${fullName}" (ID: ${userId}) khỏi đội này?`,
-      okText: 'Xóa',
+      content: `Bạn có chắc muốn xóa "${fullName}"?`,
       okType: 'danger',
-      cancelText: 'Hủy',
       onOk: async () => {
         try {
           await deleteTeamMember(teamId, userId);
-          message.success(`Đã xóa thành viên ${fullName} thành công!`);
-          
-          // Cập nhật lại danh sách sau khi xóa (cách 1: refetch)
-          await fetchMembers();
-
-          // Cách 2: filter local (nhanh hơn, không cần gọi API lại)
-          // setMembers((prev) => prev.filter((m) => m.userId !== userId));
-        } catch (error) {
-          console.error('Lỗi khi xóa thành viên:', error);
-          message.error('Xóa thành viên thất bại. Vui lòng thử lại.');
+          message.success("Đã xóa thành viên");
+          fetchMembers();
+        }
+        catch {
+          message.error("Xóa thất bại");
         }
       },
     });
+
   };
 
   if (loading) {
@@ -77,69 +104,122 @@ export default function MemberTable({ teamId }) {
 
   return (
     <div className="member-table-container">
+
+      {/* HEADER */}
       <div className="member-table-header">
-        <h4>👥 Danh sách thành viên đội ({members.length})</h4>
+        <h4>
+          👥 Danh sách thành viên ({members.length})
+        </h4>
+
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setCreateOpen(true)}
+        >
+          Tạo thành viên
+        </Button>
       </div>
 
+      {/* TABLE */}
       <div className="member-table-wrapper">
+
         <div className="member-table-head">
           <span>ID</span>
           <span>HỌ TÊN</span>
           <span>ĐT LIÊN LẠC</span>
-          <span>VỊ TRÍ TRONG ĐỘI</span>
+          <span>VAI TRÒ</span>
           <span>HÀNH ĐỘNG</span>
         </div>
 
         {members.length === 0 ? (
-          <div className="no-data">Chưa có thành viên nào trong đội</div>
+          <div className="no-data">
+            Chưa có thành viên
+          </div>
         ) : (
-          members.map((member) => (
+          members.map(member => (
             <MemberRow
               key={member.userId}
               {...member}
-              teamId={teamId}
-              onDelete={() => handleDeleteMember(member.userId, member.fullName)}
+              onDelete={() =>
+                handleDeleteMember(
+                  member.userId,
+                  member.fullName
+                )
+              }
             />
           ))
         )}
+
       </div>
+
+      <CreateMemberModal
+        open={createOpen}
+        teamId={teamId}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={fetchMembers}
+      />
+
     </div>
   );
 }
 
-function MemberRow({ userId, fullName, phone, roleInTeam, teamId, onDelete }) {
+
+/* ========================================================= */
+
+function MemberRow({
+  userId,
+  fullName,
+  phone,
+  roleInTeam,
+  onDelete
+}) {
+
   return (
     <div className="member-row">
-      <div className="id-cell" data-label="ID">
+
+      <div className="id-cell">
         <strong>{userId}</strong>
       </div>
 
-      <div className="name-cell" data-label="Họ tên">
-        <strong>{fullName}</strong>
+      <div className="name-cell">
+        {fullName}
       </div>
 
-      <div className="phone-cell" data-label="Điện thoại">
-        {phone || '—'}
+      <div className="phone-cell">
+        {phone || "—"}
       </div>
 
-      <div className="role-cell" data-label="Vị trí">
-        <Tag color="blue">{roleInTeam || 'Thành viên'}</Tag>
+      <div className="role-cell">
+        <Tag color="blue">
+          {roleInTeam || "Thành viên"}
+        </Tag>
       </div>
 
-      <div className="actions-cell" data-label="Hành động">
-        <Button size="small" type="text" icon={<EditOutlined />}>
-          Sửa
-        </Button>
-        <Button
-          size="small"
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={onDelete}
-        >
-          Xóa
-        </Button>
+      <div className="actions-cell">
+      
+
+          {/* <Tooltip title="Chỉnh sửa">
+            <IconButton
+              size="small"
+              className="action-edit"
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip> */}
+
+          <Tooltip title="Xóa">
+            <IconButton
+              size="small"
+              className="action-delete"
+              onClick={onDelete}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+     
       </div>
+
     </div>
   );
 }

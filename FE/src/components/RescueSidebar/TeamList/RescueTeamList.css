@@ -1,152 +1,72 @@
-/* ===== FIXED FILTER ===== */
-.sidebar-fixed {
-    padding: 12px 16px;
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .search-team,
-  select {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #ddd;
-  }
-  
-  .dropdowns {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  
-  .chips {
-    display: flex;
-    gap: 8px;
-    margin: 12px 0;
-  }
-  
-  .chips button {
-    padding: 6px 14px;
-    border-radius: 999px;
-    border: 1px solid #d1d5db;
-    background: #fff;
-    font-weight: 500;
-    color: #374151;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  /* hover nhẹ */
-  .chips button:hover {
-    background: #f3f4f6;
-  }
-  
-  /* ACTIVE = XANH ĐẬM */
-  .chips .active {
-    background: #1d4ed8;       /* xanh đậm */
-    color: #fff;
-    border-color: #1d4ed8;
-  }
-  
-  
-  .section-title {
-    margin: 6px 0 8px;
-    font-size: 16px;
-    font-weight: 700;
-  }
-  
-  /* ===== SCROLL LIST ===== */
-  .team-list-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-  }
-  
-  .team-list-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-  .team-list-scroll::-webkit-scrollbar-thumb {
-    background: #ddd;
-    border-radius: 6px;
-  }
-  
-  /* ===== TEAM CARD ===== */
-  .team-card {
-    background: #fff;
-    border-radius: 18px;
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  
-  .team-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .specialty {
-    font-size: 13px;
-    color: #666;
-    margin: 4px 0;
-  }
-  
-  .team-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #666;
-  }
-  
-  .team-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  
-  .btn-primary {
-    flex: 1;
-    background: #000;
-    color: #fff;
-    border-radius: 14px;
-    border: none;
-    padding: 10px;
-  }
-  
-  .btn-icon {
-    width: 44px;
-    border-radius: 14px;
-    background: #fde047;
-    border: none;
-  }
-  
-  .busy {
-    opacity: 0.95;
-  }
-  
-  /* ===== TAG ===== */
-  .tag {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  
-  .tag.green {
-    background: #dcfce7;
-    color: #166534;
-  }
-  
-  .tag.orange {
-    background: #ffedd5;
-    color: #9a3412;
-  }
-  
-  .tag.gray {
-    background: #eee;
-    color: #555;
-  }
-  
-  .eta {
-    color: #ef4444;
-  }
-  
+.rescue-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  margin-top: 50px;
+}
+
+/* FILTER */
+.rescue-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.team-count {
+  font-weight: 600;
+  color: #555;
+}
+
+/* SCROLL AREA */
+.team-list-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Scroll đẹp hơn */
+.team-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.team-list-scroll::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 6px;
+}
+
+/* CARD */
+.team-card-modern {
+  background: #fff;
+  padding: 18px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+  transition: 0.2s;
+}
+
+.team-card-modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.team-header-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: #666;
+}
+
+.loading-wrapper {
+  padding: 40px;
+  text-align: center;
+  margin-top: 250px;
+}
