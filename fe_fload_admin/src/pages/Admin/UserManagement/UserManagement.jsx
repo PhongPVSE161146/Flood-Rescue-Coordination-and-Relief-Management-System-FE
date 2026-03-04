@@ -15,7 +15,7 @@ import "./UserManagement.css";
 
 import UserTable from "../../../components/AdminComponents/TableUser/UserListManager/UserTable";
 import UserFormModal from "../../../components/AdminComponents/TableUser/FormModal/UserFormModal";
-import UserDetail from "../../../components/AdminComponents/TableUser/UserListManager/UserDetail";
+
 import StatCard from "../../../components/AdminComponents/TableUser/FormModal/StatCard";
 
 import {
@@ -41,6 +41,7 @@ export default function UserManagement() {
   const [isEdit, setIsEdit] = useState(false);
 
   const [roleFilter, setRoleFilter] = useState("ALL");
+  
 
 
   useEffect(() => {
