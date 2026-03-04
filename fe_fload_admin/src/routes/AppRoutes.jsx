@@ -17,7 +17,7 @@ import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
 // import ManagerInfo from "../pages/Manager/Info";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
 import Approve from "../pages/Manager/Approval/ApprovalManagement";
-import ManagerRescueTeam from "../pages/Manager/RescueTeamManagement/RescueTeamManagement";
+import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
 
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
