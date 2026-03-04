@@ -30,7 +30,7 @@ axiosInstance.interceptors.response.use(
     console.error("API ERROR:", error?.response || error);
 
     if (error?.response?.status === 401) {
-      localStorage.clear();
+      sessionStorage.clear();
       window.location.href = "/login";
     }
 

@@ -159,10 +159,10 @@ export default function Sidebar() {
 
   /* USER LOCAL STORAGE */
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
   const role =
-    (localStorage.getItem("role") || "admin")
+    (sessionStorage.getItem("role") || "admin")
       .toLowerCase();
 
   const fullName = user.fullName || "Unknown User";
