@@ -363,14 +363,17 @@ export default function Sidebar() {
 
   /* LOGOUT */
 
+  // const handleLogout = () => {
+
+  //   localStorage.clear();
+
+  //   navigate("/login");
+
+  // };
   const handleLogout = () => {
-
-    localStorage.clear();
-
-    navigate("/login");
-
+    sessionStorage.clear();           // hoặc removeItem từng key nếu muốn giữ lại thứ khác
+    navigate("/login", { replace: true });
   };
-
 
   return (
 

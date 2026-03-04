@@ -4,7 +4,7 @@ import MainLayout from "../pages/mainLayout";
 import RequireAuth from "./PrivateRoute";
 
 /* ================= ADMIN ================= */
-import UserManagement from "../pages/Admin/UserManagement/UserManagement";
+import UserManagement from "../pages/Admin/UserRoleManagement/UserManagement";
 import SystemSetting from "../pages/Admin/Setting/SystemSetting";
 import Logs from "../pages/Admin/Logs/LogsChange";
 import Permissions from "../pages/Admin/Permissions/Permissions";
@@ -35,8 +35,8 @@ import MissionInProgress from "../pages/RescueTeam/RescueMission/MissionInProgre
 // import RescueProfile from "../pages/Rescue/Profile";
 
 export default function AppRoutes() {
-  const isAuth = localStorage.getItem("isAuth") === "true";
-  const role = localStorage.getItem("role");
+  const isAuth = sessionStorage.getItem("isAuth") === "true";
+   const role    = sessionStorage.getItem("role");
 
   const redirectByRole = {
     admin: "/admin/user",

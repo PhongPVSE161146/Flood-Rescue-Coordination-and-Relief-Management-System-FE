@@ -41,42 +41,57 @@ export default function Login() {
   
     if (Object.keys(e).length) return;
   
+    // try {
+  
+    //   const res = await loginApi({ phone, password });
+  
+    //   console.log("LOGIN RESPONSE:", res);
+  
+    //   // FIX TOKEN STORAGE
+    //   localStorage.setItem(
+    //     "accessToken",
+    //     res.token
+    //   );
+  
+    //   localStorage.setItem(
+    //     "user",
+    //     JSON.stringify(res.user)
+    //   );
+  
+    //   localStorage.setItem(
+    //     "role",
+    //     res.user.roleName.toLowerCase()
+    //   );
+  
+    //   localStorage.setItem(
+    //     "isAuth",
+    //     "true"
+    //   );
+  
+    //   AuthNotify.success(
+    //     "Đăng nhập thành công",
+    //     `Chào mừng ${res.user.fullName}`
+    //   );
+  
+    //   const role = res.user.roleName.toLowerCase();
+  
+    //   navigate(redirectByRole[role], { replace: true });
+  
+    // }
     try {
-  
       const res = await loginApi({ phone, password });
-  
       console.log("LOGIN RESPONSE:", res);
+
   
-      // FIX TOKEN STORAGE
-      localStorage.setItem(
-        "accessToken",
-        res.token
-      );
+   sessionStorage.setItem("accessToken", res.token);
+    sessionStorage.setItem("user", JSON.stringify(res.user));
+     sessionStorage.setItem("role", res.user.roleName.toLowerCase());
+    sessionStorage.setItem("isAuth", "true");
   
-      localStorage.setItem(
-        "user",
-        JSON.stringify(res.user)
-      );
-  
-      localStorage.setItem(
-        "role",
-        res.user.roleName.toLowerCase()
-      );
-  
-      localStorage.setItem(
-        "isAuth",
-        "true"
-      );
-  
-      AuthNotify.success(
-        "Đăng nhập thành công",
-        `Chào mừng ${res.user.fullName}`
-      );
+      AuthNotify.success("Đăng nhập thành công", `Chào mừng ${res.user.fullName}`);
   
       const role = res.user.roleName.toLowerCase();
-  
       navigate(redirectByRole[role], { replace: true });
-  
     }
     catch (error) {
   
