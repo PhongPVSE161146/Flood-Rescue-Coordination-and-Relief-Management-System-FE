@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
 
     if (error?.response?.status === 401) {
       sessionStorage.clear();
-      window.location.replace("/login");
+      window.location.href = "/login";
     }
 
     return Promise.reject(error);
