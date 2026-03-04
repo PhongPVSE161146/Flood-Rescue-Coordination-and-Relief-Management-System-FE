@@ -32,6 +32,7 @@ export default function InventoryManagement() {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [inventory, setInventory] = useState([]);
+
   const [selectedWarehouseId, setSelectedWarehouseId] = useState(null);
 
   const [warehouseDrawer, setWarehouseDrawer] = useState(false);
@@ -122,21 +123,21 @@ export default function InventoryManagement() {
     }
   };
 
-const handleDeleteWarehouse = async (id) => {
-  if (!id) return;
+  const handleDeleteWarehouse = async (id) => {
+    if (!id) return;
 
-  try {
-    await deleteWarehouse(id);
-    message.success("Xoá kho thành công");
-    loadAll();
-  } catch (err) {
-    if (err.response?.status === 409) {
-      message.error("Kho đang còn vật phẩm, không được xoá");
-    } else {
-      message.error("Xoá kho thất bại");
+    try {
+      await deleteWarehouse(id);
+      message.success("Xoá kho thành công");
+      loadAll();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        message.error("Kho đang còn vật phẩm, không được xoá");
+      } else {
+        message.error("Xoá kho thất bại");
+      }
     }
-  }
-};
+  };
 
   /* ================= ITEM ================= */
 
@@ -156,35 +157,35 @@ const handleDeleteWarehouse = async (id) => {
     }
   };
 
-const handleDeleteItem = async (id) => {
-  if (!id) return;
+  const handleDeleteItem = async (id) => {
+    if (!id) return;
 
-  try {
-    await deleteReliefItem(id);
-    message.success("Xoá vật phẩm thành công");
-    loadAll();
-  } catch (err) {
-    if (err.response?.status === 409) {
-      message.error("Vật phẩm đang được sử dụng, không được xoá");
-    } else {
-      message.error("Xoá vật phẩm thất bại");
+    try {
+      await deleteReliefItem(id);
+      message.success("Xoá vật phẩm thành công");
+      loadAll();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        message.error("Vật phẩm đang được sử dụng, không được xoá");
+      } else {
+        message.error("Xoá vật phẩm thất bại");
+      }
     }
-  }
-};
+  };
 
   /* ================= TRANSACTION ================= */
 
-const handleCreateTransaction = async (values) => {
-  try {
-    await createInventoryTransaction(values);
-    message.success("Tạo transaction thành công");
-    setTransactionDrawer(false);
-    transactionForm.resetFields();
-    loadAll();
-  } catch {
-    message.error("Tạo transaction thất bại");
-  }
-};
+  const handleCreateTransaction = async (values) => {
+    try {
+      await createInventoryTransaction(values);
+      message.success("Tạo transaction thành công");
+      setTransactionDrawer(false);
+      transactionForm.resetFields();
+      loadAll();
+    } catch {
+      message.error("Tạo transaction thất bại");
+    }
+  };
 
   const handleConfirmTransaction = async (id) => {
     if (!id) return;
@@ -299,7 +300,6 @@ const handleCreateTransaction = async (values) => {
             }))}
             onChange={handleSelectWarehouseInventory}
           />
-
           <Table
             rowKey="key"
             columns={[
@@ -329,57 +329,53 @@ const handleCreateTransaction = async (values) => {
     },
   ];
 
-return (
-  <>
-    <h2>Inventory Management</h2>
-    <Tabs items={tabItems} />
-
-    {/* ================= WAREHOUSE DRAWER ================= */}
-    <Drawer
-      title={editingWarehouse ? "Edit Warehouse" : "Add Warehouse"}
-      open={warehouseDrawer}
-      onClose={() => {
-        setWarehouseDrawer(false);
-        setEditingWarehouse(null);
-        form.resetFields();
-      }}
-      width={400}
+  return (
+    <>
+      <h2>Inventory Management</h2>
+      <Tabs items={tabItems} />
+      {/* Giữ nguyên toàn bộ Drawer phía dưới như bạn gửi */}
+      {/* ================= WAREHOUSE DRAWER ================= */}
+<Drawer
+  title={editingWarehouse ? "Edit Warehouse" : "Add Warehouse"}
+  open={warehouseDrawer}
+  onClose={() => {
+    setWarehouseDrawer(false);
+    setEditingWarehouse(null);
+    form.resetFields();
+  }}
+  width={400}
+>
+  <Form form={form} layout="vertical" onFinish={handleSaveWarehouse}>
+    <Form.Item
+      label="Warehouse Name"
+      name="warehouseName"
+      rules={[{ required: true, message: "Nhập tên kho" }]}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSaveWarehouse}
-      >
-        <Form.Item
-          label="Warehouse Name"
-          name="warehouseName"
-          rules={[{ required: true, message: "Nhập tên kho" }]}
-        >
-          <Input />
-        </Form.Item>
+      <Input />
+    </Form.Item>
 
-        <Form.Item
-          label="Location Description"
-          name="locationDescription"
-          rules={[{ required: true, message: "Nhập địa điểm" }]}
-        >
-          <Input />
-        </Form.Item>
+    <Form.Item
+      label="Location Description"
+      name="locationDescription"
+      rules={[{ required: true, message: "Nhập địa điểm" }]}
+    >
+      <Input />
+    </Form.Item>
 
-        <Form.Item
-          label="Area ID"
-          name="areaId"
-          rules={[{ required: true, message: "Nhập Area ID" }]}
-        >
-          <InputNumber style={{ width: "100%" }} />
-        </Form.Item>
+    <Form.Item
+      label="Area ID"
+      name="areaId"
+      rules={[{ required: true, message: "Nhập Area ID" }]}
+    >
+      <InputNumber style={{ width: "100%" }} />
+    </Form.Item>
 
-        <Button type="primary" htmlType="submit" block>
-          {editingWarehouse ? "Update" : "Create"}
-        </Button>
-      </Form>
-    </Drawer>
-    {/* ================= ITEM DRAWER ================= */}
+    <Button type="primary" htmlType="submit" block>
+      {editingWarehouse ? "Update" : "Create"}
+    </Button>
+  </Form>
+</Drawer>
+{/* ================= ITEM DRAWER ================= */}
 <Drawer
   title={editingItem ? "Edit Relief Item" : "Add Relief Item"}
   open={itemDrawer}
@@ -390,11 +386,7 @@ return (
   }}
   width={400}
 >
-  <Form
-    form={itemForm}
-    layout="vertical"
-    onFinish={handleSaveItem}
-  >
+  <Form form={itemForm} layout="vertical" onFinish={handleSaveItem}>
     <Form.Item
       label="Item Name"
       name="itemName"
@@ -431,7 +423,6 @@ return (
     layout="vertical"
     onFinish={handleCreateTransaction}
   >
-    {/* Warehouse */}
     <Form.Item
       label="Warehouse"
       name="warehouseId"
@@ -444,15 +435,15 @@ return (
         }))}
       />
     </Form.Item>
-{/* Rescue Request ID */}
-<Form.Item
-  label="Rescue Request ID"
-  name="rescueRequestId"
-  rules={[{ required: true, message: "Nhập Rescue Request ID" }]}
->
-  <InputNumber style={{ width: "100%" }} />
-</Form.Item>
-    {/* Transaction Type */}
+
+    <Form.Item
+      label="Rescue Request ID"
+      name="rescueRequestId"
+      rules={[{ required: true, message: "Nhập Rescue Request ID" }]}
+    >
+      <InputNumber style={{ width: "100%" }} />
+    </Form.Item>
+
     <Form.Item
       label="Transaction Type"
       name="transactionType"
@@ -466,7 +457,6 @@ return (
       />
     </Form.Item>
 
-    {/* Note */}
     <Form.Item label="Note" name="note">
       <Input />
     </Form.Item>
@@ -524,6 +514,6 @@ return (
     </Button>
   </Form>
 </Drawer>
-  </>
-);
+    </>
+  );
 }

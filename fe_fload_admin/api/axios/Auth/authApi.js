@@ -46,3 +46,43 @@ export const updateUserProfile = async (data) => {
   return response.data;
 
 }
+export const getProvinces = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/api/geographic-areas/provinces",
+      {
+        headers: {
+          accept: "text/plain", // nếu API yêu cầu text/plain
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET PROVINCES ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+  }
+};
+export const getWardsByProvince = async (provinceId) => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/geographic-areas/provinces/${provinceId}/wards`,
+      {
+        headers: {
+          accept: "text/plain", // đổi thành application/json nếu API trả JSON
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET WARDS ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+  }
+};

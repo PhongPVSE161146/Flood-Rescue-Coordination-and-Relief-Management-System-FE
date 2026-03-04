@@ -357,3 +357,25 @@
 .history-item:first-child {
   border-top: none;
 }
+/* ================= WAREHOUSE LIST ================= */
+.warehouse-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.warehouse-list button {
+  border-radius: 999px;
+}
+/* ================= LIST KHO ================= */
+.warehouse-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.warehouse-list button {
+  border-radius: 999px;
+}

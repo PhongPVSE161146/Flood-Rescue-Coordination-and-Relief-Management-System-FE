@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { Button, Form, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
-import "./UserManagement.css";
+import "./userManagement.css";
 
 import UserTable from "../../../components/AdminComponents/TableUser/UserListManager/UserTable";
 import UserFormModal from "../../../components/AdminComponents/TableUser/FormModal/UserFormModal";
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
 import StatCard from "../../../components/AdminComponents/TableUser/FormModal/StatCard";
 
 import {
@@ -22,6 +26,7 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [roleFilter, setRoleFilter] = useState("ALL");
+  
 
   useEffect(() => {
     fetchUsers();
@@ -41,6 +46,7 @@ export default function UserManagement() {
         return;
       }
 
+<<<<<<< HEAD
       const mappedUsers = data
         .filter((u) => u.roleName)
         .map((user) => ({
@@ -53,6 +59,23 @@ export default function UserManagement() {
           raw: user,
         }));
 
+=======
+      const validUsers = data.filter(u => u.roleName);
+
+      const mappedUsers = validUsers.map(user => ({
+
+        id: user.userId,
+        name: user.fullName,
+        phone: user.phone,
+        role: user.roleName,
+      
+        areaId: user.areaId, // 🔥 QUAN TRỌNG
+      
+        status: user.status || "Hoạt động",
+        raw: user,
+      
+      }));
+>>>>>>> origin/main
       setUsers(mappedUsers);
     } catch (error) {
       message.error("Không tải được user");

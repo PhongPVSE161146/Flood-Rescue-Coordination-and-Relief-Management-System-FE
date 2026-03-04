@@ -21,8 +21,9 @@ import {
   createRescueTeam,
   updateRescueTeamLocation
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
+import { getProvinces } from '../../../../../api/axios/Auth/authApi';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import './CreateTeamModal.css';
 
@@ -32,13 +33,30 @@ export default function CreateTeamModal({
   open,
   onClose,
   onSuccess
+  
 }) {
 
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
+  const [provinces, setProvinces] = useState([]);
 
-
+  useEffect(() => {
+    if (open) {
+      fetchProvinces();
+    }
+  }, [open]);
+  
+  const fetchProvinces = async () => {
+    try {
+      const res = await getProvinces();
+      const data = res?.data || res || [];
+      setProvinces(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+      message.error("Không tải được danh sách khu vực");
+    }
+  };
   const handleCreate = async () => {
 
     try {
@@ -116,7 +134,7 @@ export default function CreateTeamModal({
       width={520}
       className="createTeamModal"
     >
-
+{/* 
       <div className="createTeamModal__header">
 
         <AimOutlined className="createTeamModal__icon"/>
@@ -137,10 +155,10 @@ export default function CreateTeamModal({
 
         </div>
 
-      </div>
+      </div> */}
 
 
-      <Divider/>
+      {/* <Divider/> */}
 
 
       <Form
@@ -190,7 +208,7 @@ export default function CreateTeamModal({
 
         <Form.Item
           name="areaId"
-          label="Area ID"
+          label="Khu vực"
           rules={[
             {
               required: true,
@@ -199,12 +217,15 @@ export default function CreateTeamModal({
           ]}
         >
 
-          <Input
-            prefix={<EnvironmentOutlined />}
-            placeholder="VD: 1"
-            size="large"
-            type="number"
-          />
+<Select
+  size="large"
+  placeholder="Chọn khu vực"
+  suffixIcon={<EnvironmentOutlined />}
+  options={provinces.map((item) => ({
+    label: item.name,
+    value: item.id,
+  }))}
+/>
 
         </Form.Item>
 

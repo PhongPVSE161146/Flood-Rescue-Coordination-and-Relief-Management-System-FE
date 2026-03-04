@@ -19,59 +19,60 @@ export default function RescueTeamManagement() {
   const [teams, setTeams] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        setLoading(true);
-        const response = await getAllRescueTeams();
-        const data = response.data;
-
-        if (Array.isArray(data)) {
-          setTeams(data);
-        } else if (Array.isArray(data?.data)) {
-          setTeams(data.data);
-        } else if (Array.isArray(data?.items)) {
-          setTeams(data.items);
-        } else {
-          console.error("API không trả về mảng:", data);
-          setTeams([]);
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy danh sách đội cứu hộ:', error);
-        message.error('Không thể tải danh sách đội cứu hộ. Vui lòng thử lại sau.');
-      } finally {
-        setLoading(false);
+  const fetchTeams = async () => {
+    try {
+      setLoading(true);
+  
+      const response = await getAllRescueTeams();
+      const data = response.data;
+  
+      if (Array.isArray(data)) {
+        setTeams(data);
+      } else if (Array.isArray(data?.data)) {
+        setTeams(data.data);
+      } else if (Array.isArray(data?.items)) {
+        setTeams(data.items);
+      } else {
+        setTeams([]);
       }
-    };
-
+  
+    } catch (error) {
+      message.error("Không thể tải danh sách đội");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const normalizeStatus = (status) => {
+    if (!status) return "unknown";
+  
+    const s = status.toLowerCase().trim();
+  
+    if (s === "on duty" || s === "active")
+      return "active";
+  
+    if (s === "off duty" || s === "rest")
+      return "rest";
+  
+    return "unknown";
+  };
+  useEffect(() => {
     fetchTeams();
   }, []);
-
   // Lọc đội theo trạng thái
   const getFilteredTeams = () => {
     if (filterStatus === 'all') return teams;
+  
     return teams.filter((team) => {
-      const status = team.rcStatus?.toLowerCase();
-      if (filterStatus === 'active') return status === 'on duty';
-      if (filterStatus === 'rest') return status === 'off duty' || status === 'rest';
-      return false;
+      return normalizeStatus(team.rcStatus) === filterStatus;
     });
   };
 
   const getTeamCount = (status) => {
     if (status === 'all') return teams.length;
-
-    if (status === 'active') {
-      return teams.filter((t) => t.rcStatus?.toLowerCase() === 'on duty').length;
-    }
-    if (status === 'rest') {
-      return teams.filter((t) => {
-        const s = t.rcStatus?.toLowerCase();
-        return s === 'off duty' || s === 'rest';
-      }).length;
-    }
-    return 0;
+  
+    return teams.filter(
+      (team) => normalizeStatus(team.rcStatus) === status
+    ).length;
   };
 
   const totalMembers = teams.reduce((sum, team) => sum + (team.members || 0), 0);
@@ -82,12 +83,12 @@ export default function RescueTeamManagement() {
   const mappedTeams = filteredTeams.map((team) => ({
     id: team.rcid,
     name: team.rcName || 'Chưa đặt tên',
-    skill: 'Chưa cập nhật', // API chưa có → để tạm
-    members: team.members || 0, // nếu API có thì dùng, không thì 0
-    status: team.rcStatus === 'on duty' ? 'active' : 'rest',
+    members: team.members || 0,
+    status: normalizeStatus(team.rcStatus), // 🔥 dùng chuẩn hóa
     mission: team.mission || '—',
     phone: team.rcPhone || '—',
-    teamMembers: [], // nếu cần thành viên → gọi API riêng sau
+    teamMembers: [],
+    areaId: Number(team.areaId),
   }));
 
   if (loading) {
@@ -123,7 +124,7 @@ export default function RescueTeamManagement() {
         </div>
         <div onClick={() => setFilterStatus('active')} style={{ cursor: 'pointer' }}>
           <StatCard
-            title="ĐANG LÀM NHIỆM VỤ"
+            title="Sẵng Sàng"
             value={getTeamCount('active')}
             icon={<ThunderboltOutlined />}
             green
@@ -132,25 +133,25 @@ export default function RescueTeamManagement() {
         </div>
         <div onClick={() => setFilterStatus('rest')} style={{ cursor: 'pointer' }}>
           <StatCard
-            title="ĐANG NGHỈ / DỰ PHÒNG"
+            title="ĐANG NGHỈ"
             value={getTeamCount('rest')}
             icon={<CoffeeOutlined />}
             gray
             active={filterStatus === 'rest'}
           />
         </div>
-        <StatCard
+        {/* <StatCard
           title="NHÂN SỰ SẴN SÀNG"
           value={totalMembers}
           icon={<UserOutlined />}
-        />
+        /> */}
       </div>
 
-      <TeamManagementList 
-        teamsData={mappedTeams}
-        filterStatus={filterStatus}
-      />
-
+ <TeamManagementList
+  teamsData={mappedTeams}
+  filterStatus={filterStatus}
+  onTeamChanged={fetchTeams}
+/>
       <ScheduleList />
     </div>
   );

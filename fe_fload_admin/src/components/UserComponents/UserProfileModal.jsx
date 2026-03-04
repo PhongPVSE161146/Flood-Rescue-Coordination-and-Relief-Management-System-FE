@@ -9,7 +9,8 @@ import {
   message,
   Row,
   Col,
-  Avatar
+  Avatar,
+  Select,
 } from "antd";
 
 import {
@@ -26,7 +27,8 @@ import {
 
 import {
   getUserProfile,
-  updateUserProfile
+  updateUserProfile,
+  getProvinces
 } from "../../../api/axios/Auth/authApi";
 
 import "./UserProfileModal.css";
@@ -47,7 +49,7 @@ export default function UserProfileModal({
 
   const [userName, setUserName] = useState("");
 
-
+  const [provinces, setProvinces] = useState([]);
   /* ================= LOAD PROFILE ================= */
   const fetchProfile = async () => {
 
@@ -91,15 +93,23 @@ export default function UserProfileModal({
 
   };
 
-
-  useEffect(() => {
-
-    if (open) {
-
-      fetchProfile();
-
+  const fetchProvinces = async () => {
+    try {
+      const res = await getProvinces();
+      const data = res.data || res;
+  
+      setProvinces(data);
+  
+    } catch (error) {
+      console.error(error);
+      message.error("Không thể tải danh sách tỉnh");
     }
-
+  };
+  useEffect(() => {
+    if (open) {
+      fetchProfile();
+      fetchProvinces();
+    }
   }, [open]);
 
 
@@ -315,18 +325,15 @@ export default function UserProfileModal({
 
                 >
 
-                  <Input
-
-                    prefix={<EnvironmentOutlined />}
-
-                    size="large"
-
-                    type="number"
-
-                    placeholder="Nhập Area ID"
-
-                  />
-
+<Select
+  size="large"
+  placeholder="Chọn tỉnh/thành"
+  suffixIcon={<EnvironmentOutlined />}
+  options={provinces.map(item => ({
+    label: item.name,   // tên tỉnh
+    value: item.id      // areaId
+  }))}
+/>
                 </Form.Item>
 
               </Col>
