@@ -1,7 +1,7 @@
 .hero-banner {
     position: relative;
     height: 520px;
-    background: url("/banner-bg.jpg") center/cover no-repeat;
+    background: url("/banner-bg.jpg") center/cover no-repeat, linear-gradient(to bottom, #b91c1c, #7f1d1d);
     color: #fff;
     display: flex;
     align-items: center;

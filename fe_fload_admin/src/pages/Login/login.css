@@ -1,45 +1,121 @@
 /* ===== PAGE ===== */
 .login-page {
   min-height: 100vh;
-  background: radial-gradient(circle at top, #1f2937, #020617);
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  background: #0b0f14;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ===== LEFT HERO ===== */
+.login-hero {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  padding: 64px;
+  background: linear-gradient(
+    120deg,
+    rgba(5, 10, 18, 0.95) 0%,
+    rgba(5, 10, 18, 0.75) 40%,
+    rgba(5, 10, 18, 0.35) 100%
+  );
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* top */
+.hero-top {
   display: flex;
   align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: #f43f5e;
+}
+
+.hero-top img {
+  width: 26px;
+  height: 26px;
+}
+
+/* title */
+.hero-overlay h1 {
+  font-size: 64px;
+  line-height: 1.05;
+  font-weight: 900;
+  margin: 40px 0 16px;
+}
+
+.hero-overlay h1 span {
+  color: #f43f5e;
+}
+
+/* desc */
+.hero-overlay p {
+  max-width: 520px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+
+/* metrics */
+.hero-metrics {
+  display: flex;
+  gap: 48px;
+  margin-top: 48px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hero-metrics span {
+  color: #f43f5e;
+}
+
+/* ===== RIGHT LOGIN CARD ===== */
+.login-card {
+  background: radial-gradient(
+    ellipse at top right,
+    #111827 0%,
+    #020617 70%
+  );
+  padding: 72px 56px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
 }
 
-/* ===== CARD ===== */
-.login-card {
-  width: 440px;
-  background: linear-gradient(180deg, #020617, #020617);
-  border-radius: 26px;
-  padding: 48px 44px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-  color: #fff;
-}
-
-.login-card h1 {
-  font-size: 34px;
+/* title */
+.login-card h2 {
+  font-size: 36px;
   margin: 0;
 }
 
 .login-line {
-  width: 90px;
+  width: 72px;
   height: 4px;
-  background: linear-gradient(90deg, #60a5fa, #67e8f9);
+  background: linear-gradient(90deg, #f43f5e, #fb7185);
   border-radius: 999px;
   margin: 14px 0 18px;
 }
 
 .login-desc {
   color: #9ca3af;
+  margin-bottom: 36px;
 }
 
 /* ===== FORM ===== */
 .login-form {
-  margin-top: 36px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 26px;
 }
 
 .form-group {
@@ -49,17 +125,17 @@
 }
 
 .login-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   color: #9ca3af;
-  letter-spacing: 0.05em;
 }
 
 /* ===== MUI INPUT OVERRIDE ===== */
 .MuiFilledInput-root {
   height: 56px;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-radius: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06) !important;
   color: #fff;
 }
 
@@ -71,7 +147,7 @@
 
 .MuiFilledInput-root:hover,
 .MuiFilledInput-root.Mui-focused {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .MuiFilledInput-root:before,
@@ -92,7 +168,7 @@
 }
 
 .eye:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* autofill fix */
@@ -101,31 +177,41 @@ input:-webkit-autofill {
   -webkit-text-fill-color: #fff !important;
 }
 
-/* ===== ERROR ===== */
+/* error */
 .error-text {
-  color: #f87171;
   font-size: 13px;
-}
-
-/* ===== REMEMBER ===== */
-.remember {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #d1d5db;
+  color: #fb7185;
 }
 
 /* ===== BUTTON ===== */
 .login-btn {
   height: 56px;
-  border-radius: 16px;
+  border-radius: 18px;
   font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(90deg, #60a5fa, #67e8f9);
+  font-weight: 700;
+  background: linear-gradient(90deg, #f43f5e, #fb7185);
   border: none;
-  box-shadow: 0 14px 36px rgba(96, 165, 250, 0.45);
+  box-shadow: 0 18px 42px rgba(244, 63, 94, 0.45);
 }
 
 .login-btn:hover {
   opacity: 0.95;
+}
+.login-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* <-- CÁI NÀY làm nó bị crop */
+}
+
+.hero-overlay {
+  
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }

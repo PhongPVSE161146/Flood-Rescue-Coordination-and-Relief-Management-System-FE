@@ -1,20 +1,21 @@
 import { Outlet } from "react-router-dom";
-import Header from "../components/Header/Header";
-import Sidebar from "../components/Sidebar/Sidebar";
-import "./mainLayout.css";
+import Header from "../layout/Header/Header";
+import Sidebar from "../layout/Sidebar/Sidebar";
+
+import "./app-layout.css";
 
 export default function MainLayout() {
   return (
-    <div className="main-layout">
+    <div className="app-layout">
       {/* FIXED HEADER */}
       <Header />
 
-      <div className="main-body">
+      <div className="app-layout__body">
         {/* FIXED SIDEBAR */}
         <Sidebar />
 
         {/* SCROLL CONTENT */}
-        <main className="main-content">
+        <main className="app-layout__content">
           <Outlet />
         </main>
       </div>

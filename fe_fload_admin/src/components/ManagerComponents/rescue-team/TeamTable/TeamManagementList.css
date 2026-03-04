@@ -1,0 +1,144 @@
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  }
+  
+  .card-title{
+  font-size:18px;
+  font-weight:600;
+  }
+  
+  .create-btn{
+  border-radius:8px;
+  font-weight:500;
+  }
+  
+  .table-row{
+  display:grid;
+  grid-template-columns: 2fr 2fr 1fr 3fr 1fr;
+  align-items:center;
+  padding:14px;
+  border-bottom:1px solid #eee;
+  transition:0.2s;
+  }
+  
+  .table-row:hover{
+  background:#fafafa;
+  }
+  
+  .team-info{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  }
+  
+  .expand-btn{
+  border:none;
+  background:none;
+  cursor:pointer;
+  }
+  
+  .action-group{
+  display:flex;
+  gap:8px;
+  }
+  .table-head,
+.table-row{
+
+display:grid;
+
+grid-template-columns:
+
+60px   /* STT */
+2fr    /* Name */
+2fr    /* Skill */
+1fr    /* Status */
+3fr    /* Location */
+120px; /* Action */
+
+align-items:center;
+
+padding:14px 16px;
+
+}
+
+
+.table-head{
+
+font-weight:600;
+
+background:#f8fafc;
+
+border-radius:8px;
+
+margin-bottom:8px;
+
+}
+
+
+.table-row{
+
+background:#fff;
+
+border-bottom:1px solid #eee;
+
+transition:0.2s;
+
+}
+
+
+.table-row:hover{
+
+background:#fafafa;
+
+}
+
+
+/* column align */
+
+.col-stt{
+
+text-align:center;
+
+font-weight:600;
+
+color:#666;
+
+}
+
+
+.col-action{
+
+display:flex;
+
+gap:8px;
+
+justify-content:flex-start;
+
+}
+
+
+.team-info{
+
+display:flex;
+
+align-items:center;
+
+gap:8px;
+
+}
+
+
+.expand-btn{
+
+border:none;
+
+background:none;
+
+cursor:pointer;
+
+font-size:16px;
+
+}

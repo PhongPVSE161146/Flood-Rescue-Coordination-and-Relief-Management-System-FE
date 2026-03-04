@@ -1,0 +1,141 @@
+.create-member-modal .ant-modal-content{
+
+    border-radius:16px;
+    
+    padding:10px;
+    
+    background:linear-gradient(
+    135deg,
+    #ffffff,
+    #f1f7ff
+    );
+    
+    box-shadow:
+    0 10px 40px rgba(0,0,0,0.12);
+    
+    }
+    
+    
+    .create-member-title{
+    
+    display:flex;
+    
+    align-items:center;
+    
+    gap:10px;
+    
+    font-size:20px;
+    
+    font-weight:600;
+    
+    color:#1677ff;
+    
+    }
+    
+    
+    /* FORM */
+    .create-member-form .ant-form-item-label > label{
+    
+    font-weight:600;
+    
+    color:#333;
+    
+    }
+    
+    
+    /* INPUT */
+    .create-member-form .ant-input,
+    .create-member-form .ant-select-selector{
+    
+    border-radius:10px !important;
+    
+    height:44px !important;
+    
+    transition:all 0.25s;
+    
+    }
+    
+    
+    /* HOVER */
+    .create-member-form .ant-input:hover,
+    .create-member-form .ant-select-selector:hover{
+    
+    border-color:#1677ff !important;
+    
+    }
+    
+    
+    /* FOCUS */
+    .create-member-form .ant-input:focus,
+    .create-member-form .ant-select-focused .ant-select-selector{
+    
+    border-color:#1677ff !important;
+    
+    box-shadow:
+    0 0 0 3px rgba(22,119,255,0.15);
+    
+    }
+    
+    
+    /* BUTTON */
+    .create-member-btn{
+    
+    height:46px;
+    
+    border-radius:12px;
+    
+    font-size:16px;
+    
+    font-weight:600;
+    
+    background:linear-gradient(
+    135deg,
+    #1677ff,
+    #4096ff
+    );
+    
+    border:none;
+    
+    transition:all 0.3s;
+    
+    }
+    
+    
+    .create-member-btn:hover{
+    
+    transform:translateY(-2px);
+    
+    box-shadow:
+    0 6px 20px rgba(22,119,255,0.35);
+    
+    }
+    
+    
+    /* ANIMATION */
+    .create-member-modal .ant-modal{
+    
+    animation:fadeInScale 0.25s ease;
+    
+    }
+    
+    
+    @keyframes fadeInScale{
+    
+    from{
+    
+    opacity:0;
+    
+    transform:scale(0.95);
+    
+    }
+    
+    to{
+    
+    opacity:1;
+    
+    transform:scale(1);
+    
+    }
+    
+    }
+    

@@ -1,29 +1,36 @@
-/* ================= ROOT ================= */
-.rescue-page {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    padding-bottom: 40px;
-    color: #0f172a;
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
+/* ============================================================
+   RESCUE TEAM MANAGEMENT PAGE - MAIN LAYOUT
+   ============================================================ */
+
+   .rescue-page {
+    padding: 32px;
+    background-color: #f8fafc;
+    min-height: 100vh;
   }
   
-  /* ================= HEADER ================= */
+  /* ============================================================
+     PAGE HEADER
+     ============================================================ */
+  
   .page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
   }
   
   .page-header h2 {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 700;
     margin: 0;
+    color: #1f2937;
   }
   
   .page-header p {
-    margin-top: 6px;
-    color: #64748b;
+    margin: 8px 0 0 0;
+    color: #6b7280;
     font-size: 14px;
   }
   
@@ -32,309 +39,141 @@
     gap: 12px;
   }
   
-  /* ================= STATS ================= */
+  .header-actions button {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  
+  .header-actions button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+  }
+  
+  /* ============================================================
+     STATS GRID
+     ============================================================ */
+  
   .stat-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  
+  @media (max-width: 1200px) {
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .stat-grid {
+      grid-template-columns: 1fr;
+    }
   }
   
   .stat-card {
-    background: linear-gradient(180deg, #ffffff, #f8fafc);
-    border-radius: 18px;
-    padding: 18px 20px;
-    box-shadow:
-      0 10px 30px rgba(15, 23, 42, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    transition: all 0.25s ease;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
   
   .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 18px 48px rgba(15, 23, 42, 0.14),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
-
+  
   .stat-card.active {
-    background: linear-gradient(180deg, #eff6ff, #f0f9ff);
-    border: 2px solid #0284c7;
-    box-shadow:
-      0 10px 30px rgba(2, 132, 199, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    background-color: #f0f9ff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+  }
+  
+  .stat-card.green {
+    border-color: #86efac;
+  }
+  
+  .stat-card.green .stat-icon {
+    color: #22c55e;
+  }
+  
+  .stat-card.gray {
+    border-color: #d1d5db;
+  }
+  
+  .stat-card.gray .stat-icon {
+    color: #9ca3af;
   }
   
   .stat-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    background: #e0f2fe;
+    font-size: 28px;
+    margin-bottom: 12px;
     color: #0284c7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    margin-bottom: 10px;
   }
   
   .stat-card span {
     font-size: 12px;
-    color: #64748b;
-    letter-spacing: 0.04em;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 8px;
   }
   
   .stat-card h2 {
-    margin-top: 6px;
-    font-size: 30px;
+    font-size: 32px;
     font-weight: 700;
-  }
-  
-  .stat-card.green h2 {
-    color: #22c55e;
-  }
-  
-  .stat-card.gray h2 {
-    color: #94a3b8;
-  }
-  
-  /* ================= CARD ================= */
-  .card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 22px;
-    box-shadow:
-      0 20px 60px rgba(15, 23, 42, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  }
-  
-  /* ================= TABS ================= */
-  .card-tabs {
-    display: flex;
-    gap: 28px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 12px;
-    margin-bottom: 14px;
-  }
-  
-  .card-tabs span {
-    cursor: pointer;
-    font-size: 14px;
-    color: #64748b;
-    position: relative;
-  }
-  
-  .card-tabs .active {
-    color: #0f172a;
-    font-weight: 600;
-  }
-  
-  .card-tabs .active::after {
-    content: "";
-    position: absolute;
-    bottom: -12px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #0ea5e9, #22c55e);
-  }
-  
-  /* ================= TABLE ================= */
-  .table-head,
-  .table-row {
-    display: grid;
-    grid-template-columns: 1.7fr 1.4fr 1fr 1.4fr 2.2fr 1.2fr;
-    gap: 14px;
-    align-items: center;
-  }
-  
-  .table-head {
-    margin-top: 14px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    letter-spacing: 0.08em;
-  }
-  
-  .table-row {
-    padding: 16px 0;
-    border-top: 1px solid #f1f5f9;
-    transition: background 0.2s ease;
-    cursor: pointer;
-  }
-  
-  .table-row:hover {
-    background: linear-gradient(90deg, #f8fafc, transparent);
-  }
-  
-  .table-row strong {
-    font-size: 15px;
-  }
-  
-  .table-row p {
-    margin: 4px 0 0;
-    font-size: 12px;
-    color: #94a3b8;
-  }
-  
-  .mission {
-    font-size: 14px;
-    color: #334155;
-    font-style: italic;
-  }
-  
-  /* ================= ACTIONS ================= */
-  .actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .actions .ant-btn {
-    border-radius: 999px;
-    font-size: 13px;
-    padding: 0 14px;
-  }
-  
-  /* ================= SCHEDULE ================= */
-  .schedule-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .schedule-header h3 {
     margin: 0;
+    color: #1f2937;
   }
   
-  .schedule-header p {
-    margin-top: 4px;
-    font-size: 13px;
-    color: #64748b;
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  
+  @media (max-width: 768px) {
+    .rescue-page {
+      padding: 16px;
+    }
+  
+    .page-header {
+      flex-direction: column;
+      gap: 16px;
+    }
+  
+    .page-header h2 {
+      font-size: 24px;
+    }
+  
+    .header-actions {
+      width: 100%;
+    }
+  
+    .header-actions button {
+      flex: 1;
+    }
+  
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
   
-  .week-control {
-    display: flex;
-    gap: 6px;
+  @media (max-width: 480px) {
+    .stat-grid {
+      grid-template-columns: 1fr;
+    }
   }
-  
-  /* ================= SCHEDULE GRID ================= */
-  .schedule-grid {
-    margin-top: 18px;
-  }
-  
-  .schedule-head,
-  .schedule-row {
-    display: grid;
-    grid-template-columns: 1.2fr repeat(7, 1fr);
-    gap: 10px;
-  }
-  
-  .schedule-head {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    letter-spacing: 0.06em;
-  }
-  
-  .schedule-row {
-    margin-top: 10px;
-  }
-  
-  .schedule-row strong {
-    font-size: 14px;
-  }
-  
-  /* ================= SHIFT ================= */
-  .shift {
-    background: #f8fafc;
-    padding: 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    text-align: center;
-    box-shadow: inset 0 0 0 1px #e5e7eb;
-  }
-  
-  .shift.green {
-    background: #ecfdf5;
-    color: #047857;
-    box-shadow: inset 0 0 0 1px #86efac;
-  }
-  
-  .shift.blue {
-    background: #eff6ff;
-    color: #1d4ed8;
-    box-shadow: inset 0 0 0 1px #93c5fd;
-  }
-  
-  .shift.orange {
-    background: #fff7ed;
-    color: #c2410c;
-    box-shadow: inset 0 0 0 1px #fdba74;
-  }
-
-/* ================= DRAWER CONTENT ================= */
-.team-detail {
-  padding: 8px 0;
-}
-
-.team-overview {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.overview-stat {
-  text-align: center;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: #64748b;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.stat-value.green {
-  color: #059669;
-}
-
-.stat-value.orange {
-  color: #d97706;
-}
-
-.member-stats {
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  margin-bottom: 24px;
-}
-
-.stat-progress {
-  margin: 0;
-}
-
-.members-section {
-  margin-top: 20px;
-}
-
-.members-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-}
   

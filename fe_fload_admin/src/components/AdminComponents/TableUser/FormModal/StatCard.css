@@ -1,0 +1,8 @@
+.statCard {
+    flex: 1;
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    display: flex;
+    gap: 12px;
+  }

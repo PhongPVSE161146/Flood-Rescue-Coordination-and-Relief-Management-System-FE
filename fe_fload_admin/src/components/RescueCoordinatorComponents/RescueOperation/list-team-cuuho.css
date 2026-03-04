@@ -1,0 +1,69 @@
+.rc-team-list {
+    padding: 16px;
+  }
+  
+  .rc-team-list__title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  
+  .rc-team-list__search {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 14px;
+  }
+  
+  .rc-team-list__items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .rc-team-item {
+    border-radius: 14px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #eef2f7;
+    cursor: pointer;
+  }
+  
+  .rc-team-item.is-active {
+    border-color: #38bdf8;
+    background: #ecfeff;
+  }
+  
+  .rc-team-item__top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  
+  .rc-team-item__priority {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  
+  .rc-team-item__name {
+    display: block;
+    margin: 6px 0;
+    font-size: 15px;
+  }
+  
+  .rc-team-item__team {
+    font-size: 13px;
+    color: #64748b;
+  }
+  
+  .rc-team-item__footer {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  

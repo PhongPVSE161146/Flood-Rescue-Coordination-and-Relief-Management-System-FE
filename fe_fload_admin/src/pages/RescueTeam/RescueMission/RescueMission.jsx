@@ -1,26 +1,19 @@
-import MissionList from "./MissionList";
-import MissionMap from "./MissionMap";
-import MissionDetail from "./MissionDetail";
-import MissionProgress from "./MissionProgress";
+import MissionListRescue from "../../../components/RescueTeamComponents/MissionListRescue";
+import MissionQuickNotify from "../../../components/RescueTeamComponents/MissionQuickNotify";
 import "./RescueMission.css";
 
 export default function RescueMission() {
   return (
-    <div className="rescue-root">
-      {/* LEFT: DANH SÁCH NHIỆM VỤ */}
-      <MissionList />
+    <div className="rc-dispatch">
+      {/* LEFT – NHIỆM VỤ MỚI */}
+      <aside className="rc-dispatch__left">
+        <MissionListRescue />
+      </aside>
 
-      {/* CENTER + RIGHT */}
-      <div className="rescue-main">
-        {/* PROGRESS WORKFLOW */}
-        <MissionProgress step={1} />
-
-        {/* MAP */}
-        <MissionMap />
-
-        {/* DETAIL */}
-        <MissionDetail />
-      </div>
+      {/* RIGHT – THÔNG BÁO NHANH */}
+      <aside className="rc-dispatch__right">
+        <MissionQuickNotify />
+      </aside>
     </div>
   );
 }

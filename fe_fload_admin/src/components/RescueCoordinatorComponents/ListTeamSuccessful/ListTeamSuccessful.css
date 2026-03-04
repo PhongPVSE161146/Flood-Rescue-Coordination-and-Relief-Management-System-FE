@@ -1,0 +1,119 @@
+/* ================= CONTAINER ================= */
+.rc-success-list {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    border-right: 1px solid #eef2f7;
+  }
+  
+  /* ================= HEADER ================= */
+  .rc-success-header {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .rc-success-header h3 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  
+  /* SEARCH */
+  .rc-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #94a3b8;
+  }
+  
+  .rc-search input {
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-size: 14px;
+  }
+  
+  /* ================= ITEM ================= */
+  .rc-success-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+  }
+  
+  .rc-success-item:hover {
+    background: #f8fafc;
+  }
+  
+  /* ACTIVE */
+  .rc-success-item.active {
+    background: #f0f9ff;
+    border-left: 4px solid #38bdf8;
+    padding-left: 12px;
+  }
+  
+  /* ================= TOP ROW ================= */
+  .rc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  .rc-id {
+    font-size: 12px;
+    color: #38bdf8;
+    font-weight: 600;
+  }
+  
+  .rc-id b {
+    font-weight: 700;
+  }
+  
+  /* TIME */
+  .rc-time {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+  
+  .rc-time.online {
+    color: #16a34a;
+  }
+  
+  .rc-time.online::before {
+    content: "● ";
+    font-size: 10px;
+  }
+  
+  /* ================= NAME ================= */
+  .rc-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  
+  /* ================= LOCATION ================= */
+  .rc-location {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #64748b;
+  }
+  
+  /* ================= TAG ================= */
+  .rc-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  
