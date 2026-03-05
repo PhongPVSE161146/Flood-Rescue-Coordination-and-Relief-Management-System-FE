@@ -1,28 +1,21 @@
 import { useState, useEffect } from "react";
-import { Button, Drawer, Form, message } from "antd";
+import { Button, Form, message } from "antd";
 
 import {
-  PlusOutlined,
-  TeamOutlined,
-  UserOutlined,
-  SafetyOutlined,
-  ThunderboltOutlined,
-  CheckCircleOutlined,
-  EditOutlined,
+  PlusOutlined
 } from "@ant-design/icons";
 
 import "./UserManagement.css";
 
 import UserTable from "../../../components/AdminComponents/TableUser/UserListManager/UserTable";
 import UserFormModal from "../../../components/AdminComponents/TableUser/FormModal/UserFormModal";
-
 import StatCard from "../../../components/AdminComponents/TableUser/FormModal/StatCard";
-
+import AuthNotify from "../../../utils/Common/AuthNotify";
 import {
   registerUser,
   getAllUser,
 } from "../../../../api/axios/AdminApi/userApi";
-
+ import {updateUser} from "../../../../api/axios/Auth/authApi";
 
 export default function UserManagement() {
 
@@ -34,23 +27,15 @@ export default function UserManagement() {
 
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [isEdit, setIsEdit] = useState(false);
 
   const [roleFilter, setRoleFilter] = useState("ALL");
-  
-
 
   useEffect(() => {
-
     fetchUsers();
-
   }, []);
-
-
 
   const fetchUsers = async () => {
 
@@ -58,34 +43,35 @@ export default function UserManagement() {
 
       setLoading(true);
 
-      const data = await getAllUser();
+      const res = await getAllUser();
+
+      const data = res?.data || res;
 
       if (!Array.isArray(data)) return;
 
       const validUsers = data.filter(u => u.roleName);
 
       const mappedUsers = validUsers.map(user => ({
-
         id: user.userId,
         name: user.fullName,
         phone: user.phone,
         role: user.roleName,
-      
-        areaId: user.areaId, // 🔥 QUAN TRỌNG
-      
+        areaId: user.areaId,
         status: user.status || "Hoạt động",
         raw: user,
-      
       }));
+
       setUsers(mappedUsers);
 
     }
-    catch(error){
-
-      message.error("Không tải được user");
-
+    catch {
+      AuthNotify.error(
+        "Không tải được danh sách người dùng",
+        "Vui lòng thử lại sau"
+      );
+    
     }
-    finally{
+    finally {
 
       setLoading(false);
 
@@ -94,93 +80,144 @@ export default function UserManagement() {
   };
 
   const filteredUsers =
-  roleFilter === "ALL"
-    ? users
-    : users.filter(u => u.role === roleFilter);
+    roleFilter === "ALL"
+      ? users
+      : users.filter(u => u.role === roleFilter);
+      const handleSubmit = async () => {
 
-    const handleSubmit = async () => {
-
-      try {
-    
-        const values = await form.validateFields();
-    
-        const res = await registerUser(values);
-    
-        message.success("Tạo user thành công");
-    
-        setModalOpen(false);
-    
+        try {
+      
+          const values = await form.validateFields();
+          const phone = values.phone;
+      
+          const isPhoneExist = users.some((u) => {
+            if (isEdit) {
+              return u.phone === phone && u.id !== selectedUser?.id;
+            }
+            return u.phone === phone;
+          });
+      
+          if (isPhoneExist) {
+      
+            AuthNotify.error(
+              "Số điện thoại đã tồn tại",
+              "Vui lòng sử dụng số điện thoại khác"
+            );
+      
+            form.setFields([
+              {
+                name: "phone",
+                errors: ["Số điện thoại đã tồn tại"]
+              }
+            ]);
+      
+            return;
+          }
+      
+          if (isEdit && selectedUser) {
+      
+            const payload = {
+              userId: selectedUser.id,
+              fullName: values.name,
+              phone: values.phone,
+              areaId: values.areaId
+            };
+      
+            await updateUser(selectedUser.id, payload);
+      
+            AuthNotify.success(
+              "Cập nhật thành công",
+              "Thông tin người dùng đã được cập nhật"
+            );
+      
+          } else {
+      
+            await registerUser(values);
+      
+            AuthNotify.success(
+              "Tạo người dùng thành công",
+              "Tài khoản mới đã được tạo"
+            );
+      
+          }
+      
+          setModalOpen(false);
+          form.resetFields();
+          await fetchUsers();
+      
+        } catch (error) {
+      
+          const errorMsg =
+            error?.response?.data?.message ||
+            error?.data?.message ||
+            error?.message ||
+            "";
+      
+          if (errorMsg.toLowerCase().includes("phone")) {
+      
+            AuthNotify.error(
+              "Số điện thoại đã tồn tại",
+              "Vui lòng nhập số điện thoại khác"
+            );
+      
+            form.setFields([
+              {
+                name: "phone",
+                errors: ["Số điện thoại đã tồn tại"]
+              }
+            ]);
+      
+          } else {
+      
+            AuthNotify.error(
+              isEdit ? "Cập nhật thất bại" : "Tạo người dùng thất bại",
+              "Yêu cầu không thành công, vui lòng thử lại"
+            );
+      
+          }
+      
+        }
+      
+      };
+      const openCreateModal = () => {
+        setIsEdit(false);
+        setSelectedUser(null);
         form.resetFields();
-    
-    
-        // thêm user mới vào state ngay lập tức
-        const newUser = {
-    
-          id: Date.now(), // tạm (hoặc res.userId nếu API trả)
-    
-          name: values.name,
-    
-          phone: values.phone,
-    
-          role:
-            values.roleId === 2
-              ? "Manager"
-              : values.roleId === 3
-              ? "RescueTeam"
-              : values.roleId === 4
-              ? "RescueCoordinator"
-              : "User",
-    
-          area: "N/A",
-    
-          status: "Hoạt động",
-    
-        };
-    
-    
-        setUsers(prev => [newUser, ...prev]);
-    
-      }
-      catch {
-    
-        
-        message.error("Tạo user thất bại");
-    
-      } finally {
-        fetchUsers();
-        form.resetFields();
-      }
-    
-    };
+        setModalOpen(true);
+      };
 
-
-
-  const openCreateModal = () => {
-
-    setIsEdit(false);
-
-    form.resetFields();
-
-    setModalOpen(true);
-
+  const roleReverseMap = {
+    Manager: 2,
+    RescueTeam: 3,
+    Coordinator: 4
   };
-
 
   const openEditModal = (user) => {
 
+    // ❌ Không cho edit Admin
+    if (user.role === "Admin") {
+      AuthNotify.error(
+        "Không thể chỉnh sửa Admin",
+        "Tài khoản Admin có quyền cao nhất, vui lòng không chỉnh sửa thông tin tài khoản này"
+      );
+      return;
+    }
+  
     setSelectedUser(user);
-
+  
     setIsEdit(true);
-
-    form.setFieldsValue(user);
-
+  
+    form.setFieldsValue({
+      name: user.name || "",
+      phone: user.phone || "",
+      // password: user.password || "",
+  
+      areaId: user.areaId || undefined
+    });
+  
     setModalOpen(true);
-
+  
   };
-
-
-
-  // STAT CALCULATE
 
   const totalUsers = users.length;
 
@@ -189,7 +226,7 @@ export default function UserManagement() {
   const totalManager = users.filter(u => u.role === "Manager").length;
 
   const totalCoordinator = users.filter(
-    u => u.role === "RescueCoordinator"
+    u => u.role === "Coordinator"
   ).length;
 
   const totalRescue = users.filter(
@@ -198,138 +235,91 @@ export default function UserManagement() {
 
   const totalActive = users.length;
 
-
-
   return (
 
     <div className="userManagement">
-
-
-      {/* HEADER */}
 
       <div className="userManagement__header">
 
         <div>
 
           <h2 className="userManagement__title">
-
             Quản lý người dùng
-
           </h2>
 
           <p className="userManagement__subtitle">
-
             Dashboard quản lý hệ thống
-
           </p>
 
         </div>
 
-
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={openCreateModal}
-        >
-          Tạo người dùng
-        </Button>
+       <Button
+  className="createUserBtn"
+  icon={<PlusOutlined />}
+  size="large"
+  onClick={openCreateModal}
+>
+  Tạo người dùng
+</Button>
 
       </div>
 
-
-
-      {/* STAT */}
-
       <div className="userManagement__stats">
 
-<StatCard
-  title="Tổng người dùng"
-  value={totalUsers}
-  type="total"
-  active={roleFilter === "ALL"}
-  onClick={() => setRoleFilter("ALL")}
-/>
+        <StatCard
+          title="Tổng người dùng"
+          value={totalUsers}
+          type="total"
+          active={roleFilter === "ALL"}
+          onClick={() => setRoleFilter("ALL")}
+        />
 
-<StatCard
-  title="Admin"
-  value={totalAdmin}
-  type="admin"
-  active={roleFilter === "Admin"}
-  onClick={() => setRoleFilter("Admin")}
-/>
+        <StatCard
+          title="Admin"
+          value={totalAdmin}
+          type="admin"
+          active={roleFilter === "Admin"}
+          onClick={() => setRoleFilter("Admin")}
+        />
 
-<StatCard
-  title="Manager"
-  value={totalManager}
-  type="manager"
-  active={roleFilter === "Manager"}
-  onClick={() => setRoleFilter("Manager")}
-/>
+        <StatCard
+          title="Manager"
+          value={totalManager}
+          type="manager"
+          active={roleFilter === "Manager"}
+          onClick={() => setRoleFilter("Manager")}
+        />
 
-<StatCard
-  title="Coordinator"
-  value={totalCoordinator}
-  type="RescueCoordinator"
-  active={roleFilter === "RescueCoordinator"}
-  onClick={() => setRoleFilter("RescueCoordinator")}
-/>
+        <StatCard
+          title="Coordinator"
+          value={totalCoordinator}
+          type="RescueCoordinator"
+          active={roleFilter === "Coordinator"}
+          onClick={() => setRoleFilter("Coordinator")}
+        />
 
-<StatCard
-  title="Rescue Team"
-  value={totalRescue}
-  type="RescueTeam"
-  active={roleFilter === "RescueTeam"}
-  onClick={() => setRoleFilter("RescueTeam")}
-/>
+        <StatCard
+          title="Rescue Team"
+          value={totalRescue}
+          type="RescueTeam"
+          active={roleFilter === "RescueTeam"}
+          onClick={() => setRoleFilter("RescueTeam")}
+        />
 
-</div>
-
-
-
-      {/* TABLE */}
+      </div>
 
       <UserTable
-        users={users}
+        users={filteredUsers}
         loading={loading}
-        onRowClick={(user)=>{
+        onRowClick={(user) => {
           setSelectedUser(user);
-          setDrawerOpen(true);
         }}
         onEdit={openEditModal}
       />
 
-
-
-      {/* DRAWER */}
-
-      {/* <Drawer
-        open={drawerOpen}
-        width={500}
-        onClose={()=>setDrawerOpen(false)}
-        title="Chi tiết user"
-        extra={
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={()=>openEditModal(selectedUser)}
-          >
-            Chỉnh sửa
-          </Button>
-        }
-      >
-
-        <UserDetail user={selectedUser} />
-
-      </Drawer> */}
-
-
-
-      {/* MODAL */}
-
       <UserFormModal
         open={modalOpen}
-        onCancel={()=>setModalOpen(false)}
+        onCancel={() => setModalOpen(false)}
         onSubmit={handleSubmit}
         isEdit={isEdit}
         form={form}

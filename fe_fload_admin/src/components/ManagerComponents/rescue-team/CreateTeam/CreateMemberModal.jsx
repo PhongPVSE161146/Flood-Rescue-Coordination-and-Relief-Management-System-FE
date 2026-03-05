@@ -5,8 +5,7 @@ import {
   Form,
   Input,
   Button,
-  Select,
-  message
+  Select
 } from 'antd';
 
 import {
@@ -18,10 +17,12 @@ import { useState, useEffect } from 'react';
 
 import {
   createTeamMember,
-  getRescueTeamMembers   // 🔥 thêm API này
+  getRescueTeamMembers
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
 
 import { getAllUser } from '../../../../../api/axios/AdminApi/userApi';
+
+import AuthNotify from '../../../../utils/Common/AuthNotify';
 
 import "./CreateMemberModal.css";
 
@@ -42,20 +43,25 @@ export default function CreateMemberModal({
   /* ================= LOAD USERS + FILTER ================= */
 
   useEffect(() => {
+
     if (open) {
+
       fetchData();
+
       form.setFieldsValue({
         roleInTeam: "Member"
       });
+
     }
+
   }, [open]);
 
   const fetchData = async () => {
 
     try {
+
       setLoadingUsers(true);
 
-      // 🔥 lấy song song
       const [allUsersRes, teamMembersRes] = await Promise.all([
         getAllUser(),
         getRescueTeamMembers(teamId)
@@ -64,40 +70,54 @@ export default function CreateMemberModal({
       let allUsers = [];
       let teamMembers = [];
 
-      // normalize users
+      /* normalize users */
+
       if (Array.isArray(allUsersRes)) {
         allUsers = allUsersRes;
-      } else if (Array.isArray(allUsersRes?.data)) {
+      }
+      else if (Array.isArray(allUsersRes?.data)) {
         allUsers = allUsersRes.data;
-      } else if (Array.isArray(allUsersRes?.items)) {
+      }
+      else if (Array.isArray(allUsersRes?.items)) {
         allUsers = allUsersRes.items;
       }
 
-      // normalize team members
+      /* normalize team members */
+
       if (Array.isArray(teamMembersRes?.data)) {
         teamMembers = teamMembersRes.data;
-      } else if (Array.isArray(teamMembersRes?.data?.data)) {
+      }
+      else if (Array.isArray(teamMembersRes?.data?.data)) {
         teamMembers = teamMembersRes.data.data;
       }
 
-      // 🔥 Lấy danh sách userId đã thuộc team
       const existingUserIds = teamMembers.map(
-        (member) => Number(member.userId)
+        member => Number(member.userId)
       );
 
-      // 🔥 LỌC USER CHƯA THUỘC TEAM
       const filteredUsers = allUsers.filter(
-        (user) => !existingUserIds.includes(Number(user.userId))
+        user => !existingUserIds.includes(Number(user.userId))
       );
 
       setUsers(filteredUsers);
 
-    } catch (err) {
-      console.log("Load data error:", err);
-      message.error("Không thể tải dữ liệu");
-    } finally {
-      setLoadingUsers(false);
     }
+    catch (err) {
+
+      console.log("Load data error:", err);
+
+      AuthNotify.error(
+        "Không thể tải dữ liệu",
+        "Vui lòng thử lại sau"
+      );
+
+    }
+    finally {
+
+      setLoadingUsers(false);
+
+    }
+
   };
 
   /* ================= AUTO FILL ================= */
@@ -105,15 +125,19 @@ export default function CreateMemberModal({
   const handleUserChange = (userId) => {
 
     const selectedUser = users.find(
-      (u) => Number(u.userId) === Number(userId)
+      u => Number(u.userId) === Number(userId)
     );
 
     if (!selectedUser) return;
 
     form.setFieldsValue({
+
       fullName: selectedUser.fullName || selectedUser.name || "",
-      phone: selectedUser.phone || "",
+
+      phone: selectedUser.phone || ""
+
     });
+
   };
 
   /* ================= CREATE ================= */
@@ -123,31 +147,53 @@ export default function CreateMemberModal({
     try {
 
       const values = await form.validateFields();
+
       setLoading(true);
 
       const payload = {
+
         rescueTeamId: teamId,
+
         userId: Number(values.userId),
+
         fullName: String(values.fullName),
+
         phone: String(values.phone),
+
         roleInTeam: String(values.roleInTeam || "Member")
+
       };
 
       await createTeamMember(teamId, payload);
 
-      message.success("Tạo thành viên thành công");
+      AuthNotify.success(
+        "Tạo thành viên thành công",
+        "Thành viên đã được thêm vào đội"
+      );
 
       form.resetFields();
+
       onClose();
+
       onSuccess?.();
 
     }
     catch (error) {
-      message.error("Tạo thành viên thất bại");
+
+      console.log(error);
+
+      AuthNotify.error(
+        "Tạo thành viên thất bại",
+        "Không thể thêm thành viên"
+      );
+
     }
     finally {
+
       setLoading(false);
+
     }
+
   };
 
   /* ================= UI ================= */
@@ -173,8 +219,11 @@ export default function CreateMemberModal({
         <Form.Item
           name="userId"
           label="Chọn User"
-          rules={[{ required: true, message: "Chọn user" }]}
+          rules={[
+            { required: true, message: "Chọn user" }
+          ]}
         >
+
           <Select
             size="large"
             placeholder={
@@ -187,15 +236,20 @@ export default function CreateMemberModal({
             onChange={handleUserChange}
             optionFilterProp="children"
           >
+
             {users.map(user => (
+
               <Option
                 key={user.userId}
                 value={user.userId}
               >
                 {user.userId} - {user.fullName || user.name}
               </Option>
+
             ))}
+
           </Select>
+
         </Form.Item>
 
         <Form.Item
@@ -203,11 +257,13 @@ export default function CreateMemberModal({
           label="Họ và tên"
           rules={[{ required: true }]}
         >
+
           <Input
             prefix={<UserOutlined />}
             size="large"
             disabled
           />
+
         </Form.Item>
 
         <Form.Item
@@ -215,11 +271,13 @@ export default function CreateMemberModal({
           label="Số điện thoại"
           rules={[{ required: true }]}
         >
+
           <Input
             prefix={<PhoneOutlined />}
             size="large"
             disabled
           />
+
         </Form.Item>
 
         <Form.Item
@@ -227,11 +285,15 @@ export default function CreateMemberModal({
           label="Vai trò trong đội"
           rules={[{ required: true }]}
         >
+
           <Select size="large">
-        
-            <Option value="Member">👤 Thành viên</Option>
-           
+
+            <Option value="Member">
+              👤 Thành viên
+            </Option>
+
           </Select>
+
         </Form.Item>
 
         <Button
@@ -248,5 +310,7 @@ export default function CreateMemberModal({
       </Form>
 
     </Modal>
+
   );
+
 }

@@ -21,10 +21,6 @@ export default function UserFormModal({
 
       await onSubmit();
 
-    } catch (error) {
-
-      // giữ loading tắt nếu lỗi
-
     } finally {
 
       setLoading(false);
@@ -33,15 +29,23 @@ export default function UserFormModal({
 
   };
 
+  const handleCancel = () => {
+
+    form.resetFields();   // reset form khi đóng
+    onCancel();
+
+  };
+
   return (
+
     <Modal
       open={open}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       width={700}
-      destroyOnClose
+      destroyOnHidden   // ✅ thay destroyOnClose
       title={isEdit ? "Chỉnh sửa người dùng" : "Tạo người dùng"}
       footer={[
-        <Button key="cancel" onClick={onCancel}>
+        <Button key="cancel" onClick={handleCancel}>
           Hủy
         </Button>,
         <Button
@@ -54,7 +58,15 @@ export default function UserFormModal({
         </Button>,
       ]}
     >
-      <UserForm form={form} />
+
+      {/* truyền isEdit xuống form */}
+      <UserForm
+        form={form}
+        isEdit={isEdit}
+      />
+
     </Modal>
+
   );
+
 }

@@ -1,25 +1,30 @@
 import "./StatCard.css";
 
-export default function StatCard({ title, value, icon }) {
-  return (
-    <div className="statCard">
+export default function StatCard({
+  title,
+  value,
+  type,
+  active,
+  onClick
+}){
 
-      <div className="statCard__icon">
-        {icon}
+  return(
+
+    <div
+      className={`statCard ${type} ${active ? "active" : ""}`}
+      onClick={onClick}
+    >
+
+      <div className="statCard__title">
+        {title}
       </div>
 
-      <div>
-
-        <div className="statCard__value">
-          {value}
-        </div>
-
-        <div className="statCard__title">
-          {title}
-        </div>
-
+      <div className="statCard__value">
+        {value}
       </div>
 
     </div>
+
   );
+
 }
