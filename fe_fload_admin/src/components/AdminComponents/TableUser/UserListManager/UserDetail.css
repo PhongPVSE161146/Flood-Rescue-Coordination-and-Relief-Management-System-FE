@@ -1,0 +1,17 @@
+.userDetail {
+    padding: 10px;
+  }
+  
+  .userDetail__row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  
+  .userDetail__label {
+    color: #888;
+  }
+  
+  .userDetail__value {
+    font-weight: 600;
+  }

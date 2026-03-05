@@ -1,57 +1,148 @@
+import axiosInstance from "../../axiosInstance";
 
-import axios from "axios";
+/**
+ * CREATE MEMBER
+ */
+export const createTeamMember = (teamId, data) => {
 
-const API_URL = import.meta.env.VITE_API_URL;
+  return axiosInstance.post(
 
+    `/api/rescueteams/${teamId}/members`,
+
+    {
+
+      rescueTeamId: teamId,
+
+      userId: data.userId,
+
+      fullName: data.fullName,
+
+      phone: data.phone,
+
+      roleInTeam: data.roleInTeam,
+
+    }
+
+  );
+
+};
+
+
+export const createRescueTeam = (data) => {
+
+  return axiosInstance.post(
+    "/api/RescueTeams",
+    {
+
+      rcName: data.rcName,
+      rcPhone: data.rcPhone,
+      areaId: Number(data.areaId),
+      rcStatus: data.rcStatus,
+
+    }
+  );
+
+};
+/**
+ * Lấy tất cả đội cứu hộ
+ */
 export const getAllRescueTeams = () => {
-  return axios.get(`${API_URL}/api/RescueTeams`, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
+
+  return axiosInstance.get("/api/RescueTeams");
+
 };
 
-// API mới: Lấy danh sách thành viên của một đội cứu hộ
+
+/**
+ * Lấy thành viên đội cứu hộ
+ */
 export const getRescueTeamMembers = (teamId) => {
-  return axios.get(`${API_URL}/api/rescueteams/${teamId}/members`, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
+
+  return axiosInstance.get(`/api/rescueteams/${teamId}/members`);
+
 };
+
+
+/**
+ * Xóa thành viên khỏi đội
+ */
 export const deleteTeamMember = (teamId, userId) => {
-    return axios.delete(`${API_URL}/api/rescueteams/${teamId}/members/${userId}`, {
-      headers: {
-        Accept: "*/*",
-        "Content-Type": "application/json",
-      },
-    });
-  };
-  // API mới: Xóa toàn bộ đội cứu hộ
+
+  return axiosInstance.delete(
+
+    `/api/rescueteams/${teamId}/members/${userId}`
+
+  );
+
+};
+
+
+/**
+ * Xóa đội cứu hộ
+ */
 export const deleteRescueTeam = (teamId) => {
-    return axios.delete(`${API_URL}/api/RescueTeams/${teamId}`, {
-      headers: {
-        Accept: "*/*",
-        "Content-Type": "application/json",
-      },
-    });
-  };
-  // API cập nhật thông tin đội cứu hộ
+
+  return axiosInstance.delete(
+
+    `/api/RescueTeams/${teamId}`
+
+  );
+
+};
+
+
+/**
+ * Update đội cứu hộ
+ */
 export const updateRescueTeam = (teamId, data) => {
-    return axios.put(`${API_URL}/api/RescueTeams/${teamId}`, data, {
-      headers: {
-        Accept: "text/plain",
-        "Content-Type": "application/json",
-      },
-    });
-  };
-  export const updateTeamMember = (teamId, userId, data) => {
-    return axios.put(`${API_URL}/api/rescueteams/${teamId}/members/${userId}`, data, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-  };
+
+  return axiosInstance.put(
+
+    `/api/RescueTeams/${teamId}`,
+
+    data
+
+  );
+
+};
+
+
+/**
+ * Update thành viên đội
+ */
+export const updateTeamMember = (teamId, userId, data) => {
+
+  return axiosInstance.put(
+
+    `/api/rescueteams/${teamId}/members/${userId}`,
+
+    data
+
+  );
+
+};
+
+
+/**
+ * ✅ NEW: Lấy vị trí đội cứu hộ
+ */
+export const getRescueTeamLocation = (teamId) => {
+
+  return axiosInstance.get(
+
+    `/api/rescueteams/${teamId}/location`
+
+  );
+
+};
+export const updateRescueTeamLocation = (
+  teamId,
+  location
+) => {
+  return axiosInstance.put(
+    `/api/rescueteams/${teamId}/location`,
+    {
+      location: location
+    }
+  );
+};

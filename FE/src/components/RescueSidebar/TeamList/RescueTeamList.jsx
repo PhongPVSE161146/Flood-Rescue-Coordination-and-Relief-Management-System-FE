@@ -1,235 +1,306 @@
-import { useEffect, useState } from "react";
-import { Input, Select, Button, Tag } from "antd";
+import { useEffect, useState, useMemo } from "react";
+import { Input, Select, Button, Tag, message, Spin, Empty } from "antd";
 import {
   PhoneOutlined,
   EnvironmentOutlined,
+  SearchOutlined
 } from "@ant-design/icons";
+import axios from "axios";
+
+import {
+  getProvinces,
+  getAllRescueTeams,
+  getRescueTeamLocation
+} from "../../../api/service/geographicApi";
+
 import "./RescueTeamList.css";
 
 const { Option } = Select;
 
-/* ================= DATA ================= */
+/* ================= STATUS ================= */
 
-const teamsData = [
-  {
-    id: 1,
-    name: "Đội Phản ứng Nhanh Sài Gòn",
-    specialty: "Y tế, Sơ cứu",
-    status: "free",
-    lat: 10.7769,
-    lng: 106.7009,
-  },
-  {
-    id: 2,
-    name: "Cứu hộ Thủy nạn Miền Nam",
-    specialty: "Xuồng máy, cứu nạn",
-    status: "busy",
-    lat: 10.7626,
-    lng: 106.6602,
-  },
-  {
-    id: 3,
-    name: "Đội Cứu hộ Quận 7",
-    specialty: "Cứu hộ dân cư",
-    status: "free",
-    lat: 10.7326,
-    lng: 106.7219,
-  },
-  {
-    id: 4,
-    name: "Đội Cứu nạn Giao thông",
-    specialty: "Tai nạn đường bộ",
-    status: "busy",
-    lat: 10.8108,
-    lng: 106.7091,
-  },
-];
-
-/* ================= UTILS ================= */
-
-const getDistanceKm = (lat1, lng1, lat2, lng2) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+const normalizeStatus = (status) => {
+  if (!status) return "rest";
+  return status.toLowerCase().includes("on") ? "ready" : "rest";
 };
 
-/* ================= MAIN ================= */
+/* ================= REMOVE ACCENT ================= */
 
-const RescueTeamList = () => {
-  const [filter, setFilter] = useState("all"); // all | free | nearest
-  const [userLocation, setUserLocation] = useState(null);
+const removeVietnameseTones = (str = "") =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  /* ===== GET GPS WHEN FILTER = NEAREST ===== */
+/* ================= REVERSE GEOCODE ================= */
+
+const reverseGeocode = async (lat, lng) => {
+  try {
+    const res = await axios.get(
+      "https://nominatim.openstreetmap.org/reverse",
+      {
+        params: { lat, lon: lng, format: "json" }
+      }
+    );
+    return res.data.display_name;
+  } catch {
+    return null;
+  }
+};
+
+export default function RescueTeamList() {
+
+  const [teamsData, setTeamsData] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProvince, setSelectedProvince] = useState("all");
+  const [search, setSearch] = useState("");
+
   useEffect(() => {
-    if (filter === "nearest" && !userLocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-        },
-        () => {
-          alert("Không thể lấy vị trí GPS");
-          setFilter("all");
-        }
+    fetchAll();
+  }, []);
+
+  const fetchAll = async () => {
+    try {
+      setLoading(true);
+
+      const [teamRes, provinceRes] = await Promise.all([
+        getAllRescueTeams(),
+        getProvinces()
+      ]);
+
+      const teamsArray =
+        teamRes?.items ||
+        teamRes?.data ||
+        teamRes ||
+        [];
+
+      const teamsWithLocation = await Promise.all(
+        teamsArray.map(async (team) => {
+
+          let lat = null;
+          let lng = null;
+          let address = null;
+
+          try {
+            const locRes = await getRescueTeamLocation(team.rcid ?? team.id);
+            const locationStr = locRes?.location;
+
+            if (locationStr?.includes(",")) {
+              const [lngStr, latStr] = locationStr.split(",");
+              lat = Number(latStr);
+              lng = Number(lngStr);
+              address = await reverseGeocode(lat, lng);
+            }
+
+          } catch {}
+
+          return {
+            id: team.rcid ?? team.id,
+            name: team.rcName ?? team.name,
+            phone: team.rcPhone ?? "",
+            status: normalizeStatus(team.rcStatus ?? team.status),
+            areaId: Number(team.areaId) || 0,
+            lat,
+            lng,
+            address
+          };
+        })
+      );
+
+      setTeamsData(teamsWithLocation);
+
+      const provinceArray =
+        provinceRes?.items ||
+        provinceRes?.data ||
+        provinceRes ||
+        [];
+
+      setProvinces(provinceArray);
+
+    } catch {
+      message.error("Không thể tải dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= FILTER ================= */
+
+  const filteredTeams = useMemo(() => {
+
+    let result = teamsData;
+
+    if (selectedProvince !== "all") {
+      result = result.filter(
+        t => t.areaId === Number(selectedProvince)
       );
     }
-  }, [filter, userLocation]);
 
-  /* ===== FILTER + SORT ===== */
-  const teams = (() => {
-    // CHỈ ĐỘI RẢNH
-    const freeTeams = teamsData.filter(
-      (t) => t.status === "free"
+    if (search.trim()) {
+      const keyword = removeVietnameseTones(search);
+
+      result = result.filter(t =>
+        removeVietnameseTones(t.name).includes(keyword) ||
+        t.phone.includes(keyword)
+      );
+    }
+
+    return result;
+
+  }, [teamsData, selectedProvince, search]);
+
+  if (loading) {
+    return (
+      <div className="loading-wrapper">
+        <Spin size="large" />
+      </div>
     );
-  
-    if (filter === "free") {
-      return freeTeams;
-    }
-  
-    if (filter === "nearest" && userLocation) {
-      return freeTeams
-        .map((t) => ({
-          ...t,
-          distance: getDistanceKm(
-            userLocation.lat,
-            userLocation.lng,
-            t.lat,
-            t.lng
-          ),
-        }))
-        .sort((a, b) => a.distance - b.distance);
-    }
-  
-    // all
-    return teamsData;
-  })();
-  
+  }
+
   return (
-    <>
-      {/* ================= FIXED FILTER ================= */}
-      <div className="sidebar-fixed">
+    <div className="rescue-container">
+
+      <div className="rescue-filter">
+
         <Input
-          placeholder="🔍 Tìm kiếm đội cứu hộ..."
-          className="search-team"
+          prefix={<SearchOutlined />}
+          placeholder="Tìm theo tên hoặc số điện thoại..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          allowClear
+          size="large"
         />
 
-        <div className="dropdowns">
-          <Select defaultValue="all">
-            <Option value="all">Tất cả khu vực</Option>
-          </Select>
-          <Select defaultValue="type">
-            <Option value="type">Loại cứu hộ</Option>
-          </Select>
-        </div>
+        <Select
+          value={selectedProvince}
+          onChange={setSelectedProvince}
+          size="large"
+        >
+          <Option value="all">Tất cả khu vực</Option>
+          {provinces.map(p => (
+            <Option key={p.id} value={p.id}>
+              {p.name}
+            </Option>
+          ))}
+        </Select>
 
-        <div className="chips">
-          <Button
-            type={filter === "all" ? "primary" : "default"}
-            shape="round"
-            onClick={() => setFilter("all")}
-          >
-            Tất cả
-          </Button>
-          <Button
-            type={filter === "free" ? "primary" : "default"}
-            shape="round"
-            onClick={() => setFilter("free")}
-          >
-            Đang rảnh
-          </Button>
-          <Button
-            type={filter === "nearest" ? "primary" : "default"}
-            shape="round"
-            onClick={() => setFilter("nearest")}
-          >
-            Gần nhất
-          </Button>
+        <div className="team-count">
+          ĐỘI CỨU HỘ ({filteredTeams.length})
         </div>
-
-        <h4 className="section-title">
-          ĐỘI CỨU HỘ GẦN NHẤT ({teams.length})
-        </h4>
       </div>
 
-      {/* ================= SCROLL LIST ================= */}
       <div className="team-list-scroll">
-        {teams.map((team) => (
-          <TeamCard key={team.id} {...team} />
-        ))}
-      </div>
-    </>
-  );
-};
 
-export default RescueTeamList;
+        {filteredTeams.length === 0 && (
+          <Empty description="Không tìm thấy đội phù hợp" />
+        )}
+
+        {filteredTeams.map(team => {
+
+          const province = provinces.find(
+            p => Number(p.id) === team.areaId
+          );
+
+          return (
+            <TeamCard
+              key={team.id}
+              {...team}
+              provinceName={province?.name}
+            />
+          );
+        })}
+
+      </div>
+    </div>
+  );
+}
 
 /* ================= CARD ================= */
 
 function TeamCard({
   name,
-  specialty,
+  phone,
   status,
-  distance,
+  provinceName,
+  areaId,
   lat,
   lng,
+  address
 }) {
-  const isFree = status === "free";
 
-  const openDirection = () => {
+  const isReady = status === "ready";
+
+  const handleCall = () => {
+    if (phone) window.location.href = `tel:${phone}`;
+  };
+
+  const openMap = () => {
+    if (!lat || !lng) {
+      message.warning("Đội này chưa có vị trí");
+      return;
+    }
+
     window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      `https://www.google.com/maps?q=${lat},${lng}`,
       "_blank"
     );
   };
 
   return (
-    <div className={`team-card ${!isFree ? "busy" : ""}`}>
-      <div className="team-header">
-        <h5>{name}</h5>
-        {isFree ? (
-          <Tag color="green">RẢNH</Tag>
-        ) : (
-          <Tag>ĐANG BẬN</Tag>
-        )}
+    <div className="team-card-modern">
+
+      <div className="team-header-modern">
+        <h4>{name}</h4>
+        <Tag color={isReady ? "green" : "orange"}>
+          {isReady ? "Sẵn sàng" : "Đang nghỉ"}
+        </Tag>
       </div>
 
-      <p className="specialty">{specialty}</p>
-
-      <div className="team-meta">
-        {distance !== undefined && (
-          <span>📍 {distance.toFixed(2)} km</span>
-        )}
-      </div>
-
-      {isFree && (
-        <div className="team-actions">
-          <Button
-            type="primary"
-            icon={<PhoneOutlined />}
-            block
-          >
-            Liên hệ
-          </Button>
-
-          <Button
-            icon={<EnvironmentOutlined />}
-            className="btn-direction"
-            onClick={openDirection}
-          >
-            Chỉ đường
-          </Button>
+      {/* 🔥 HIỂN THỊ KHU VỰC THEO areaId */}
+      {areaId !== 0 && (
+        <div className="team-info">
+          <EnvironmentOutlined />
+          <span>{provinceName || "Khu vực không xác định"}</span>
         </div>
       )}
+
+      {/* 🔥 ĐỊA CHỈ TỪ TỌA ĐỘ */}
+      <div className="team-info">
+        <EnvironmentOutlined />
+        <span>
+          {address
+            ? address
+            : (lat && lng
+                ? `${lat}, ${lng}`
+                : "Chưa có vị trí")}
+        </span>
+      </div>
+
+      <div className="team-info">
+        <PhoneOutlined />
+        <span>{phone || "Chưa có SĐT"}</span>
+      </div>
+
+      {lat && lng && (
+        <Button
+          icon={<EnvironmentOutlined />}
+          block
+          style={{ marginTop: 8 }}
+          onClick={openMap}
+        >
+          Xem vị trí
+        </Button>
+      )}
+
+      {isReady && (
+        <Button
+          type="primary"
+          block
+          onClick={handleCall}
+          style={{ marginTop: 8 }}
+        >
+          Liên hệ
+        </Button>
+      )}
+
     </div>
   );
 }

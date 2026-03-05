@@ -169,7 +169,7 @@ export default function MissionList() {
         >
           MỚI NHẤT
         </button>
-        <button
+        {/* <button
           className={tab === "urgent" ? "active" : ""}
           onClick={() => setTab("urgent")}
         >
@@ -180,7 +180,7 @@ export default function MissionList() {
           onClick={() => setTab("recent")}
         >
           GẦN ĐÂY
-        </button>
+        </button> */}
       </div>
 
       {/* LIST */}

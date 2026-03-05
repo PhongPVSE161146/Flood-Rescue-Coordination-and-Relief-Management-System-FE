@@ -31,11 +31,11 @@ const RescueSidebar = () => {
         className="sidebar-bottom-nav"
       >
         <BottomNavigationAction
-          label="History"
+          label="Tra Cứu Yêu Cầu"
           icon={<RestoreIcon />}
         />
         <BottomNavigationAction
-          label="Teams"
+          label="Đội Cứu Hộ"
           icon={<GroupIcon />}
         />
       </BottomNavigation>

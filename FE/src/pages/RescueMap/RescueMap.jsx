@@ -1,15 +1,13 @@
 import { useState } from "react";
-import MapHeader from "../../components/MapHeader/MapHeader";
+import MapHeader from "../../Layout/MapHeader/MapHeader";
 import RescueSidebar from "../../components/RescueSidebar/RescueSidebar";
 import "./RescueMap.css";
+import { EnvironmentOutlined } from "@ant-design/icons";
 
-const DEFAULT_POS = {
-  lat: 10.7731,
-  lng: 106.7031,
-};
+
 
 export default function RescueMap() {
-  const [pos, setPos] = useState(DEFAULT_POS);
+  const [pos, setPos] = useState([]);
   const [zoom, setZoom] = useState(14);
 
   /* ===== GPS (GIỐNG GOOGLE MAP WEB) ===== */
@@ -56,7 +54,7 @@ export default function RescueMap() {
 
           {/* GPS BUTTON */}
           <button className="gps-btn" onClick={locateUser} title="Vị trí của tôi">
-            ⦿
+          <EnvironmentOutlined />
           </button>
         </div>
       </div>
