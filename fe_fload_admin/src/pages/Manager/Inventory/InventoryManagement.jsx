@@ -1,773 +1,519 @@
-import { useState } from "react";
-import { Button, Tag, Progress, Select, Drawer, InputNumber } from "antd";
+import { useEffect, useState } from "react";
 import {
-  PlusOutlined,
-  ExportOutlined,
-  EditOutlined,
-  HistoryOutlined,
-  DropboxOutlined,
-  DollarOutlined,
-  WarningOutlined,
-  SwapOutlined,
-  DownloadOutlined,
-  UploadOutlined,
-  ShoppingCartOutlined,
-} from "@ant-design/icons";
-import "./InventoryManagement.css";
+  Button,
+  Drawer,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Table,
+  Space,
+  Tabs,
+  message,
+} from "antd";
 
-/* ================= DATA ================= */
-const items = [
-  {
-    code: "#VT-G001",
-    name: "Gạo tẻ ST25",
-    category: "Lương thực",
-    warehouse: "Quận 1",
-    quantity: 450,
-    unit: "kg",
-    status: "low",
-    icon: "🍚",
-    price: 25000,
-  },
-  {
-    code: "#VT-M012",
-    name: "Paracetamol 500mg",
-    category: "Y tế",
-    warehouse: "Quận 1",
-    quantity: 1500,
-    unit: "hộp",
-    status: "ok",
-    icon: "💊",
-    price: 15000,
-  },
-  {
-    code: "#VT-E005",
-    name: "Áo phao cứu sinh",
-    category: "Thiết bị",
-    warehouse: "Quận 7",
-    quantity: 120,
-    unit: "chiếc",
-    status: "ok",
-    icon: "🦺",
-    price: 350000,
-  },
-  {
-    code: "#VT-W221",
-    name: "Nước sạch đóng chai 5L",
-    category: "Nhu yếu phẩm",
-    warehouse: "Quận 12",
-    quantity: 85,
-    unit: "bình",
-    status: "low",
-    icon: "💧",
-    price: 45000,
-  },
-  {
-    code: "#VT-B001",
-    name: "Băng gạc y tế",
-    category: "Y tế",
-    warehouse: "Quận 1",
-    quantity: 250,
-    unit: "cuộn",
-    status: "ok",
-    icon: "🩹",
-    price: 35000,
-  },
-  {
-    code: "#VT-F002",
-    name: "Cơm hộp cứu trợ",
-    category: "Lương thực",
-    warehouse: "Quận 7",
-    quantity: 200,
-    unit: "suất",
-    status: "low",
-    icon: "🍜",
-    price: 50000,
-  },
-  {
-    code: "#VT-C001",
-    name: "Chăn cứu hộ",
-    category: "Thiết bị",
-    warehouse: "Quận 12",
-    quantity: 80,
-    unit: "chiếc",
-    status: "ok",
-    icon: "🛏️",
-    price: 120000,
-  },
-  {
-    code: "#VT-L001",
-    name: "Lều tạm cứu trợ",
-    category: "Thiết bị",
-    warehouse: "Quận 1",
-    quantity: 15,
-    unit: "cái",
-    status: "low",
-    icon: "⛺",
-    price: 2500000,
-  },
-];
+import {
+  getAllWarehouses,
+  createWarehouse,
+  updateWarehouse,
+  deleteWarehouse,
+  getAllReliefItems,
+  createReliefItem,
+  updateReliefItem,
+  deleteReliefItem,
+  getInventoryTransactions,
+  createInventoryTransaction,
+  confirmInventoryTransaction,
+  getWarehouseInventory,
+} from "../../../../api/axios/ManagerApi/inventoryApi";
 
-/* ================= COMPONENT ================= */
 export default function InventoryManagement() {
-  const [activeWarehouse, setActiveWarehouse] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedStat, setSelectedStat] = useState(null);
-  const [purchaseDrawer, setPurchaseDrawer] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [items, setItems] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [inventory, setInventory] = useState([]);
 
-  const filteredItems = items.filter((item) => {
-    const matchWarehouse = activeWarehouse === "all" || item.warehouse === activeWarehouse;
-    const matchStatus = statusFilter === "all" || item.status === statusFilter;
-    return matchWarehouse && matchStatus;
-  });
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState(null);
 
-  const lowStockItems = items.filter((i) => i.status === "low");
-  const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-  
-  const warehouseValues = {
-    "Quận 1": items
-      .filter((i) => i.warehouse === "Quận 1")
-      .reduce((sum, i) => sum + (i.quantity * i.price), 0),
-    "Quận 7": items
-      .filter((i) => i.warehouse === "Quận 7")
-      .reduce((sum, i) => sum + (i.quantity * i.price), 0),
-    "Quận 12": items
-      .filter((i) => i.warehouse === "Quận 12")
-      .reduce((sum, i) => sum + (i.quantity * i.price), 0),
-  };
+  const [warehouseDrawer, setWarehouseDrawer] = useState(false);
+  const [itemDrawer, setItemDrawer] = useState(false);
+  const [transactionDrawer, setTransactionDrawer] = useState(false);
 
-  const handleStatClick = (stat) => {
-    setSelectedStat(stat);
-    setDrawerVisible(true);
-  };
+  const [editingWarehouse, setEditingWarehouse] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
 
-  const handleAddToCart = (item) => {
-    const existingItem = cartItems.find((ci) => ci.code === item.code);
-    if (existingItem) {
-      setCartItems(
-        cartItems.map((ci) =>
-          ci.code === item.code ? { ...ci, quantity: ci.quantity + 1 } : ci
-        )
+  const [form] = Form.useForm();
+  const [itemForm] = Form.useForm();
+  const [transactionForm] = Form.useForm();
+
+  useEffect(() => {
+    loadAll();
+  }, []);
+
+  /* ================= LOAD ================= */
+
+  const loadAll = async () => {
+    try {
+      const [w, i, t] = await Promise.all([
+        getAllWarehouses(),
+        getAllReliefItems(),
+        getInventoryTransactions(),
+      ]);
+
+      setWarehouses(
+        w.data.map((x) => ({
+          ...x,
+          id: x.id || x.warehouseId,
+        }))
       );
-    } else {
-      setCartItems([...cartItems, { ...item, quantity: 1 }]);
+
+      setItems(
+        i.data.map((x) => ({
+          ...x,
+          id: x.id || x.reliefItemId,
+        }))
+      );
+
+      setTransactions(
+        t.data.map((x) => ({
+          ...x,
+          id: x.id || x.transactionId,
+        }))
+      );
+    } catch {
+      message.error("Load dữ liệu thất bại");
     }
   };
 
-  return (
-    <div className="inventory-page">
-      {/* ================= HEADER ================= */}
-      <div className="inventory-header">
-        <h2>Quản lý Kho & Vật tư</h2>
+  /* ================= INVENTORY ================= */
 
-        <div className="header-actions">
-          <Button icon={<ExportOutlined />}>
-            Xuất báo cáo
-          </Button>
-          <Button type="primary" icon={<PlusOutlined />}>
-            Nhập kho mới
-          </Button>
-        </div>
-      </div>
+  const handleSelectWarehouseInventory = async (warehouseId) => {
+    setSelectedWarehouseId(warehouseId);
+    if (!warehouseId) return;
 
-      {/* ================= STATS ================= */}
-      <div className="inventory-stats">
-        <div onClick={() => handleStatClick("total")} style={{ cursor: "pointer" }}>
-          <StatCard
-            icon={<DropboxOutlined />}
-            title="TỔNG MẶT HÀNG"
-            value={items.length}
-            clickable
-          />
-        </div>
-        <div onClick={() => handleStatClick("value")} style={{ cursor: "pointer" }}>
-          <StatCard
-            icon={<DollarOutlined />}
-            title="QUẢN LÍ TIỀN TỆ LIÊN KHO"
-            value={(totalValue / 1e9).toFixed(2)}
-            suffix="tỷ VND"
-            clickable
-          />
-        </div>
-        <div onClick={() => handleStatClick("low")} style={{ cursor: "pointer" }}>
-          <StatCard
-            icon={<WarningOutlined />}
-            title="SẮP HẾT"
-            value={lowStockItems.length}
-            alert
-            clickable
-          />
-        </div>
-        <StatCard
-          icon={<SwapOutlined />}
-          title="GIAO DỊCH (24H)"
-          value="42"
-        />
-      </div>
+    try {
+      const res = await getWarehouseInventory(warehouseId);
+      setInventory(
+        res.data.map((x, index) => ({
+          key: index,
+          itemName: x.itemName,
+          quantity: x.quantity,
+        }))
+      );
+    } catch {
+      message.error("Load inventory thất bại");
+    }
+  };
 
-      {/* ================= TABLE ================= */}
-      <div className="inventory-table">
-        {/* ===== FILTER BAR ===== */}
-        <div className="table-filter">
-          {/* WAREHOUSE TABS */}
-          <div className="tabs">
-            {["all", "Quận 1", "Quận 7", "Quận 12"].map((w) => (
-              <span
-                key={w}
-                className={activeWarehouse === w ? "active" : ""}
-                onClick={() => setActiveWarehouse(w)}
-              >
-                {w === "all" ? "Tất cả kho" : `Kho ${w}`}
-              </span>
-            ))}
-          </div>
+  /* ================= WAREHOUSE ================= */
 
-          {/* STATUS FILTER */}
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 180 }}
-          >
-            <Select.Option value="all">
-              Trạng thái: Tất cả
-            </Select.Option>
-            <Select.Option value="ok">
-              Còn hàng
-            </Select.Option>
-            <Select.Option value="low">
-              Sắp hết
-            </Select.Option>
-          </Select>
-        </div>
+  const handleSaveWarehouse = async (values) => {
+    try {
+      if (editingWarehouse) {
+        await updateWarehouse(editingWarehouse.id, values);
+      } else {
+        await createWarehouse(values);
+      }
+      setWarehouseDrawer(false);
+      setEditingWarehouse(null);
+      form.resetFields();
+      loadAll();
+    } catch {
+      message.error("Lưu warehouse thất bại");
+    }
+  };
 
-        {/* ===== TABLE HEAD ===== */}
-        <div className="inventory-table">
-  <div className="table-scroll">
-    {/* HEADER */}
-    <div className="table-head wide">
-      <span>MÃ</span>
-      <span>TÊN VẬT TƯ</span>
-      <span>KHO</span>
-      <span>TỒN KHO</span>
-      <span>ĐƠN VỊ</span>
-      <span>DANH MỤC</span>
-      <span>TRẠNG THÁI</span>
-      <span>THAO TÁC</span>
-    </div>
+  const handleDeleteWarehouse = async (id) => {
+    if (!id) return;
 
-    {/* ROWS */}
-    {filteredItems.map((item) => (
-      <div className="table-row wide" key={item.code}>
-        <div>{item.code}</div>
+    try {
+      await deleteWarehouse(id);
+      message.success("Xoá kho thành công");
+      loadAll();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        message.error("Kho đang còn vật phẩm, không được xoá");
+      } else {
+        message.error("Xoá kho thất bại");
+      }
+    }
+  };
 
-        <div className="item-info">
-          <div className="item-icon">{item.icon}</div>
-          <strong>{item.name}</strong>
-        </div>
+  /* ================= ITEM ================= */
 
-        <div>
-          <Tag color="blue">Kho {item.warehouse}</Tag>
-        </div>
+  const handleSaveItem = async (values) => {
+    try {
+      if (editingItem) {
+        await updateReliefItem(editingItem.id, values);
+      } else {
+        await createReliefItem(values);
+      }
+      setItemDrawer(false);
+      setEditingItem(null);
+      itemForm.resetFields();
+      loadAll();
+    } catch {
+      message.error("Lưu item thất bại");
+    }
+  };
 
-        <div className="stock">
-          <span className={item.status === "low" ? "low" : ""}>
-            {item.quantity}
-          </span>
-          <Progress
-            percent={item.status === "low" ? 30 : 80}
-            showInfo={false}
-          />
-        </div>
+  const handleDeleteItem = async (id) => {
+    if (!id) return;
 
-        <div>{item.unit}</div>
-        <div>{item.category}</div>
+    try {
+      await deleteReliefItem(id);
+      message.success("Xoá vật phẩm thành công");
+      loadAll();
+    } catch (err) {
+      if (err.response?.status === 409) {
+        message.error("Vật phẩm đang được sử dụng, không được xoá");
+      } else {
+        message.error("Xoá vật phẩm thất bại");
+      }
+    }
+  };
 
-        <div>
-          {item.status === "low" ? (
-            <Tag color="orange">SẮP HẾT</Tag>
-          ) : (
-            <Tag color="green">CÒN HÀNG</Tag>
-          )}
-        </div>
+  /* ================= TRANSACTION ================= */
 
-        <div className="actions">
-          <EditOutlined />
-          <HistoryOutlined />
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
+  const handleCreateTransaction = async (values) => {
+    try {
+      await createInventoryTransaction(values);
+      message.success("Tạo transaction thành công");
+      setTransactionDrawer(false);
+      transactionForm.resetFields();
+      loadAll();
+    } catch {
+      message.error("Tạo transaction thất bại");
+    }
+  };
 
+  const handleConfirmTransaction = async (id) => {
+    if (!id) return;
+    await confirmInventoryTransaction(id);
+    loadAll();
+  };
 
+  /* ================= COLUMNS ================= */
 
-
-        {/* ===== FOOTER ===== */}
-        <div className="table-footer">
-          <span>
-            Hiển thị {filteredItems.length} mặt
-            hàng
-          </span>
-        </div>
-      </div>
-
-      {/* ================= DRAWER - STAT DETAIL ================= */}
-      <Drawer
-        title={selectedStat === "total" ? "📦 Danh sách vật tư" : selectedStat === "value" ? "💰 Quản lí tiền tệ liên kho" : "⚠️ Vật phẩm sắp hết"}
-        placement="right"
-        onClose={() => setDrawerVisible(false)}
-        open={drawerVisible}
-        width={600}
-      >
-        {selectedStat === "total" && <TotalItemsDetail items={items} />}
-        {selectedStat === "value" && <WarehouseValueDetail warehouseValues={warehouseValues} totalValue={totalValue} />}
-        {selectedStat === "low" && <LowStockDetail items={lowStockItems} />}
-      </Drawer>
-
-      {/* ================= BOTTOM ================= */}
-      <div className="inventory-bottom">
-        <div className="history">
-          <h3>Lịch sử giao dịch gần đây</h3>
-
-          <HistoryItem
-            icon={<DownloadOutlined />}
-            color="green"
-            text="Nhập 5,000kg Gạo ST25"
-            note="Hôm nay, 14:20 · Kho Quận 1"
-            value="+5,000"
-          />
-
-          <HistoryItem
-            icon={<UploadOutlined />}
-            color="red"
-            text="Xuất 200 Áo phao"
-            note="15/08 · Kho Quận 7"
-            value="-200"
-          />
-        </div>
-
-        <div className="quick-help">
-          <h3>Mua thêm vật phẩm</h3>
-          <p>
-            Yêu cầu mua sắm thêm vật tư cứu trợ để cập nhật kho dự trữ.
-          </p>
+  const warehouseColumns = [
+    { title: "ID", dataIndex: "id" },
+    { title: "Name", dataIndex: "warehouseName" },
+    { title: "Location", dataIndex: "locationDescription" },
+    {
+      title: "Action",
+      render: (_, record) => (
+        <Space>
           <Button
-            type="primary"
-            icon={<ShoppingCartOutlined />}
-            onClick={() => setPurchaseDrawer(true)}
+            onClick={() => {
+              setEditingWarehouse(record);
+              form.setFieldsValue(record);
+              setWarehouseDrawer(true);
+            }}
           >
-            Mua thêm vật phẩm
+            Edit
           </Button>
-        </div>
-      </div>
+          <Button danger onClick={() => handleDeleteWarehouse(record.id)}>
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
-      {/* ================= DRAWER - PURCHASE ================= */}
-      <Drawer
-        title="🛒 Mua thêm vật phẩm"
-        placement="right"
-        onClose={() => setPurchaseDrawer(false)}
-        open={purchaseDrawer}
-        width={700}
-      >
-        <PurchaseForm items={items} cartItems={cartItems} setCartItems={setCartItems} onAddToCart={handleAddToCart} />
-      </Drawer>
-    </div>
-  );
-}
+  const itemColumns = [
+    { title: "ID", dataIndex: "id" },
+    { title: "Name", dataIndex: "itemName" },
+    { title: "Unit", dataIndex: "unit" },
+    {
+      title: "Action",
+      render: (_, record) => (
+        <Space>
+          <Button
+            onClick={() => {
+              setEditingItem(record);
+              itemForm.setFieldsValue(record);
+              setItemDrawer(true);
+            }}
+          >
+            Edit
+          </Button>
+          <Button danger onClick={() => handleDeleteItem(record.id)}>
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
-/* ================= SUB COMPONENT ================= */
+  const transactionColumns = [
+    { title: "ID", dataIndex: "id" },
+    { title: "Warehouse", dataIndex: "warehouseId" },
+    { title: "Type", dataIndex: "transactionType" },
+    {
+      title: "Action",
+      render: (_, record) => (
+        <Button onClick={() => handleConfirmTransaction(record.id)}>
+          Confirm
+        </Button>
+      ),
+    },
+  ];
 
-function StatCard({ icon, title, value, suffix, alert }) {
-  return (
-    <div className={`stat-card ${alert ? "alert" : ""}`}>
-      <div className="stat-icon">{icon}</div>
-      <span>{title}</span>
-      <h3>
-        {value} {suffix && <small>{suffix}</small>}
-      </h3>
-      {alert && <Tag color="orange">Cần nhập</Tag>}
-    </div>
-  );
-}
+  /* ================= TABS ================= */
 
-function TotalItemsDetail({ items }) {
-  const categories = [...new Set(items.map(item => item.category))];
-  
-  return (
-    <div className="drawer-detail">
-      <h4>Tổng Số Vật Tư: {items.length} loại</h4>
-      <div style={{ marginBottom: "20px" }}>
-        <h4 style={{ fontSize: "13px", color: "#666", marginBottom: "10px" }}>Phân loại vật tư:</h4>
-        {categories.map(cat => (
-          <Tag key={cat} color="blue">
-            {cat}: {items.filter(i => i.category === cat).length} loại
-          </Tag>
-        ))}
-      </div>
-      
-      <h4 style={{ fontSize: "13px", color: "#333", marginBottom: "10px" }}>Chi tiết vật tư:</h4>
-      <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-        {items.map((item) => (
-          <div key={item.code} style={{ 
-            padding: "10px", 
-            borderBottom: "1px solid #eee",
-            fontSize: "12px"
-          }}>
-            <strong>{item.icon} {item.name}</strong>
-            <div style={{ color: "#666", marginTop: "5px" }}>
-              Mã: {item.code} | {item.quantity} {item.unit} | {item.category}
-            </div>
-            <div style={{ color: "#999", marginTop: "3px" }}>
-              📍 {item.warehouse}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function WarehouseValueDetail({ warehouseValues, totalValue }) {
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const warehouseList = Object.entries(warehouseValues || {});
-  
-  return (
-    <div className="drawer-detail">
-      <div style={{ 
-        textAlign: "center", 
-        padding: "20px", 
-        backgroundColor: "#f0f5ff",
-        borderRadius: "8px",
-        marginBottom: "20px"
-      }}>
-        <h3 style={{ margin: "0 0 10px 0", color: "#1890ff" }}>💰 Tổng Giá Trị Kho</h3>
-        <h2 style={{ margin: "0", color: "#0050b3", fontSize: "24px" }}>
-          {formatPrice(totalValue)}
-        </h2>
-      </div>
-
-      <h4 style={{ fontSize: "13px", color: "#333", marginBottom: "15px" }}>Chi tiết theo kho:</h4>
-      {warehouseList.map(([warehouse, value]) => {
-        const percentage = totalValue > 0 ? (value / totalValue) * 100 : 0;
-        
-        // Sample spending history for each warehouse
-        const spendingHistory = {
-          "Quận 1": [
-            { date: "20/01/2026", amount: "250,000,000₫", description: "Mua gạo 5,000kg" },
-            { date: "18/01/2026", amount: "180,000,000₫", description: "Mua thuốc 1,000 hộp" },
-            { date: "15/01/2026", amount: "95,000,000₫", description: "Mua áo phao 500 chiếc" }
-          ],
-          "Quận 7": [
-            { date: "21/01/2026", amount: "320,000,000₫", description: "Mua nước 10,000 chai" },
-            { date: "19/01/2026", amount: "140,000,000₫", description: "Mua chăn 2,000 chiếc" },
-            { date: "16/01/2026", amount: "75,000,000₫", description: "Mua lều 300 cái" }
-          ],
-          "Quận 12": [
-            { date: "22/01/2026", amount: "210,000,000₫", description: "Mua cơm hộp 3,000 hộp" },
-            { date: "20/01/2026", amount: "165,000,000₫", description: "Mua băng gạc 5,000 roll" },
-            { date: "17/01/2026", amount: "88,000,000₫", description: "Mua trang phục bảo hộ" }
-          ]
-        };
-
-        return (
-          <div key={warehouse} style={{ 
-            marginBottom: "20px",
-            padding: "15px",
-            backgroundColor: "#f8fbff",
-            borderRadius: "8px",
-            border: "1px solid #d4e4f7"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span style={{ fontSize: "12px", fontWeight: "500" }}>📍 {warehouse}</span>
-              <span style={{ fontSize: "12px", color: "#1890ff", fontWeight: "bold" }}>
-                {formatPrice(value)} ({percentage.toFixed(1)}%)
-              </span>
-            </div>
-            <Progress percent={percentage} strokeColor="#1890ff" size="small" style={{ marginBottom: "12px" }} />
-            
-            {/* Spending History */}
-            <div style={{ marginTop: "12px" }}>
-              <h5 style={{ fontSize: "11px", color: "#666", margin: "0 0 8px 0", fontWeight: "600" }}>📋 Lịch sử tiêu:</h5>
-              {(spendingHistory[warehouse] || []).map((history, idx) => (
-                <div key={idx} style={{ 
-                  fontSize: "11px", 
-                  padding: "6px 8px",
-                  marginBottom: "4px",
-                  backgroundColor: "#ffffff",
-                  borderRadius: "4px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  borderLeft: "3px solid #52c41a"
-                }}>
-                  <div>
-                    <div style={{ fontWeight: "500", color: "#333" }}>{history.description}</div>
-                    <div style={{ color: "#999", fontSize: "10px" }}>{history.date}</div>
-                  </div>
-                  <div style={{ color: "#ff4d4f", fontWeight: "bold" }}>-{history.amount}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function LowStockDetail({ items }) {
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  return (
-    <div className="drawer-detail">
-      <div style={{ 
-        padding: "12px", 
-        backgroundColor: "#fff7e6",
-        borderLeft: "4px solid #ff7a45",
-        borderRadius: "4px",
-        marginBottom: "15px"
-      }}>
-        <strong style={{ color: "#d4380d" }}>⚠️ Vật phẩm sắp hết</strong>
-        <p style={{ fontSize: "12px", color: "#d4380d", margin: "5px 0 0 0" }}>
-          Cần lên kế hoạch mua sắm thêm để đủ dự trữ
-        </p>
-      </div>
-
-      {items.length > 0 ? (
-        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-          {items.map((item) => (
-            <div key={item.code} style={{ 
-              padding: "12px", 
-              borderBottom: "1px solid #eee",
-              backgroundColor: "#fffbe6"
-            }}>
-              <strong>{item.icon} {item.name}</strong>
-              <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
-                <div>Tồn kho: {item.quantity} {item.unit}</div>
-                <div>Vị trí: {item.warehouse}</div>
-                <div>Danh mục: {item.category}</div>
-                <div>Đơn giá: {formatPrice(item.price)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p style={{ textAlign: "center", color: "#999", fontSize: "12px" }}>
-          Không có vật phẩm nào cần nhập
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PurchaseForm({ items, cartItems, setCartItems, onAddToCart }) {
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [selectedWarehouse, setSelectedWarehouse] = useState("");
-  
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const categories = ["Tất cả", ...new Set(items.map(item => item.category))];
-  const filteredItems = selectedCategory === "Tất cả" 
-    ? items 
-    : items.filter(item => item.category === selectedCategory);
-
-  const handleRemoveItem = (code) => {
-    setCartItems(cartItems.filter(item => item.code !== code));
-  };
-
-  const handleQuantityChange = (code, quantity) => {
-    if (quantity <= 0) {
-      handleRemoveItem(code);
-    } else {
-      setCartItems(cartItems.map(item => 
-        item.code === code ? { ...item, quantity } : item
-      ));
-    }
-  };
-
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  return (
-    <div className="purchase-form">
-      {/* Warehouse Selection */}
-      {!selectedWarehouse ? (
-        <div style={{ 
-          padding: "20px", 
-          textAlign: "center",
-          backgroundColor: "#f0f5ff",
-          borderRadius: "8px",
-          marginBottom: "20px"
-        }}>
-          <h4 style={{ marginBottom: "15px" }}>Vui lòng chọn kho để mua hàng</h4>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
-            {["Quận 1", "Quận 7", "Quận 12"].map(warehouse => (
-              <Button
-                key={warehouse}
-                type="primary"
-                size="large"
-                onClick={() => setSelectedWarehouse(warehouse)}
-              >
-                📍 {warehouse}
-              </Button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div style={{ marginBottom: "15px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-            <h4 style={{ margin: "0", fontSize: "14px" }}>📍 Kho đã chọn: <strong>{selectedWarehouse}</strong></h4>
-            <Button size="small" onClick={() => setSelectedWarehouse("")}>Đổi kho</Button>
-          </div>
-        </div>
-      )}
-      
-      {selectedWarehouse && (
+  const tabItems = [
+    {
+      key: "1",
+      label: "Kho",
+      children: (
         <>
-      {/* Category Filter */}
-      <div style={{ marginBottom: "20px" }}>
-        <h4 style={{ marginBottom: "10px", fontSize: "13px" }}>Lọc theo danh mục:</h4>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {categories.map(cat => (
-            <Button
-              key={cat}
-              size="small"
-              type={selectedCategory === cat ? "primary" : "default"}
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Items Grid */}
-      <h4 style={{ marginBottom: "10px", fontSize: "13px" }}>Chọn vật phẩm:</h4>
-      <div className="item-grid">
-        {filteredItems.map(item => {
-          const inCart = cartItems.find(c => c.code === item.code);
-          return (
-            <div key={item.code} style={{ 
-              padding: "12px",
-              border: "1px solid #d9d9d9",
-              borderRadius: "6px",
-              textAlign: "center"
-            }}>
-              <div style={{ fontSize: "24px", marginBottom: "8px" }}>{item.icon}</div>
-              <div style={{ fontSize: "12px", fontWeight: "500", marginBottom: "4px" }}>
-                {item.name}
-              </div>
-              <div style={{ fontSize: "11px", color: "#666", marginBottom: "8px" }}>
-                {formatPrice(item.price)}
-              </div>
-              <Button
-                type={inCart ? "primary" : "default"}
-                size="small"
-                icon={<ShoppingCartOutlined />}
-                onClick={() => onAddToCart(item)}
-                style={{ width: "100%" }}
-              >
-                {inCart ? "✓ Thêm" : "Thêm"}
-              </Button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Cart Summary */}
-      {cartItems.length > 0 && (
-        <div style={{ marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #d9d9d9" }}>
-          <h4 style={{ fontSize: "13px", marginBottom: "15px" }}>
-            🛒 Giỏ hàng ({cartItems.length} loại)
-          </h4>
-          
-          <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "15px" }}>
-            {cartItems.map(item => (
-              <div key={item.code} className="cart-item">
-                <div>
-                  <strong>{item.icon} {item.name}</strong>
-                  <div style={{ fontSize: "12px", color: "#666" }}>
-                    {formatPrice(item.price)} × {item.quantity} = {formatPrice(item.price * item.quantity)}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  <InputNumber
-                    min={1}
-                    value={item.quantity}
-                    onChange={(val) => handleQuantityChange(item.code, val)}
-                    size="small"
-                    style={{ width: "60px" }}
-                  />
-                  <Button 
-                    size="small" 
-                    danger 
-                    onClick={() => handleRemoveItem(item.code)}
-                  >
-                    Xóa
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ 
-            padding: "12px", 
-            backgroundColor: "#f0f5ff",
-            borderRadius: "6px",
-            marginBottom: "15px"
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-              <span>Tổng cộng:</span>
-              <strong style={{ color: "#1890ff", fontSize: "16px" }}>
-                {formatPrice(totalPrice)}
-              </strong>
-            </div>
-          </div>
-
-          <Button type="primary" block size="large">
-            Xác nhận mua ({cartItems.length} loại)
+          <Button type="primary" onClick={() => setWarehouseDrawer(true)}>
+            Add Warehouse
           </Button>
-        </div>
-      )}
+          <Table rowKey="id" columns={warehouseColumns} dataSource={warehouses} />
+        </>
+      ),
+    },
+    {
+      key: "2",
+      label: "Relief Items",
+      children: (
+        <>
+          <Button type="primary" onClick={() => setItemDrawer(true)}>
+            Add Item
+          </Button>
+          <Table rowKey="id" columns={itemColumns} dataSource={items} />
+        </>
+      ),
+    },
+    {
+      key: "3",
+      label: "Tồn kho",
+      children: (
+        <>
+          <Select
+            placeholder="Chọn kho"
+            style={{ width: 300, marginBottom: 16 }}
+            options={warehouses.map((w) => ({
+              value: w.id,
+              label: w.warehouseName,
+            }))}
+            onChange={handleSelectWarehouseInventory}
+          />
+          <Table
+            rowKey="key"
+            columns={[
+              { title: "Item", dataIndex: "itemName" },
+              { title: "Quantity", dataIndex: "quantity" },
+            ]}
+            dataSource={inventory}
+          />
+        </>
+      ),
+    },
+    {
+      key: "4",
+      label: "Giao dịch",
+      children: (
+        <>
+          <Button type="primary" onClick={() => setTransactionDrawer(true)}>
+            Create Transaction
+          </Button>
+          <Table
+            rowKey="id"
+            columns={transactionColumns}
+            dataSource={transactions}
+          />
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <h2>Inventory Management</h2>
+      <Tabs items={tabItems} />
+      {/* Giữ nguyên toàn bộ Drawer phía dưới như bạn gửi */}
+      {/* ================= WAREHOUSE DRAWER ================= */}
+<Drawer
+  title={editingWarehouse ? "Edit Warehouse" : "Add Warehouse"}
+  open={warehouseDrawer}
+  onClose={() => {
+    setWarehouseDrawer(false);
+    setEditingWarehouse(null);
+    form.resetFields();
+  }}
+  width={400}
+>
+  <Form form={form} layout="vertical" onFinish={handleSaveWarehouse}>
+    <Form.Item
+      label="Warehouse Name"
+      name="warehouseName"
+      rules={[{ required: true, message: "Nhập tên kho" }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Form.Item
+      label="Location Description"
+      name="locationDescription"
+      rules={[{ required: true, message: "Nhập địa điểm" }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Form.Item
+      label="Area ID"
+      name="areaId"
+      rules={[{ required: true, message: "Nhập Area ID" }]}
+    >
+      <InputNumber style={{ width: "100%" }} />
+    </Form.Item>
+
+    <Button type="primary" htmlType="submit" block>
+      {editingWarehouse ? "Update" : "Create"}
+    </Button>
+  </Form>
+</Drawer>
+{/* ================= ITEM DRAWER ================= */}
+<Drawer
+  title={editingItem ? "Edit Relief Item" : "Add Relief Item"}
+  open={itemDrawer}
+  onClose={() => {
+    setItemDrawer(false);
+    setEditingItem(null);
+    itemForm.resetFields();
+  }}
+  width={400}
+>
+  <Form form={itemForm} layout="vertical" onFinish={handleSaveItem}>
+    <Form.Item
+      label="Item Name"
+      name="itemName"
+      rules={[{ required: true, message: "Nhập tên vật phẩm" }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Form.Item
+      label="Unit"
+      name="unit"
+      rules={[{ required: true, message: "Nhập đơn vị" }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Button type="primary" htmlType="submit" block>
+      {editingItem ? "Update" : "Create"}
+    </Button>
+  </Form>
+</Drawer>
+{/* ================= TRANSACTION DRAWER ================= */}
+<Drawer
+  title="Create Inventory Transaction"
+  open={transactionDrawer}
+  onClose={() => {
+    setTransactionDrawer(false);
+    transactionForm.resetFields();
+  }}
+  width={600}
+>
+  <Form
+    form={transactionForm}
+    layout="vertical"
+    onFinish={handleCreateTransaction}
+  >
+    <Form.Item
+      label="Warehouse"
+      name="warehouseId"
+      rules={[{ required: true, message: "Chọn kho" }]}
+    >
+      <Select
+        options={warehouses.map((w) => ({
+          value: w.id,
+          label: w.warehouseName,
+        }))}
+      />
+    </Form.Item>
+
+    <Form.Item
+      label="Rescue Request ID"
+      name="rescueRequestId"
+      rules={[{ required: true, message: "Nhập Rescue Request ID" }]}
+    >
+      <InputNumber style={{ width: "100%" }} />
+    </Form.Item>
+
+    <Form.Item
+      label="Transaction Type"
+      name="transactionType"
+      rules={[{ required: true, message: "Chọn loại giao dịch" }]}
+    >
+      <Select
+        options={[
+          { value: "IN", label: "IN" },
+          { value: "OUT", label: "OUT" },
+        ]}
+      />
+    </Form.Item>
+
+    <Form.Item label="Note" name="note">
+      <Input />
+    </Form.Item>
+
+    {/* Dynamic Lines */}
+    <Form.List name="lines">
+      {(fields, { add, remove }) => (
+        <>
+          {fields.map(({ key, name, ...restField }) => (
+            <Space
+              key={key}
+              style={{ display: "flex", marginBottom: 8 }}
+              align="baseline"
+            >
+              <Form.Item
+                {...restField}
+                name={[name, "reliefItemId"]}
+                rules={[{ required: true, message: "Chọn item" }]}
+              >
+                <Select
+                  placeholder="Item"
+                  style={{ width: 200 }}
+                  options={items.map((i) => ({
+                    value: i.id,
+                    label: i.itemName,
+                  }))}
+                />
+              </Form.Item>
+
+              <Form.Item
+                {...restField}
+                name={[name, "quantity"]}
+                rules={[{ required: true, message: "Nhập số lượng" }]}
+              >
+                <InputNumber placeholder="Quantity" min={1} />
+              </Form.Item>
+
+              <Button danger onClick={() => remove(name)}>
+                X
+              </Button>
+            </Space>
+          ))}
+
+          <Form.Item>
+            <Button type="dashed" onClick={() => add()} block>
+              + Add Item
+            </Button>
+          </Form.Item>
         </>
       )}
-    </div>
-  );
-}
+    </Form.List>
 
-function HistoryItem({ icon, color, text, note, value }) {
-  return (
-    <div className="history-item">
-      <div className={`history-icon ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <strong>{text}</strong>
-        <p>{note}</p>
-      </div>
-      <span
-        className={value.startsWith("+") ? "plus" : "minus"}
-      >
-        {value}
-      </span>
-    </div>
+    <Button type="primary" htmlType="submit" block>
+      Create Transaction
+    </Button>
+  </Form>
+</Drawer>
+    </>
   );
 }

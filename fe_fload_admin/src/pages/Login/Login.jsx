@@ -108,11 +108,18 @@ export default function Login() {
   return (
     <div className="login-page">
       {/* LEFT */}
-      <div
-        className="login-hero"
-        style={{ backgroundImage: `url(${bg})` }}
-      >
-        <div className="hero-overlay">
+<div className="login-hero">
+  <video
+    className="hero-video"
+    autoPlay
+    loop
+    muted
+    playsInline
+  >
+    <source src="/Videonen.mp4" type="video/mp4" />
+  </video>
+
+  <div className="hero-overlay">
           <div className="hero-top">
             <img src={shield} alt="" />
             <span>PREMIUM COMMAND</span>
