@@ -5,7 +5,6 @@ import {
   Button,
   Tag,
   Spin,
-  message,
   Modal
 } from 'antd';
 
@@ -22,13 +21,15 @@ import {
 import './MemberTable.css';
 import CreateMemberModal from "../CreateTeam/CreateMemberModal";
 
+/* ✅ Custom Notify */
+import AuthNotify from "../../../../utils/Common/AuthNotify";
+
 /* ✅ MUI */
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import Stack from '@mui/material/Stack';
 
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+
 
 export default function MemberTable({ teamId }) {
 
@@ -36,14 +37,17 @@ export default function MemberTable({ teamId }) {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
 
+
   const fetchMembers = async () => {
 
     if (!teamId) return;
 
     try {
+
       setLoading(true);
 
       const response = await getRescueTeamMembers(teamId);
+
       const data = response.data;
 
       if (Array.isArray(data)) {
@@ -61,52 +65,92 @@ export default function MemberTable({ teamId }) {
 
     }
     catch (error) {
+
       console.error(error);
-      message.error('Không thể tải danh sách thành viên');
+
+      AuthNotify.error(
+        "Tải dữ liệu thất bại",
+        "Không thể tải danh sách thành viên"
+      );
+
     }
     finally {
+
       setLoading(false);
+
     }
+
   };
+
 
   useEffect(() => {
     fetchMembers();
   }, [teamId]);
 
+
   const handleDeleteMember = (userId, fullName) => {
 
     Modal.confirm({
+
       title: 'Xác nhận xóa',
+
       icon: <ExclamationCircleOutlined />,
+
       content: `Bạn có chắc muốn xóa "${fullName}"?`,
+
       okType: 'danger',
+
       onOk: async () => {
+
         try {
+
           await deleteTeamMember(teamId, userId);
-          message.success("Đã xóa thành viên");
+
+          AuthNotify.success(
+            "Đã xóa thành viên",
+            "Thành viên đã được xóa khỏi đội"
+          );
+
           fetchMembers();
+
         }
         catch {
-          message.error("Xóa thất bại");
+
+          AuthNotify.error(
+            "Xóa thất bại",
+            "Không thể xóa thành viên"
+          );
+
         }
+
       },
+
     });
 
   };
 
+
   if (loading) {
+
     return (
+
       <div className="member-table-container loading">
         <Spin tip="Đang tải thành viên..." />
       </div>
+
     );
+
   }
 
+
   return (
+
     <div className="member-table-container">
 
       {/* HEADER */}
+
       <div className="member-table-header">
+
         <h4>
           👥 Danh sách thành viên ({members.length})
         </h4>
@@ -118,9 +162,12 @@ export default function MemberTable({ teamId }) {
         >
           Tạo thành viên
         </Button>
+
       </div>
 
+
       {/* TABLE */}
+
       <div className="member-table-wrapper">
 
         <div className="member-table-head">
@@ -131,12 +178,17 @@ export default function MemberTable({ teamId }) {
           <span>HÀNH ĐỘNG</span>
         </div>
 
+
         {members.length === 0 ? (
+
           <div className="no-data">
             Chưa có thành viên
           </div>
+
         ) : (
+
           members.map(member => (
+
             <MemberRow
               key={member.userId}
               {...member}
@@ -147,10 +199,13 @@ export default function MemberTable({ teamId }) {
                 )
               }
             />
+
           ))
+
         )}
 
       </div>
+
 
       <CreateMemberModal
         open={createOpen}
@@ -160,7 +215,9 @@ export default function MemberTable({ teamId }) {
       />
 
     </div>
+
   );
+
 }
 
 
@@ -175,6 +232,7 @@ function MemberRow({
 }) {
 
   return (
+
     <div className="member-row">
 
       <div className="id-cell">
@@ -190,36 +248,29 @@ function MemberRow({
       </div>
 
       <div className="role-cell">
+
         <Tag color="blue">
           {roleInTeam || "Thành viên"}
         </Tag>
+
       </div>
 
       <div className="actions-cell">
-      
 
-          {/* <Tooltip title="Chỉnh sửa">
-            <IconButton
-              size="small"
-              className="action-edit"
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip> */}
+        <Tooltip title="Xóa">
+          <IconButton
+            size="small"
+            className="action-delete"
+            onClick={onDelete}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
 
-          <Tooltip title="Xóa">
-            <IconButton
-              size="small"
-              className="action-delete"
-              onClick={onDelete}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-     
       </div>
 
     </div>
+
   );
+
 }

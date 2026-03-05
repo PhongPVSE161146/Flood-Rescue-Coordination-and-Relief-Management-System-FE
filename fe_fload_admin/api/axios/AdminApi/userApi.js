@@ -6,23 +6,26 @@ export const registerUser = async (data) => {
 
   try {
 
+    const payload = {
+      phone: data?.phone?.trim() || "",
+      password: data?.password || "",
+      name: data?.name?.trim() || "",
+      roleId: Number(data?.roleId ?? 0),
+      areaId: Number(data?.areaId ?? 0),
+    };
+
     const response = await axiosInstance.post(
       "/api/User/register",
-      {
-        phone: data.phone?.trim(),
-        password: data.password,
-        name: data.name?.trim(),
-        roleId: Number(data.roleId),
-      }
+      payload
     );
 
-    return response.data;
+    return response?.data;
 
   } catch (error) {
 
-    console.error("REGISTER ERROR:", error?.response);
+    console.error("REGISTER ERROR:", error?.response || error);
 
-    throw error?.response?.data || error;
+    throw error?.response?.data?.message || "Đăng ký user thất bại";
 
   }
 

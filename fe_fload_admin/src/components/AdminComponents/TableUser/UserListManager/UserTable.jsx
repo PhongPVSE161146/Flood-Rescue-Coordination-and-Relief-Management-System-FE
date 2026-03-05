@@ -1,5 +1,5 @@
 import "./UserTable.css";
-import { Tag, Spin } from "antd";
+import { Tag, Spin, Pagination } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import { useEffect, useState, useMemo } from "react";
 import { getProvinces } from "../../../../../api/axios/Auth/authApi";
@@ -9,10 +9,13 @@ export default function UserTable({
   onEdit,
   loading,
   users = [],
- 
 }) {
 
   const [provinces, setProvinces] = useState([]);
+
+  /* PAGINATION */
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 7;
 
   /* ================= FETCH PROVINCES ================= */
   useEffect(() => {
@@ -30,7 +33,7 @@ export default function UserTable({
     }
   };
 
-  /* ================= PROVINCE MAP (TỐI ƯU) ================= */
+  /* ================= PROVINCE MAP ================= */
   const provinceMap = useMemo(() => {
     const map = {};
     provinces.forEach((p) => {
@@ -39,7 +42,19 @@ export default function UserTable({
     return map;
   }, [provinces]);
 
+  /* ================= PAGINATED USERS ================= */
+
+  const paginatedUsers = useMemo(() => {
+
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+
+    return users.slice(start, end);
+
+  }, [users, currentPage]);
+
   /* ================= ROLE COLOR ================= */
+
   const getRoleColor = (role) => {
     if (!role) return "default";
 
@@ -48,7 +63,7 @@ export default function UserTable({
         return "red";
       case "manager":
         return "gold";
-      case "rescuecoordinator":
+      case "coordinator":
         return "purple";
       case "rescueteam":
         return "blue";
@@ -58,6 +73,7 @@ export default function UserTable({
   };
 
   /* ================= STATUS COLOR ================= */
+
   const getStatusColor = (status) => {
     if (!status) return "default";
 
@@ -72,6 +88,7 @@ export default function UserTable({
   };
 
   return (
+
     <div className="userTable">
 
       {loading ? (
@@ -82,98 +99,121 @@ export default function UserTable({
 
       ) : (
 
-        <table>
+        <>
 
-          <thead>
-            <tr>
-              <th style={{ width: "60px" }}>STT</th>
-              <th>Người dùng</th>
-              <th>Số điện thoại</th>
-              <th>Vai trò</th>
-              <th>Khu vực</th>
-              <th>Trạng thái</th>
-              <th style={{ width: "60px" }}>Sửa</th>
-            </tr>
-          </thead>
+          <table>
 
-          <tbody>
-
-            {users.length === 0 ? (
-
+            <thead>
               <tr>
-                <td colSpan="7" className="userTable__empty">
-                  Không có dữ liệu
-                </td>
+                <th style={{ width: "60px" }}>STT</th>
+                <th>Người dùng</th>
+                <th>Số điện thoại</th>
+                <th>Vai trò</th>
+                <th>Khu vực</th>
+                <th>Trạng thái</th>
+                <th style={{ width: "60px" }}>Sửa</th>
               </tr>
+            </thead>
 
-            ) : (
+            <tbody>
 
-              users.map((user, index) => (
+              {paginatedUsers.length === 0 ? (
 
-                <tr
-                  key={user.id}
-                  onClick={() => onRowClick?.(user)}
-                >
-
-                  {/* STT */}
-                  <td className="userTable__stt">
-                    {index + 1}
+                <tr>
+                  <td colSpan="7" className="userTable__empty">
+                    Không có dữ liệu
                   </td>
-
-                  {/* NAME */}
-                  <td>
-                    <div className="userTable__name">
-                      {user.name || "N/A"}
-                    </div>
-                  </td>
-
-                  {/* PHONE */}
-                  <td>
-                    {user.phone || "N/A"}
-                  </td>
-
-                  {/* ROLE */}
-                  <td>
-                    <Tag color={getRoleColor(user.role)}>
-                      {user.role || "N/A"}
-                    </Tag>
-                  </td>
-
-                  {/* AREA */}
-                  <td>
-                    {provinceMap[Number(user.areaId)] || "N/A"}
-                  </td>
-
-                  {/* STATUS */}
-                  <td>
-                    <Tag color={getStatusColor(user.status)}>
-                      {user.status || "N/A"}
-                    </Tag>
-                  </td>
-
-                  {/* EDIT */}
-                  <td>
-                    <EditOutlined
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit?.(user);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    />
-                  </td>
-
                 </tr>
 
-              ))
+              ) : (
 
-            )}
+                paginatedUsers.map((user, index) => (
 
-          </tbody>
+                  <tr
+                    key={user.id}
+                    onClick={() => onRowClick?.(user)}
+                  >
 
-        </table>
+                    {/* STT */}
+                    <td className="userTable__stt">
+                      {(currentPage - 1) * pageSize + index + 1}
+                    </td>
+
+                    {/* NAME */}
+                    <td>
+                      <div className="userTable__name">
+                        {user.name || "N/A"}
+                      </div>
+                    </td>
+
+                    {/* PHONE */}
+                    <td>
+                      {user.phone || "N/A"}
+                    </td>
+
+                    {/* ROLE */}
+                    <td>
+                      <Tag color={getRoleColor(user.role)}>
+                        {user.role || "N/A"}
+                      </Tag>
+                    </td>
+
+                    {/* AREA */}
+                    <td>
+                      {provinceMap[Number(user.areaId)] || "Chưa Cập Nhật"}
+                    </td>
+
+                    {/* STATUS */}
+                    <td>
+                      <Tag color={getStatusColor(user.status)}>
+                        {user.status || "N/A"}
+                      </Tag>
+                    </td>
+
+                    {/* EDIT */}
+                    <td>
+                      <EditOutlined
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit?.(user);
+                        }}
+                        style={{ cursor: "pointer" }}
+                      />
+                    </td>
+
+                  </tr>
+
+                ))
+
+              )}
+
+            </tbody>
+
+          </table>
+
+          {/* PAGINATION UI */}
+
+          {users.length > pageSize && (
+
+            <div className="userTable__pagination">
+
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={users.length}
+                onChange={(page) => setCurrentPage(page)}
+                showSizeChanger={false}
+              />
+
+            </div>
+
+          )}
+
+        </>
 
       )}
 
     </div>
+
   );
 }

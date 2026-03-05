@@ -4,7 +4,7 @@ import MainLayout from "../pages/mainLayout";
 import RequireAuth from "./PrivateRoute";
 
 /* ================= ADMIN ================= */
-import UserManagement from "../pages/Admin/UserManagement/UserManagement";
+import UserManagement from "../pages/Admin/UserRoleManagement/UserManagement";
 import SystemSetting from "../pages/Admin/Setting/SystemSetting";
 import Logs from "../pages/Admin/Logs/LogsChange";
 import Permissions from "../pages/Admin/Permissions/Permissions";
@@ -17,7 +17,7 @@ import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
 // import ManagerInfo from "../pages/Manager/Info";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
 import Approve from "../pages/Manager/Approval/ApprovalManagement";
-import ManagerRescueTeam from "../pages/Manager/RescueTeamManagement/RescueTeamManagement";
+import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
 
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
@@ -35,8 +35,8 @@ import MissionInProgress from "../pages/RescueTeam/RescueMission/MissionInProgre
 // import RescueProfile from "../pages/Rescue/Profile";
 
 export default function AppRoutes() {
-  const isAuth = localStorage.getItem("isAuth") === "true";
-  const role = localStorage.getItem("role");
+  const isAuth = sessionStorage.getItem("isAuth") === "true";
+   const role    = sessionStorage.getItem("role");
 
   const redirectByRole = {
     admin: "/admin/user",

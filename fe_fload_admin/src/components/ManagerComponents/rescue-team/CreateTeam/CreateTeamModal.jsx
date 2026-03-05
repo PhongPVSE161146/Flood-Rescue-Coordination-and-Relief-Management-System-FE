@@ -5,9 +5,7 @@ import {
   Form,
   Input,
   Select,
-  Button,
-  message,
-  Divider
+  Button
 } from 'antd';
 
 import {
@@ -21,9 +19,12 @@ import {
   createRescueTeam,
   updateRescueTeamLocation
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
+
 import { getProvinces } from '../../../../../api/axios/Auth/authApi';
 
 import { useState, useEffect } from 'react';
+
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 
 import './CreateTeamModal.css';
 
@@ -33,59 +34,78 @@ export default function CreateTeamModal({
   open,
   onClose,
   onSuccess
-  
 }) {
 
   const [form] = Form.useForm();
-
   const [loading, setLoading] = useState(false);
   const [provinces, setProvinces] = useState([]);
 
+  /* ================= LOAD PROVINCES ================= */
+
   useEffect(() => {
+
     if (open) {
       fetchProvinces();
     }
+
   }, [open]);
-  
+
   const fetchProvinces = async () => {
+
     try {
+
       const res = await getProvinces();
+
       const data = res?.data || res || [];
-      setProvinces(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-      message.error("Không tải được danh sách khu vực");
+
+      setProvinces(
+        Array.isArray(data) ? data : []
+      );
+
     }
+    catch (error) {
+
+      console.error(error);
+
+      AuthNotify.error(
+        "Không tải được khu vực",
+        "Vui lòng thử lại"
+      );
+
+    }
+
   };
+
+  /* ================= CREATE TEAM ================= */
+
   const handleCreate = async () => {
 
     try {
 
-      const values =
-        await form.validateFields();
+      const values = await form.validateFields();
 
       setLoading(true);
 
-      // 1️⃣ create team
-      const res =
-        await createRescueTeam({
+      /* 1️⃣ CREATE TEAM */
 
-          rcName: values.rcName,
+      const res = await createRescueTeam({
 
-          rcPhone: values.rcPhone,
+        rcName: values.rcName,
 
-          areaId: Number(values.areaId),
+        rcPhone: values.rcPhone,
 
-          rcStatus: values.rcStatus,
+        areaId: Number(values.areaId),
 
-        });
+        rcStatus: values.rcStatus
 
-      // get new team id
+      });
+
       const teamId =
         res?.data?.id ||
         res?.data?.teamId;
 
-      // 2️⃣ update location
+      /* 2️⃣ UPDATE LOCATION */
+
       if (teamId && values.location) {
 
         await updateRescueTeamLocation(
@@ -95,8 +115,9 @@ export default function CreateTeamModal({
 
       }
 
-      message.success(
-        "🚑 Tạo đội cứu hộ thành công"
+      AuthNotify.success(
+        "Tạo đội cứu hộ thành công",
+        "Đội cứu hộ mới đã được tạo"
       );
 
       form.resetFields();
@@ -110,8 +131,9 @@ export default function CreateTeamModal({
 
       console.error(error);
 
-      message.error(
-        "❌ Tạo đội thất bại"
+      AuthNotify.error(
+        "Tạo đội thất bại",
+        "Không thể tạo đội cứu hộ"
       );
 
     }
@@ -124,6 +146,8 @@ export default function CreateTeamModal({
   };
 
 
+  /* ================= UI ================= */
+
   return (
 
     <Modal
@@ -134,32 +158,6 @@ export default function CreateTeamModal({
       width={520}
       className="createTeamModal"
     >
-{/* 
-      <div className="createTeamModal__header">
-
-        <AimOutlined className="createTeamModal__icon"/>
-
-        <div>
-
-          <div className="createTeamModal__title">
-
-            Tạo đội cứu hộ
-
-          </div>
-
-          <div className="createTeamModal__subtitle">
-
-            Nhập thông tin đội cứu hộ mới
-
-          </div>
-
-        </div>
-
-      </div> */}
-
-
-      {/* <Divider/> */}
-
 
       <Form
         form={form}
@@ -212,25 +210,25 @@ export default function CreateTeamModal({
           rules={[
             {
               required: true,
-              message: "Nhập area id"
+              message: "Chọn khu vực"
             }
           ]}
         >
 
-<Select
-  size="large"
-  placeholder="Chọn khu vực"
-  suffixIcon={<EnvironmentOutlined />}
-  options={provinces.map((item) => ({
-    label: item.name,
-    value: item.id,
-  }))}
-/>
+          <Select
+            size="large"
+            placeholder="Chọn khu vực"
+            suffixIcon={<EnvironmentOutlined />}
+            options={provinces.map((item) => ({
+              label: item.name,
+              value: item.id
+            }))}
+          />
 
         </Form.Item>
 
 
-        {/* NEW LOCATION FIELD */}
+        {/* LOCATION */}
 
         <Form.Item
           name="location"
@@ -258,7 +256,6 @@ export default function CreateTeamModal({
           🚑 Tạo đội cứu hộ
 
         </Button>
-
 
       </Form>
 

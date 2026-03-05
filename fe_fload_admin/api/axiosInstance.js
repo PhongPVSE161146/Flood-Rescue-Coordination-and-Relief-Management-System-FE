@@ -1,5 +1,3 @@
-// src/axiosInstance.js
-
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -10,30 +8,36 @@ const axiosInstance = axios.create({
   },
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
+/* REQUEST */
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+axiosInstance.interceptors.request.use((config) => {
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  const token = sessionStorage.getItem("accessToken");
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+
+});
+
+/* RESPONSE */
 
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+
     console.error("API ERROR:", error?.response || error);
 
     if (error?.response?.status === 401) {
-      localStorage.clear();
+      sessionStorage.clear();
       window.location.href = "/login";
     }
 
     return Promise.reject(error);
+
   }
 );
 

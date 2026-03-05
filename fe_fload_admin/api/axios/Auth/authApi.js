@@ -86,3 +86,28 @@ export const getWardsByProvince = async (provinceId) => {
     throw error?.response?.data || error;
   }
 };
+export const updateUser = async (id, data) => {
+
+  try {
+
+    const response = await axiosInstance.put(
+      `/api/User/${id}`,
+      {
+        userId: Number(data?.userId ?? id),
+        fullName: data?.fullName?.trim(),
+        phone: data?.phone?.trim(),
+        areaId: Number(data?.areaId ?? 0),
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("UPDATE USER ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+
+  }
+
+};

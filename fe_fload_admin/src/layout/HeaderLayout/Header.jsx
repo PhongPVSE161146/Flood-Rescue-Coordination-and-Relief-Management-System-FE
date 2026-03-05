@@ -7,7 +7,7 @@ import {
 import "./rc-hd.header.css";
 
 export default function Header() {
-  const role = localStorage.getItem("role") || "admin";
+  const role = sessionStorage.getItem("role") || "admin";
 
   const roleInfo = {
     admin: {
