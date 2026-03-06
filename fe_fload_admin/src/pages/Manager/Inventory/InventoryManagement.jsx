@@ -87,13 +87,17 @@ export default function InventoryManagement() {
 
   /* ================= FILTER TRANSACTION ================= */
 
-  const pendingTransactions = transactions.filter(
-    (t) => !t.confirmedAt && !t.confirmed_at
-  );
+const inTransactions = transactions.filter(
+  (t) => t.transactionType === "IN"
+);
 
-  const confirmedTransactions = transactions.filter(
-    (t) => t.confirmedAt || t.confirmed_at
-  );
+const pendingTransactions = inTransactions.filter(
+  (t) => !t.confirmedAt && !t.confirmed_at
+);
+
+const confirmedTransactions = inTransactions.filter(
+  (t) => t.confirmedAt || t.confirmed_at
+);
 
   /* ================= INVENTORY ================= */
 
@@ -521,11 +525,10 @@ export default function InventoryManagement() {
       rules={[{ required: true, message: "Chọn loại giao dịch" }]}
     >
       <Select
-        options={[
-          { value: "IN", label: "IN" },
-          { value: "OUT", label: "OUT" },
-        ]}
-      />
+  options={[
+    { value: "IN", label: "IN - Nhập kho" },
+  ]}
+/>
     </Form.Item>
 
     <Form.Item label="Note" name="note">
