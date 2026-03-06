@@ -11,11 +11,9 @@ import {
   getAllVehicles
 } from "../../../../api/axios/ManagerApi/vehicleApi";
 
-import { INCIDENT_LOCATION } from "./rc-dispatch.data";
-
 import "./rc-dispatch-map.css";
 
-export default function DispatchMapView() {
+export default function DispatchMapView({ request }) {
 
   const navigate = useNavigate();
 
@@ -37,21 +35,19 @@ export default function DispatchMapView() {
       try {
 
         const res = await getAllRescueTeams();
-
         const teams = res?.data?.items || [];
 
         const mappedTeams = await Promise.all(
 
           teams.map(async (team) => {
 
-            let lat = INCIDENT_LOCATION.lat;
-            let lng = INCIDENT_LOCATION.lng;
+            let lat = request?.lat || 10.8231;
+            let lng = request?.lng || 106.6297;
             let address = "Không xác định";
 
             try {
 
               const locRes = await getRescueTeamLocation(team.rcid);
-
               const location = locRes?.data?.location;
 
               if (location) {
@@ -98,7 +94,7 @@ export default function DispatchMapView() {
 
     fetchTeams();
 
-  }, []);
+  }, [request]);
 
   /* ================= LOAD VEHICLES ================= */
 
@@ -109,7 +105,6 @@ export default function DispatchMapView() {
       try {
 
         const res = await getAllVehicles();
-
         const list = res?.data || [];
 
         const mappedVehicles = list.map((v) => ({
@@ -157,10 +152,12 @@ export default function DispatchMapView() {
 
   const mapUrl = useMemo(() => {
 
+    if (!request) {
+      return "https://www.google.com/maps?q=10.8231,106.6297&z=13&output=embed";
+    }
+
     if (!selectedTeam) {
-
-      return `https://www.google.com/maps?q=${INCIDENT_LOCATION.lat},${INCIDENT_LOCATION.lng}&z=15&output=embed`;
-
+      return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
     }
 
     const team = rescueTeams.find(
@@ -168,16 +165,14 @@ export default function DispatchMapView() {
     );
 
     if (!team) {
-
-      return `https://www.google.com/maps?q=${INCIDENT_LOCATION.lat},${INCIDENT_LOCATION.lng}&z=15&output=embed`;
-
+      return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
     }
 
-    return `https://www.google.com/maps?saddr=${team.lat},${team.lng}&daddr=${INCIDENT_LOCATION.lat},${INCIDENT_LOCATION.lng}&z=15&output=embed`;
+    return `https://www.google.com/maps?saddr=${team.lat},${team.lng}&daddr=${request.lat},${request.lng}&z=15&output=embed`;
 
-  }, [selectedTeam, rescueTeams]);
+  }, [selectedTeam, rescueTeams, request]);
 
-  /* ================= COUNTS ================= */
+  /* ================= COUNT ================= */
 
   const availableCount =
     tab === "team"
@@ -198,7 +193,8 @@ export default function DispatchMapView() {
       state: {
         teamId: selectedTeam,
         vehicleIds: selectedVehicles,
-      },
+        request
+      }
     });
 
   };
@@ -298,14 +294,14 @@ export default function DispatchMapView() {
 
                 <h5>{team.name}</h5>
 
-              
-
                 <p><b>Chuyên môn:</b> {team.specialty}</p>
                 <p><b>Quân số:</b> {team.members}</p>
                 <p><b>Vị trí:</b> {team.address}</p>
+
                 <span className="rc-team__status">
                   ● SẴN SÀNG
                 </span>
+
                 <div className="rc-team__meta">
                   <span>ETA: {team.eta}</span>
                   <span>{team.distance}</span>
@@ -326,13 +322,13 @@ export default function DispatchMapView() {
 
                 <h5>Phương tiện : {v.name}</h5>
 
-              
-
                 <p><b>Loại:</b> {v.type}</p>
                 <p><b>Khu vực:</b> {v.capacity}</p>
+
                 <span className="rc-team__status">
                   {getVehicleStatus(v.status)}
                 </span>
+
               </div>
 
             ))}

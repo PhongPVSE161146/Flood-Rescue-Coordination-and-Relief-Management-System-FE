@@ -74,3 +74,36 @@ export const getDispatchingRescueRequests = async () => {
   }
 
 };
+/* ================= VERIFY & DISPATCH REQUEST ================= */
+
+export const verifyAndDispatchRescueRequest = async (
+  requestId,
+  data
+) => {
+
+  try {
+
+    const response = await axiosInstance.put(
+      `/api/RescueRequest/${requestId}/verify-and-dispatch`,
+      {
+        urgencyLevelId: data.urgencyLevelId,
+        note: data.note
+      }
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi xác nhận và điều phối:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể xác nhận và điều phối yêu cầu cứu hộ"
+    );
+
+  }
+
+};
