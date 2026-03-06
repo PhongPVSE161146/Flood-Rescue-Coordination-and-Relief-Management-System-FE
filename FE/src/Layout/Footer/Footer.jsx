@@ -13,9 +13,9 @@ const Footer = () => {
 
   const navigate = useNavigate();
 
-  const handleCall = () => {
-    window.location.href = "tel:19008888";
-  };
+  // const handleCall = () => {
+  //   window.location.href = "tel:19008888";
+  // };
 
   return (
     <footer className="footer">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Tag } from "antd";
 import { EnvironmentOutlined } from "@ant-design/icons";
-
+import axios from "axios";
 import { getPendingRescueRequests } from "../../../api/axios/CoordinatorApi/RescueRequestApi";
 import AuthNotify from "../../utils/Common/AuthNotify";
 
@@ -81,6 +81,32 @@ export default function MissionList({ onSelectMission }) {
 
     fetchData();
   }, []);
+
+  const reverseGeocode = async (location) => {
+
+    try {
+  
+      if (!location) return "Không xác định";
+  
+      const [lng, lat] = location.split(",");
+  
+      if (!lng || !lat) return "Không xác định";
+  
+      const res = await axios.get(
+        "https://nominatim.openstreetmap.org/reverse",
+        {
+          params: { lat, lon: lng, format: "json" }
+        }
+      );
+  
+      return res.data.display_name || "Không xác định";
+  
+    }
+    catch {
+      return "Không xác định";
+    }
+  
+  };
 
   /* ================= REALTIME CLOCK ================= */
 
@@ -191,6 +217,7 @@ export default function MissionList({ onSelectMission }) {
               <EnvironmentOutlined />
               {m.location}
             </div>
+     
 
             <div className="rc-queue__tags">
               <Tag color="red">
