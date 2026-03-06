@@ -146,3 +146,13 @@ export const updateRescueTeamLocation = (
     }
   );
 };
+/**
+ * ✅ NEW: Lấy danh sách ca trực cứu hộ
+ */
+export const getRescueShifts = () => {
+
+  return axiosInstance.get(
+    "/api/rescue-shifts"
+  );
+
+};

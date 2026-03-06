@@ -72,3 +72,22 @@ export const getAllUser = async () => {
     }
   
   };
+  export const deleteUser = async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/api/User/${id}`);
+      
+      // Có thể thêm kiểm tra nếu muốn chặt chẽ hơn
+      if (response.status !== 200 && response.status !== 204) {
+        throw new Error(`Unexpected status: ${response.status}`);
+      }
+      
+      return response.data;  // "User deleted successfully!" hoặc object nếu backend đổi
+    } catch (error) {
+      console.error("DELETE USER ERROR:", error);
+      // Có thể log thêm response nếu có
+      if (error.response) {
+        console.error("Server response:", error.response.data);
+      }
+      throw error;
+    }
+  };
