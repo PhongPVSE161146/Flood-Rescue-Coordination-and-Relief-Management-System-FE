@@ -2,8 +2,8 @@ import { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import EmergencyHeader from "../../Layout/EmergencyHeader/EmergencyHeader";
 import EmergencyFooter from "../../Layout/EmergencyFooter/EmergencyFooter";
+import AuthNotify from "../../utils/Common/AuthNotify";
 import EmergencyNotify from "../../utils/EmergencyNotify";
-
 import {
   Input,
   Select,
@@ -89,126 +89,226 @@ useEffect(() => {
 
   /* ================= VALIDATE ================= */
   const validateForm = () => {
+
     const newErrors = {};
     const errorMessages = {};
   
+    /* ===== NORMALIZE PHONE ===== */
+  
+    const primaryPhone =
+      form.primaryPhone?.replace(/\D/g, "").trim();
+  
+    const backupPhone =
+      form.backupPhone?.replace(/\D/g, "").trim();
+  
+    /* ===== REGEX SỐ VIỆT NAM ===== */
+  
+    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+  
     /* ===== 1. FULLNAME ===== */
+  
     if (!form.fullname?.trim()) {
+  
       newErrors.fullname = true;
       errorMessages.fullname = "Vui lòng nhập họ và tên";
-    } else if (form.fullname.trim().length < 3) {
+  
+    }
+    else if (form.fullname.trim().length < 3) {
+  
       newErrors.fullname = true;
       errorMessages.fullname = "Họ tên phải ít nhất 3 ký tự";
+  
     }
   
     /* ===== 2. PRIMARY PHONE ===== */
-    const phoneRegex = /^(0[0-9]{9})$/;
   
-    if (!form.primaryPhone?.trim()) {
+    if (!primaryPhone) {
+  
       newErrors.primaryPhone = true;
-      errorMessages.primaryPhone = "Vui lòng nhập số điện thoại chính";
-    } else if (!phoneRegex.test(form.primaryPhone.trim())) {
+      errorMessages.primaryPhone =
+        "Vui lòng nhập số điện thoại chính";
+  
+    }
+    else if (!phoneRegex.test(primaryPhone)) {
+  
       newErrors.primaryPhone = true;
-      errorMessages.primaryPhone = "Số điện thoại phải gồm 10 số và bắt đầu bằng 0";
+      errorMessages.primaryPhone =
+        "Số điện thoại phải gồm 10 số ";
+  
     }
   
-    /* ===== 3. BACKUP PHONE (KHÔNG BẮT BUỘC NHƯNG PHẢI ĐÚNG FORMAT NẾU NHẬP) ===== */
-    if (form.backupPhone?.trim()) {
-      if (!phoneRegex.test(form.backupPhone.trim())) {
+    /* ===== 3. BACKUP PHONE ===== */
+  
+    if (backupPhone) {
+  
+      if (!phoneRegex.test(backupPhone)) {
+  
         newErrors.backupPhone = true;
-        errorMessages.backupPhone = "Số điện thoại phụ không hợp lệ";
+        errorMessages.backupPhone =
+          "Số điện thoại phụ không hợp lệ";
+  
       }
   
-      if (form.backupPhone.trim() === form.primaryPhone.trim()) {
+      if (backupPhone === primaryPhone) {
+  
         newErrors.backupPhone = true;
-        errorMessages.backupPhone = "SĐT phụ không được trùng SĐT chính";
+        errorMessages.backupPhone =
+          "SĐT phụ không được trùng SĐT chính";
+  
       }
+  
     }
   
     /* ===== 4. MAIN INCIDENT ===== */
+  
     if (!form.mainIncidentType) {
+  
       newErrors.mainIncidentType = true;
-      errorMessages.mainIncidentType = "Vui lòng chọn loại sự cố";
+      errorMessages.mainIncidentType =
+        "Vui lòng chọn loại sự cố";
+  
     }
   
     /* ===== 5. SPECIFIC CONDITIONS ===== */
+  
     if (!form.specificConditions?.length) {
+  
       newErrors.specificConditions = true;
-      errorMessages.specificConditions = "Vui lòng chọn ít nhất một tình trạng";
+      errorMessages.specificConditions =
+        "Vui lòng chọn ít nhất một tình trạng";
+  
     }
   
     /* ===== 6. GPS ===== */
+  
     if (!gps) {
+  
       newErrors.gps = true;
       errorMessages.gps = "Vui lòng lấy tọa độ GPS";
+  
     }
   
     /* ===== 7. VICTIM COUNT ===== */
+  
     if (form.victimCount === "" || form.victimCount === null) {
+  
       newErrors.victimCount = true;
       errorMessages.victimCount =
         "Vui lòng nhập số người gặp nạn (0 nếu không có)";
-    } else if (isNaN(form.victimCount) || Number(form.victimCount) < 0) {
-      newErrors.victimCount = true;
-      errorMessages.victimCount = "Số người gặp nạn không hợp lệ";
+  
     }
-    /* ===== 8. AVAILABLE RESCUE TOOLS ===== */
-    if(!form.availableRescueTools?.trim()) {
+    else if (
+      isNaN(form.victimCount) ||
+      Number(form.victimCount) < 0
+    ) {
+  
+      newErrors.victimCount = true;
+      errorMessages.victimCount =
+        "Số người gặp nạn không hợp lệ";
+  
+    }
+  
+    /* ===== 8. RESCUE TOOLS ===== */
+  
+    if (!form.availableRescueTools?.trim()) {
+  
       newErrors.availableRescueTools = true;
-      errorMessages.availableRescueTools = "Vui lòng nhập dụng cụ cứu hộ hiện có (nếu không có thì ghi 'Không')";
-    } else
-    if (form.availableRescueTools?.length > 200) {
+      errorMessages.availableRescueTools =
+        "Vui lòng nhập dụng cụ cứu hộ (nếu không có ghi 'Không')";
+  
+    }
+    else if (form.availableRescueTools.length > 200) {
+  
       newErrors.availableRescueTools = true;
-      errorMessages.availableRescueTools = "Dụng cụ cứu hộ tối đa 200 ký tự";
+      errorMessages.availableRescueTools =
+        "Dụng cụ cứu hộ tối đa 200 ký tự";
+  
     }
   
     /* ===== 9. SPECIAL NEEDS ===== */
-    if(!form.specialNeeds?.trim()) {
+  
+    if (!form.specialNeeds?.trim()) {
+  
       newErrors.specialNeeds = true;
-      errorMessages.specialNeeds = "Vui lòng nhập nhu cầu đặc biệt (nếu có, nếu không có thì ghi 'Không')";
-    } else
-    if (form.specialNeeds?.length > 200) {
+      errorMessages.specialNeeds =
+        "Vui lòng nhập nhu cầu đặc biệt";
+  
+    }
+    else if (form.specialNeeds.length > 200) {
+  
       newErrors.specialNeeds = true;
-      errorMessages.specialNeeds = "Nhu cầu đặc biệt tối đa 200 ký tự";
+      errorMessages.specialNeeds =
+        "Nhu cầu đặc biệt tối đa 200 ký tự";
+  
     }
   
     /* ===== 10. DETAIL DESCRIPTION ===== */
+  
     if (!form.detailDescription?.trim()) {
+  
       newErrors.detailDescription = true;
-      errorMessages.detailDescription = "Vui lòng nhập mô tả chi tiết";
-    } else if (form.detailDescription.trim().length < 10) {
+      errorMessages.detailDescription =
+        "Vui lòng nhập mô tả chi tiết";
+  
+    }
+    else if (form.detailDescription.trim().length < 10) {
+  
       newErrors.detailDescription = true;
-      errorMessages.detailDescription = "Mô tả phải ít nhất 10 ký tự";
+      errorMessages.detailDescription =
+        "Mô tả phải ít nhất 10 ký tự";
+  
     }
   
-    /* ===== 11. LANDMARK NOTE ===== */
+    /* ===== 11. LANDMARK ===== */
+  
     if (!form.landmarkNote?.trim()) {
+  
       newErrors.landmarkNote = true;
-      errorMessages.landmarkNote = "Vui lòng nhập ghi chú điểm nhận dạng";
-
-    } else if (form.landmarkNote.trim().length > 50) {
+      errorMessages.landmarkNote =
+        "Vui lòng nhập ghi chú điểm nhận dạng";
+  
+    }
+    else if (form.landmarkNote.trim().length > 50) {
+  
       newErrors.landmarkNote = true;
-      errorMessages.landmarkNote = "Ghi chú tối đa 50 ký tự";
+      errorMessages.landmarkNote =
+        "Ghi chú tối đa 50 ký tự";
+  
     }
   
-    /* ===== 12. IMAGES (OPTIONAL NHƯNG GIỚI HẠN SỐ LƯỢNG) ===== */
+    /* ===== 12. IMAGES ===== */
+  
     if (!form.images || form.images.length === 0) {
+  
       newErrors.images = true;
-      errorMessages.images = "Vui lòng tải lên ít nhất một hình ảnh";
-    } else if (form.images.length > 5) {
+      errorMessages.images =
+        "Vui lòng tải lên ít nhất một hình ảnh";
+  
+    }
+    else if (form.images.length > 5) {
+  
       newErrors.images = true;
-      errorMessages.images = "Tối đa 5 hình ảnh";
+      errorMessages.images =
+        "Tối đa 5 hình ảnh";
+  
     }
   
-    setErrors({ ...newErrors, messages: errorMessages });
+    setErrors({
+      ...newErrors,
+      messages: errorMessages
+    });
   
     return Object.keys(newErrors).length === 0;
+  
   };
 
   /* ================= GPS ================= */
   const handleGetGPS = () => {
     if (!navigator.geolocation) {
-      message.error("Trình duyệt không hỗ trợ GPS");
+      AuthNotify.error(
+        "Thiết bị không hỗ trợ GPS",
+        "Vui lòng sử dụng trình duyệt khác"
+      );
       return;
     }
 
@@ -240,7 +340,10 @@ useEffect(() => {
         }
       },
       () => {
-        message.error("Không lấy được vị trí");
+        AuthNotify.error(
+          "Không lấy được vị trí",
+          "Vui lòng bật định vị"
+        );
         setLoadingGPS(false);
       },
       { enableHighAccuracy: true }
@@ -249,71 +352,62 @@ useEffect(() => {
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
+
     if (!validateForm()) return;
-
-    const usedPhones = JSON.parse(localStorage.getItem("usedRescuePhones") || "[]");
-
-    if (usedPhones.includes(form.primaryPhone.trim())) {
-      setErrors(prev => ({
-        ...prev,
-        primaryPhone: true,
-        messages: {
-          ...(prev.messages || {}),
-          primaryPhone: "Số điện thoại này đã gửi yêu cầu trước đó"
-        }
-      }));
-      return;
-    }
-
+  
+    const phone = form.primaryPhone.trim();
+  
     const fd = new FormData();
-
+  
     fd.append("Fullname", form.fullname.trim());
-    fd.append("PrimaryPhone", form.primaryPhone.trim());
-    // if (form.backupPhone.trim())
-    //   fd.append("BackupPhone", form.backupPhone.trim());
-
+    fd.append("PrimaryPhone", phone);
     fd.append("MainIncidentType", form.mainIncidentType);
-
+  
     form.specificConditions.forEach(v =>
       fd.append("SpecificConditions", v)
     );
-    form.landmarkNote && fd.append("LandmarkNote", form.landmarkNote);
-
-
+  
+    if (form.landmarkNote)
+      fd.append("LandmarkNote", form.landmarkNote.trim());
+  
     if (form.victimCount !== "")
       fd.append("VictimCount", Number(form.victimCount));
-
-    fd.append("AvailableRescueTools", form.availableRescueTools);
-    fd.append("SpecialNeeds", form.specialNeeds);
-    fd.append("DetailDescription", form.detailDescription);
-    fd.append("LandmarkNote", form.landmarkNote);
-    fd.append("CurrentAddress", address);
-
+  
+    fd.append("AvailableRescueTools", form.availableRescueTools || "");
+    fd.append("SpecialNeeds", form.specialNeeds || "");
+    fd.append("DetailDescription", form.detailDescription || "");
+    fd.append("CurrentAddress", address || "");
+  
     if (gps) {
+  
       fd.append("LocationLat", String(gps.lat));
       fd.append("LocationLng", String(gps.lng));
+  
     }
-
+  
     fd.append("AreaId", DEFAULT_AREA_ID);
-
-    form.images.forEach(file => {
-      const raw = file.originFileObj;
-      if (raw) fd.append("Images", raw);
-    });
-
+  
+    if (form.images?.length) {
+  
+      form.images.forEach(file => {
+  
+        const raw = file.originFileObj;
+  
+        if (raw) fd.append("Images", raw);
+  
+      });
+  
+    }
+  
     try {
+  
       await createRescueRequest(fd);
-
-      localStorage.setItem(
-        "usedRescuePhones",
-        JSON.stringify([...usedPhones, form.primaryPhone.trim()])
-      );
-
-      EmergencyNotify.success(
+  
+      AuthNotify.success(
         "Tạo yêu cầu thành công",
         "Yêu cầu cứu hộ đã được gửi"
       );
-
+  
       setForm({
         fullname: "",
         primaryPhone: "",
@@ -327,21 +421,56 @@ useEffect(() => {
         landmarkNote: "",
         images: [],
       });
-
+  
       setGps(null);
       setAddress("");
       setErrors({});
-
+  
       setTimeout(() => navigate("/map"), 2000);
-    } catch (err) {
-      const msg =
-        err.response?.data?.title ||
-        err.response?.data?.message ||
-        err.message ||
-        "Gửi yêu cầu thất bại";
-
-      EmergencyNotify.error("Lỗi", msg);
+  
     }
+  
+    catch (error) {
+  
+      const msg =
+      error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      error?.message ||
+      "";
+    
+    const lowerMsg = msg.toLowerCase();
+    
+    if (
+      lowerMsg.includes("số điện thoại") ||
+      lowerMsg.includes("phone") ||
+      lowerMsg.includes("rescue")
+    ) {
+    
+      AuthNotify.error(
+        "Số điện thoại đã tồn tại",
+        "Số điện thoại này đã có yêu cầu cứu hộ đang xử lý"
+      );
+    
+      setErrors(prev => ({
+        ...prev,
+        primaryPhone: true,
+        messages: {
+          ...(prev?.messages || {}),
+          primaryPhone: "Số điện thoại đã có yêu cầu cứu hộ"
+        }
+      }));
+    
+      return;
+    }
+      /* ===== ERROR KHÁC ===== */
+  
+      AuthNotify.error(
+        "Gửi yêu cầu thất bại",
+        "Số điện thoại này đã có yêu cầu cứu hộ đang tồn tại. Không thể tạo thêm yêu cầu mới"
+      );
+  
+    }
+  
   };
 
   return (
@@ -389,23 +518,35 @@ useEffect(() => {
                   <label>SỐ ĐIỆN THOẠI CHÍNH{" "}
                   <span style={{ color: "#ef4444", fontWeight: 700 }}>*</span></label>
                   <Input
-                    prefix={<PhoneOutlined />}
-                    placeholder="SĐT chính"
-                    status={errors.primaryPhone ? "error" : ""}
-                    value={form.primaryPhone}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setForm({ ...form, primaryPhone: value });
-                    
-                      if (value.trim()) {
-                        setErrors(prev => ({
-                          ...prev,
-                          primaryPhone: false,
-                          messages: { ...prev.messages, primaryPhone: "" }
-                        }));
-                      }
-                    }}
-                  />
+  prefix={<PhoneOutlined />}
+  placeholder="SĐT chính"
+  maxLength={10}
+  status={errors.primaryPhone ? "error" : ""}
+  value={form.primaryPhone}
+  onChange={(e) => {
+
+    const onlyNumber =
+      e.target.value.replace(/\D/g, "");
+
+    setForm({ ...form, primaryPhone: onlyNumber });
+
+    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+
+    if (phoneRegex.test(onlyNumber)) {
+    
+      setErrors(prev => ({
+        ...prev,
+        primaryPhone: false,
+        messages: {
+          ...(prev.messages || {}),
+          primaryPhone: ""
+        }
+      }));
+    
+    }
+
+  }}
+/>
                   {errors.primaryPhone && <p className="error-message">{errors.messages?.primaryPhone}</p>}
                 </div>
             

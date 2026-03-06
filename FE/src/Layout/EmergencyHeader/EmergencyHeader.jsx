@@ -1,25 +1,34 @@
 import "./EmergencyHeader.css";
-import { Link } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
+import { FaPhoneAlt, FaAmbulance } from "react-icons/fa";
 
 const EmergencyHeader = () => {
   return (
     <header className="emergency-header">
+
       {/* LOGO */}
-      <Link to="/" className="logo">
-        ✱ CỨU HỘ KHẨN CẤP
+      <Link to="/" className="logoemergency">
+        <FaAmbulance className="logo-icon-emergency" />
+       
+        <div className="title-emergency">
+          <h3>Yêu Cầu CỨU HỘ</h3>
+          <span>HỆ THỐNG TRỰC TUYẾN</span>
+        </div>
       </Link>
 
-      {/* NAV */}
-      <nav>
-        <Link to="/">TRANG CHỦ</Link>
-        <Link to="/map">BẢN ĐỒ CỨU TRỢ</Link>
-        <Link to="/guide">HƯỚNG DẪN</Link>
+      {/* NAVIGATION */}
+      <nav className="nav">
+        <NavLink to="/">Trang chủ</NavLink>
+        <NavLink to="/map">Bản đồ cứu trợ</NavLink>
+        <NavLink to="/guide">Hướng dẫn</NavLink>
       </nav>
 
       {/* HOTLINE */}
       <a href="tel:18001111" className="hotline-btn">
-        📞 HOTLINE: 1800-1111
+        <FaPhoneAlt />
+        <span>1800 1111</span>
       </a>
+
     </header>
   );
 };

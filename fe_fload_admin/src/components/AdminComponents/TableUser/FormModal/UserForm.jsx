@@ -61,6 +61,19 @@ function useProvinces() {
 
 }
 
+/* ================= PHONE VALIDATION ================= */
+
+const phoneRules = [
+  {
+    required: true,
+    message: "Vui lòng nhập số điện thoại"
+  },
+  {
+    pattern: /^0[0-9]{9}$/,
+    message: "Số điện thoại VN phải 10 số và bắt đầu bằng 0 (VD: 0901234567)"
+  }
+];
+
 /* ================= CREATE FORM ================= */
 
 function CreateForm({ form }) {
@@ -107,18 +120,13 @@ function CreateForm({ form }) {
           <Form.Item
             name="phone"
             label="Số điện thoại"
-            rules={[
-              { required: true, message: "Nhập số điện thoại" },
-              {
-                pattern: /^[0-9+]+$/,
-                message: "Số điện thoại không hợp lệ"
-              }
-            ]}
+            rules={phoneRules}
           >
             <Input
               prefix={<PhoneOutlined />}
-              placeholder="Số điện thoại"
+              placeholder="0901234567"
               size="large"
+              maxLength={10}
               autoComplete="off"
             />
           </Form.Item>
@@ -214,9 +222,14 @@ function EditForm({ form }) {
           <Form.Item
             name="phone"
             label="Số điện thoại"
-            rules={[{ required: true, message: "Nhập số điện thoại" }]}
+            rules={phoneRules}
           >
-            <Input prefix={<PhoneOutlined />} size="large" />
+            <Input
+              prefix={<PhoneOutlined />}
+              size="large"
+              placeholder="0901234567"
+              maxLength={10}
+            />
           </Form.Item>
 
         </div>

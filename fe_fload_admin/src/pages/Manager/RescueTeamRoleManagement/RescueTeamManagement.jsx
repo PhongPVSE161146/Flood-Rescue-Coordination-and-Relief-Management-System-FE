@@ -84,7 +84,7 @@ export default function RescueTeamManagement() {
     id: team.rcid,
     name: team.rcName || 'Chưa đặt tên',
     members: team.members || 0,
-    status: normalizeStatus(team.rcStatus), // 🔥 dùng chuẩn hóa
+    status: normalizeStatus(team.rcStatus), 
     mission: team.mission || '—',
     phone: team.rcPhone || '—',
     teamMembers: [],

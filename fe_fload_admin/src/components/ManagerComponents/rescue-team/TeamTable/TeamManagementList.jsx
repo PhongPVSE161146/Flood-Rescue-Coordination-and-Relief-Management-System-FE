@@ -11,9 +11,7 @@ import {
   Pagination
 } from 'antd';
 
-import {
-  ExclamationCircleOutlined,
-} from '@ant-design/icons';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import {
   deleteRescueTeam,
@@ -30,7 +28,6 @@ import './TeamManagementList.css';
 
 import MemberTable from './MemberTable';
 import CreateTeamModal from '../CreateTeam/CreateTeamModal';
-
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
 /* MUI */
@@ -47,7 +44,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const { Option } = Select;
-
 
 /* ================= REVERSE GEOCODE ================= */
 
@@ -72,13 +68,10 @@ const reverseGeocode = async (location) => {
 
   }
   catch {
-
     return "Không xác định";
-
   }
 
 };
-
 
 export default function TeamManagementList({
   teamsData,
@@ -113,11 +106,9 @@ export default function TeamManagementList({
       startIndex + pageSize
     );
 
-
   useEffect(() => {
     fetchProvinces();
   }, []);
-
 
   const fetchProvinces = async () => {
 
@@ -125,20 +116,7 @@ export default function TeamManagementList({
 
       const res = await getProvinces();
 
-      let data = [];
-
-      if (Array.isArray(res?.data)) {
-        data = res.data;
-      }
-      else if (Array.isArray(res?.data?.data)) {
-        data = res.data.data;
-      }
-      else if (Array.isArray(res?.data?.items)) {
-        data = res.data.items;
-      }
-      else if (Array.isArray(res)) {
-        data = res;
-      }
+      const data = res?.data || res || [];
 
       setProvinces(data);
 
@@ -150,7 +128,6 @@ export default function TeamManagementList({
 
   };
 
-
   useEffect(() => {
 
     if (!teamsData?.length) return;
@@ -160,7 +137,6 @@ export default function TeamManagementList({
     });
 
   }, [teamsData]);
-
 
   const fetchTeamLocation = async (teamId) => {
 
@@ -214,7 +190,6 @@ export default function TeamManagementList({
 
   };
 
-
   const handleTeamClick = (teamId) => {
 
     fetchTeamLocation(teamId);
@@ -224,7 +199,6 @@ export default function TeamManagementList({
     );
 
   };
-
 
   const handleEditTeam = (team) => {
 
@@ -246,7 +220,6 @@ export default function TeamManagementList({
     setEditModalVisible(true);
 
   };
-
 
   const handleUpdateTeam = async (values) => {
 
@@ -289,13 +262,10 @@ export default function TeamManagementList({
 
     }
     finally {
-
       setUpdating(false);
-
     }
 
   };
-
 
   const getStatusColor = (status) => {
 
@@ -314,44 +284,55 @@ export default function TeamManagementList({
 
   };
 
-
   const handleDeleteTeam = (teamId, teamName) => {
 
     Modal.confirm({
-
+  
       title: "Xác nhận xóa đội",
-
       icon: <ExclamationCircleOutlined />,
-
       content: `Bạn có chắc muốn xóa đội "${teamName}"?`,
-
       okType: "danger",
-
+  
       onOk: async () => {
-
-        await deleteRescueTeam(teamId);
-
-        AuthNotify.success(
-          "Đã xóa đội",
-          "Đội cứu hộ đã được xóa khỏi hệ thống"
-        );
-
-        onTeamChanged?.();
-
-      },
-
+  
+        try {
+  
+          const res = await deleteRescueTeam(teamId);
+  
+          console.log("DELETE SUCCESS:", res);
+  
+          AuthNotify.success(
+            "Đã xóa đội",
+            "Đội cứu hộ đã được xóa khỏi hệ thống"
+          );
+  
+          onTeamChanged?.();
+  
+        } catch (error) {
+  
+          console.log("DELETE ERROR:", error.response);
+  
+          AuthNotify.error(
+            "Không thể xóa đội",
+            error?.response?.data?.message ||
+            "Đội đang có dữ liệu liên quan"
+          );
+  
+        }
+  
+      }
+  
     });
-
+  
   };
-
 
   return (
 
-    <div className="card">
+    <div className="team-mgmt-card">
 
-      <div className="card-header">
+      <div className="team-mgmt-header">
 
-        <div className="card-title">
+        <div className="team-mgmt-title">
           🚑 Danh sách đội cứu hộ ({teamsData.length})
         </div>
 
@@ -359,17 +340,16 @@ export default function TeamManagementList({
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateOpen(true)}
-          className="mui-create-btn"
+          className="team-mgmt-create-btn"
         >
           Tạo đội cứu hộ
         </Button>
 
       </div>
 
+      <div className="team-mgmt-table-wrapper">
 
-      <div className="table-wrapper">
-
-        <div className="table-head">
+        <div className="team-mgmt-table-head">
           <span>STT</span>
           <span>TÊN ĐỘI</span>
           <span>SĐT</span>
@@ -378,30 +358,29 @@ export default function TeamManagementList({
           <span>HÀNH ĐỘNG</span>
         </div>
 
-
         {paginatedTeams.map((team, index) => (
 
           <div key={team.id}>
 
-            <div className="table-row">
+            <div className="team-mgmt-table-row">
 
-              <div className="col-center">
+              <div className="team-mgmt-col-center">
                 {startIndex + index + 1}
               </div>
 
-              <div className="team-name">
+              <div className="team-mgmt-team-name">
                 {team.name}
               </div>
 
               <div>{team.phone}</div>
 
-              <div className="location-cell">
+              <div className="team-mgmt-location-cell">
 
                 {loadingLocation[team.id]
                   ? <Spin size="small" />
                   : (
                     <Tooltip title={teamAddresses[team.id]}>
-                      <span className="truncate-text">
+                      <span className="team-mgmt-truncate-text">
                         {teamAddresses[team.id] || "Không xác định"}
                       </span>
                     </Tooltip>
@@ -421,14 +400,14 @@ export default function TeamManagementList({
 
               </div>
 
-              <div className="col-action">
+              <div className="team-mgmt-col-action">
 
                 <Stack direction="row" spacing={1}>
 
                   <Tooltip title="Chỉnh sửa">
                     <IconButton
                       size="small"
-                      className="action-edit"
+                      className="team-mgmt-action-edit"
                       onClick={() => handleEditTeam(team)}
                     >
                       <EditIcon fontSize="small" />
@@ -438,7 +417,7 @@ export default function TeamManagementList({
                   <Tooltip title="Xóa">
                     <IconButton
                       size="small"
-                      className="action-delete"
+                      className="team-mgmt-action-delete"
                       onClick={() => handleDeleteTeam(team.id, team.name)}
                     >
                       <DeleteIcon fontSize="small" />
@@ -448,7 +427,7 @@ export default function TeamManagementList({
                   <Tooltip title="Xem thành viên">
                     <IconButton
                       size="small"
-                      className="action-expand"
+                      className="team-mgmt-action-expand"
                       onClick={() => handleTeamClick(team.id)}
                     >
                       {expandedTeamId === team.id
@@ -473,10 +452,7 @@ export default function TeamManagementList({
 
       </div>
 
-
-      {/* PAGINATION */}
-
-      <div className="table-pagination">
+      <div className="team-mgmt-pagination">
 
         <Pagination
           current={currentPage}
@@ -488,12 +464,108 @@ export default function TeamManagementList({
 
       </div>
 
-
       <CreateTeamModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSuccess={() => onTeamChanged?.()}
       />
+
+      {/* ================= EDIT MODAL ================= */}
+
+      <Modal
+        title="Chỉnh sửa đội cứu hộ"
+        open={editModalVisible}
+        width={520}
+        centered
+        footer={null}
+        destroyOnClose
+        className="team-mgmt-edit-modal"
+        onCancel={() => {
+          form.resetFields();
+          setEditModalVisible(false);
+        }}
+      >
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleUpdateTeam}
+        >
+
+          <Form.Item
+            label="Tên đội"
+            name="rcName"
+            rules={[{ required: true, message: "Vui lòng nhập tên đội" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Số điện thoại"
+            name="rcPhone"
+            rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Khu vực"
+            name="areaId"
+            rules={[{ required: true, message: "Vui lòng chọn khu vực" }]}
+          >
+            <Select>
+              {provinces.map((p) => (
+                <Option key={p.id} value={p.id}>
+                  {p.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Trạng thái"
+            name="rcStatus"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              <Option value="active">Sẵn sàng</Option>
+              <Option value="rest">Đang nghỉ</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Tọa độ (lng,lat)"
+            name="location"
+          >
+            <Input placeholder="106.70098,10.77689" />
+          </Form.Item>
+
+          <div className="team-mgmt-btn-group">
+
+            <Button
+              className="team-mgmt-btn-cancel"
+              onClick={() => {
+                form.resetFields();
+                setEditModalVisible(false);
+              }}
+            >
+              Hủy
+            </Button>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={updating}
+              className="team-mgmt-btn-submit"
+            >
+              Cập nhật
+            </Button>
+
+          </div>
+
+        </Form>
+
+      </Modal>
 
     </div>
 

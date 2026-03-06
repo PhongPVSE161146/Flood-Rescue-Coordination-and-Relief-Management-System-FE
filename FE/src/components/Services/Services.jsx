@@ -53,7 +53,7 @@ export default function Services() {
             <div className="icon">{item.icon}</div>
             <h3>{item.title}</h3>
             <p>{item.desc}</p>
-            <a href="#">
+            <a>
               XEM CHI TIẾT <span>→</span>
             </a>
           </div>

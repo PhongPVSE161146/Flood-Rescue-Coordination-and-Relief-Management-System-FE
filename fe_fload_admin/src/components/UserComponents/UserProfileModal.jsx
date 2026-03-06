@@ -33,7 +33,7 @@ import {
 
 import "./UserProfileModal.css";
 
-
+import AuthNotify from "../../utils/Common/AuthNotify";
 export default function UserProfileModal({
   open,
   onClose
@@ -81,8 +81,10 @@ export default function UserProfileModal({
     catch (error) {
 
       console.error(error);
-
-      message.error("Không thể tải thông tin người dùng");
+      AuthNotify.error(
+        "Không tải được thông tin cá nhân",
+        "Vui lòng thử lại"
+      );  
 
     }
     finally {
@@ -91,6 +93,23 @@ export default function UserProfileModal({
 
     }
 
+  };
+
+  const validatePhoneVN = (_, value) => {
+
+    if (!value) {
+      return Promise.reject("Vui lòng nhập số điện thoại");
+    }
+  
+    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+  
+    if (!phoneRegex.test(value)) {
+      return Promise.reject(
+        "Số điện thoại phải gồm 10 số và đúng đầu số Việt Nam"
+      );
+    }
+  
+    return Promise.resolve();
   };
 
   const fetchProvinces = async () => {
@@ -102,7 +121,10 @@ export default function UserProfileModal({
   
     } catch (error) {
       console.error(error);
-      message.error("Không thể tải danh sách tỉnh");
+      AuthNotify.error(
+        "Không tải được khu vực",
+        "Vui lòng thử lại"
+      );
     }
   };
   useEffect(() => {
@@ -120,7 +142,10 @@ export default function UserProfileModal({
 
       if (!userId) {
 
-        message.error("UserId không tồn tại");
+        AuthNotify.error(
+          "Lỗi người dùng",
+          "Không xác định được người dùng"
+        );
 
         return;
 
@@ -146,7 +171,10 @@ export default function UserProfileModal({
 
       await updateUserProfile(payload);
 
-      message.success("Cập nhật thông tin thành công");
+      AuthNotify.success(
+        "Cập nhật thành công",
+        "Thông tin cá nhân đã được cập nhật"
+      );
 
       onClose();
 
@@ -155,7 +183,10 @@ export default function UserProfileModal({
 
       console.error(error);
 
-      message.error("Cập nhật thất bại");
+      AuthNotify.error(
+        "Cập nhật thất bại",
+        "Không thể cập nhật thông tin"
+      );
 
     }
     finally {
@@ -278,32 +309,36 @@ export default function UserProfileModal({
 
               <Col span={24}>
 
-                <Form.Item
+              <Form.Item
+  name="phone"
+  label="Số điện thoại"
+  validateTrigger="onChange"
+  rules={[
+    {
+      validator: validatePhoneVN
+    }
+  ]}
+>
 
-                  name="phone"
+  <Input
+    prefix={<PhoneOutlined />}
+    size="large"
+    placeholder="VD: 0901234567"
+    maxLength={10}
 
-                  label="Số điện thoại"
+    onChange={(e) => {
 
-                  rules={[
-                    {
-                      required: true,
-                      message: "Nhập số điện thoại"
-                    }
-                  ]}
+      const onlyNumber =
+        e.target.value.replace(/\D/g, "");
 
-                >
+      form.setFieldsValue({
+        phone: onlyNumber
+      });
 
-                  <Input
+    }}
+  />
 
-                    prefix={<PhoneOutlined />}
-
-                    size="large"
-
-                    placeholder="Nhập số điện thoại"
-
-                  />
-
-                </Form.Item>
+</Form.Item>
 
               </Col>
 

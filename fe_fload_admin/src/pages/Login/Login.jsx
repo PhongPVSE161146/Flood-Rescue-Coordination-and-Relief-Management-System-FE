@@ -130,10 +130,10 @@ export default function Login() {
             QUẢN LÝ & <span>BẢO MẬT</span>
           </h1>
 
-          <p>
+          {/* <p>
             Giao diện điều hành thế hệ mới dành cho cán bộ
             vận hành cứu hộ quốc gia.
-          </p>
+          </p> */}
 
           <div className="hero-metrics">
             <span>24/7 VẬN HÀNH</span>
@@ -155,50 +155,54 @@ export default function Login() {
           <div className="form-group">
             <label className="login-label">TÀI KHOẢN NỘI BỘ</label>
             <TextField
-              fullWidth
-              variant="filled"
-              placeholder="Số điện thoại"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              error={!!errors.phone}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PhoneAndroid />
-                  </InputAdornment>
-                ),
-              }}
-            />
+  fullWidth
+  variant="filled"
+  placeholder="Số điện thoại"
+  value={phone}
+  autoComplete="new-phone"
+  name="phone_login_fake"
+  onChange={(e) => setPhone(e.target.value)}
+  error={!!errors.phone}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <PhoneAndroid />
+      </InputAdornment>
+    ),
+  }}
+/>
             {errors.phone && <span className="error-text">{errors.phone}</span>}
           </div>
 
           <div className="form-group">
             <label className="login-label">MẬT KHẨU HỆ THỐNG</label>
             <TextField
-              fullWidth
-              variant="filled"
-              type={show ? "text" : "password"}
-              placeholder="Mật Khẩu"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={!!errors.password}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockOutlined />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment
-                    position="end"
-                    className="eye"
-                    onClick={() => setShow(!show)}
-                  >
-                    {show ? <VisibilityOff /> : <Visibility />}
-                  </InputAdornment>
-                ),
-              }}
-            />
+  fullWidth
+  variant="filled"
+  type={show ? "text" : "password"}
+  placeholder="Mật khẩu"
+  value={password}
+  autoComplete="new-password"
+  name="password_login_fake"
+  onChange={(e) => setPassword(e.target.value)}
+  error={!!errors.password}
+  InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <LockOutlined />
+      </InputAdornment>
+    ),
+    endAdornment: (
+      <InputAdornment
+        position="end"
+        className="eye"
+        onClick={() => setShow(!show)}
+      >
+        {show ? <VisibilityOff /> : <Visibility />}
+      </InputAdornment>
+    ),
+  }}
+/>
             {errors.password && (
               <span className="error-text">{errors.password}</span>
             )}

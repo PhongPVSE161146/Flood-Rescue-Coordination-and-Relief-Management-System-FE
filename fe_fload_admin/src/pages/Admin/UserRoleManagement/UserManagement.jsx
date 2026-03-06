@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Form, message } from "antd";
-
+import { Button, Form, message, Modal} from "antd";
 import {
   PlusOutlined
 } from "@ant-design/icons";
@@ -14,6 +13,7 @@ import AuthNotify from "../../../utils/Common/AuthNotify";
 import {
   registerUser,
   getAllUser,
+  deleteUser
 } from "../../../../api/axios/AdminApi/userApi";
  import {updateUser} from "../../../../api/axios/Auth/authApi";
 
@@ -78,7 +78,20 @@ export default function UserManagement() {
     }
 
   };
-
+  const handleDelete = (user) => {
+    Modal.confirm({
+      title: "Xóa user?",
+      content: user.name,
+      okType: "danger",
+      async onOk() {
+        await deleteUser(user.id);
+        message.success("Đã xóa");
+        loadVehicles();
+      },
+    });
+    console.log(user);
+  };
+  
   const filteredUsers =
     roleFilter === "ALL"
       ? users
@@ -315,6 +328,7 @@ export default function UserManagement() {
           setSelectedUser(user);
         }}
         onEdit={openEditModal}
+        onDelete={handleDelete}
       />
 
       <UserFormModal

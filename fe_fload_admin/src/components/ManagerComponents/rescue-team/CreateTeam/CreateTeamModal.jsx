@@ -30,6 +30,26 @@ import './CreateTeamModal.css';
 
 const { Option } = Select;
 
+/* ================= PHONE VALIDATOR ================= */
+
+const validateVietnamPhone = (_, value) => {
+
+  if (!value) {
+    return Promise.reject("Vui lòng nhập số điện thoại");
+  }
+
+  const phoneRegex = /^0\d{9}$/;
+
+  if (!phoneRegex.test(value)) {
+    return Promise.reject(
+      "Số điện thoại phải gồm 10 số và bắt đầu bằng 0 (VD: 0901234567)"
+    );
+  }
+
+  return Promise.resolve();
+
+};
+
 export default function CreateTeamModal({
   open,
   onClose,
@@ -37,7 +57,9 @@ export default function CreateTeamModal({
 }) {
 
   const [form] = Form.useForm();
+
   const [loading, setLoading] = useState(false);
+
   const [provinces, setProvinces] = useState([]);
 
   /* ================= LOAD PROVINCES ================= */
@@ -86,8 +108,6 @@ export default function CreateTeamModal({
 
       setLoading(true);
 
-      /* 1️⃣ CREATE TEAM */
-
       const res = await createRescueTeam({
 
         rcName: values.rcName,
@@ -104,7 +124,7 @@ export default function CreateTeamModal({
         res?.data?.id ||
         res?.data?.teamId;
 
-      /* 2️⃣ UPDATE LOCATION */
+      /* UPDATE LOCATION */
 
       if (teamId && values.location) {
 
@@ -145,7 +165,6 @@ export default function CreateTeamModal({
 
   };
 
-
   /* ================= UI ================= */
 
   return (
@@ -163,6 +182,8 @@ export default function CreateTeamModal({
         form={form}
         layout="vertical"
       >
+
+        {/* TEAM NAME */}
 
         <Form.Item
           name="rcName"
@@ -184,14 +205,14 @@ export default function CreateTeamModal({
         </Form.Item>
 
 
+        {/* PHONE */}
+
         <Form.Item
           name="rcPhone"
           label="Số điện thoại"
+          validateTrigger="onChange"
           rules={[
-            {
-              required: true,
-              message: "Nhập số điện thoại"
-            }
+            { validator: validateVietnamPhone }
           ]}
         >
 
@@ -199,10 +220,23 @@ export default function CreateTeamModal({
             prefix={<PhoneOutlined />}
             placeholder="0901234567"
             size="large"
+            maxLength={10}
+            onChange={(e) => {
+
+              const onlyNumber =
+                e.target.value.replace(/\D/g, "");
+
+              form.setFieldsValue({
+                rcPhone: onlyNumber
+              });
+
+            }}
           />
 
         </Form.Item>
 
+
+        {/* AREA */}
 
         <Form.Item
           name="areaId"
@@ -228,6 +262,37 @@ export default function CreateTeamModal({
         </Form.Item>
 
 
+        {/* STATUS */}
+
+        <Form.Item
+          name="rcStatus"
+          label="Trạng thái"
+          rules={[
+            {
+              required: true,
+              message: "Chọn trạng thái"
+            }
+          ]}
+        >
+
+          <Select
+            size="large"
+            placeholder="Chọn trạng thái"
+          >
+
+            <Option value="on duty">
+              Sẵn sàng
+            </Option>
+
+            <Option value="off duty">
+              Đang nghỉ
+            </Option>
+
+          </Select>
+
+        </Form.Item>
+
+
         {/* LOCATION */}
 
         <Form.Item
@@ -243,6 +308,8 @@ export default function CreateTeamModal({
 
         </Form.Item>
 
+
+        {/* BUTTON */}
 
         <Button
           type="primary"
