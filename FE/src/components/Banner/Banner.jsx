@@ -1,13 +1,26 @@
 import "./Banner.css";
+import { FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Banner = () => {
+
+  const navigate = useNavigate();
+
+  const handleEmergency = () => {
+    navigate("/emergency");
+  };
+
+  const handleMore = () => {
+    navigate("/about");
+  };
+
   return (
     <section className="hero-banner">
       <div className="hero-overlay" />
 
       <div className="hero-content">
         <div className="hero-badge">
-          <span className="dot" />
+          <span className="dot"></span>
           TRỰC TUYẾN 24/7 · SẴN SÀNG ỨNG CỨU
         </div>
 
@@ -22,11 +35,13 @@ const Banner = () => {
         </p>
 
         <div className="hero-actions">
-          <button className="btn-emergency">
-            ❗ GỬI YÊU CẦU CỨU TRỢ KHẨN CẤP
+          <button className="btn-emergency" onClick={handleEmergency}>
+            <FaExclamationTriangle />
+            GỬI YÊU CẦU CỨU TRỢ
           </button>
 
-          <button className="btn-outline">
+          <button className="btn-outline" onClick={handleMore}>
+            <FaInfoCircle />
             Tìm hiểu thêm
           </button>
         </div>
@@ -35,6 +50,4 @@ const Banner = () => {
   );
 };
 
-
 export { Banner as default };
-
