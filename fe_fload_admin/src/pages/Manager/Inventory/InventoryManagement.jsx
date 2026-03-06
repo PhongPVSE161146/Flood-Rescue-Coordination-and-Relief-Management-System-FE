@@ -85,6 +85,16 @@ export default function InventoryManagement() {
     }
   };
 
+  /* ================= FILTER TRANSACTION ================= */
+
+  const pendingTransactions = transactions.filter(
+    (t) => !t.confirmedAt && !t.confirmed_at
+  );
+
+  const confirmedTransactions = transactions.filter(
+    (t) => t.confirmedAt || t.confirmed_at
+  );
+
   /* ================= INVENTORY ================= */
 
   const handleSelectWarehouseInventory = async (warehouseId) => {
@@ -93,6 +103,7 @@ export default function InventoryManagement() {
 
     try {
       const res = await getWarehouseInventory(warehouseId);
+
       setInventory(
         res.data.map((x, index) => ({
           key: index,
@@ -114,6 +125,7 @@ export default function InventoryManagement() {
       } else {
         await createWarehouse(values);
       }
+
       setWarehouseDrawer(false);
       setEditingWarehouse(null);
       form.resetFields();
@@ -148,6 +160,7 @@ export default function InventoryManagement() {
       } else {
         await createReliefItem(values);
       }
+
       setItemDrawer(false);
       setEditingItem(null);
       itemForm.resetFields();
@@ -178,9 +191,12 @@ export default function InventoryManagement() {
   const handleCreateTransaction = async (values) => {
     try {
       await createInventoryTransaction(values);
+
       message.success("Tạo transaction thành công");
+
       setTransactionDrawer(false);
       transactionForm.resetFields();
+
       loadAll();
     } catch {
       message.error("Tạo transaction thất bại");
@@ -188,9 +204,25 @@ export default function InventoryManagement() {
   };
 
   const handleConfirmTransaction = async (id) => {
-    if (!id) return;
-    await confirmInventoryTransaction(id);
-    loadAll();
+    if (!id) {
+      message.error("Transaction ID không hợp lệ");
+      return;
+    }
+
+    try {
+      await confirmInventoryTransaction(id);
+
+      message.success("Confirm transaction thành công");
+
+      loadAll();
+
+      if (selectedWarehouseId) {
+        handleSelectWarehouseInventory(selectedWarehouseId);
+      }
+    } catch (err) {
+      console.error(err);
+      message.error("Confirm transaction thất bại");
+    }
   };
 
   /* ================= COLUMNS ================= */
@@ -212,6 +244,7 @@ export default function InventoryManagement() {
           >
             Edit
           </Button>
+
           <Button danger onClick={() => handleDeleteWarehouse(record.id)}>
             Delete
           </Button>
@@ -237,6 +270,7 @@ export default function InventoryManagement() {
           >
             Edit
           </Button>
+
           <Button danger onClick={() => handleDeleteItem(record.id)}>
             Delete
           </Button>
@@ -251,11 +285,19 @@ export default function InventoryManagement() {
     { title: "Type", dataIndex: "transactionType" },
     {
       title: "Action",
-      render: (_, record) => (
-        <Button onClick={() => handleConfirmTransaction(record.id)}>
-          Confirm
-        </Button>
-      ),
+      render: (_, record) =>
+        record.confirmedAt || record.confirmed_at ? (
+          <span style={{ color: "green", fontWeight: "bold" }}>
+            Confirmed
+          </span>
+        ) : (
+          <Button
+            type="primary"
+            onClick={() => handleConfirmTransaction(record.id)}
+          >
+            Confirm
+          </Button>
+        ),
     },
   ];
 
@@ -270,6 +312,7 @@ export default function InventoryManagement() {
           <Button type="primary" onClick={() => setWarehouseDrawer(true)}>
             Add Warehouse
           </Button>
+
           <Table rowKey="id" columns={warehouseColumns} dataSource={warehouses} />
         </>
       ),
@@ -282,6 +325,7 @@ export default function InventoryManagement() {
           <Button type="primary" onClick={() => setItemDrawer(true)}>
             Add Item
           </Button>
+
           <Table rowKey="id" columns={itemColumns} dataSource={items} />
         </>
       ),
@@ -300,6 +344,7 @@ export default function InventoryManagement() {
             }))}
             onChange={handleSelectWarehouseInventory}
           />
+
           <Table
             rowKey="key"
             columns={[
@@ -316,13 +361,39 @@ export default function InventoryManagement() {
       label: "Giao dịch",
       children: (
         <>
-          <Button type="primary" onClick={() => setTransactionDrawer(true)}>
+          <Button
+            type="primary"
+            style={{ marginBottom: 16 }}
+            onClick={() => setTransactionDrawer(true)}
+          >
             Create Transaction
           </Button>
-          <Table
-            rowKey="id"
-            columns={transactionColumns}
-            dataSource={transactions}
+
+          <Tabs
+            items={[
+              {
+                key: "pending",
+                label: `Pending (${pendingTransactions.length})`,
+                children: (
+                  <Table
+                    rowKey="id"
+                    columns={transactionColumns}
+                    dataSource={pendingTransactions}
+                  />
+                ),
+              },
+              {
+                key: "confirmed",
+                label: `Confirmed (${confirmedTransactions.length})`,
+                children: (
+                  <Table
+                    rowKey="id"
+                    columns={transactionColumns}
+                    dataSource={confirmedTransactions}
+                  />
+                ),
+              },
+            ]}
           />
         </>
       ),
