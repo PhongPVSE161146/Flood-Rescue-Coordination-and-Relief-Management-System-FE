@@ -182,13 +182,17 @@ export default function UserTable({
     style={{ cursor: "pointer", marginRight: 12, color: "#1677ff" }}
   />
 
-  <DeleteOutlined
-    onClick={(e) => {
-      e.stopPropagation();
-      onDelete?.(user);
-    }}
-    style={{ cursor: "pointer", color: "#ff4d4f" }}
-  />
+<DeleteOutlined
+  onClick={(e) => {
+    e.stopPropagation();
+    onDelete?.(user);
+  }}
+  style={{
+    cursor: "pointer",
+    color: "#ff4d4f",
+    fontSize: 18
+  }}
+/>
 
 </td>
 
