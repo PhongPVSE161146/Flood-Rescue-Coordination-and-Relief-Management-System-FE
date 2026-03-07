@@ -107,3 +107,38 @@ export const verifyAndDispatchRescueRequest = async (
   }
 
 };
+/* ================= CONFIRM DISPATCH ================= */
+
+export const confirmDispatchRescueRequest = async (
+  requestId,
+  data
+) => {
+
+  try {
+
+    const response = await axiosInstance.post(
+      `/api/RescueRequest/${requestId}/dispatch/confirm`,
+      {
+        rescueTeamId: data.rescueTeamId,
+        shiftId: data.shiftId,
+        vehicleId: data.vehicleId,
+        assignmentStatus: data.assignmentStatus
+      }
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi xác nhận dispatch:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể xác nhận điều phối đội cứu hộ"
+    );
+
+  }
+
+};

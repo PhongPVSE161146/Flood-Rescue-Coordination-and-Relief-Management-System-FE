@@ -7,18 +7,26 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
 console.log("API URL:", import.meta.env.VITE_API_URL);
 
 /* REQUEST */
 
 axiosInstance.interceptors.request.use((config) => {
 
-  const token = sessionStorage.getItem("accessToken");
+  const token =
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken");
 
   if (token) {
-    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
+  console.log("Authorization Token:", config.headers.Authorization);
+  console.log(
+    "API REQUEST:",
+    config.method?.toUpperCase(),
+    config.baseURL + config.url
+  );
 
   return config;
 
@@ -33,8 +41,12 @@ axiosInstance.interceptors.response.use(
     console.error("API ERROR:", error?.response || error);
 
     if (error?.response?.status === 401) {
+
       sessionStorage.clear();
+      localStorage.clear();
+
       window.location.href = "/login";
+
     }
 
     return Promise.reject(error);

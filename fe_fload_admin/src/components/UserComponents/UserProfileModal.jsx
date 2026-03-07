@@ -137,6 +137,7 @@ export default function UserProfileModal({
 
   /* ================= UPDATE PROFILE ================= */
   const handleUpdate = async () => {
+    
 
     try {
 

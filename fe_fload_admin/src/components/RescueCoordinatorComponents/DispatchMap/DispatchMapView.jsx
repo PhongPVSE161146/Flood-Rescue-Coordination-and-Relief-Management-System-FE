@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 
 import {
   getAllRescueTeams,
-  getRescueTeamLocation
+  getRescueTeamLocation,
+  getRescueShifts
 } from "../../../../api/axios/ManagerApi/rescueTeamApi";
-
+    import {confirmDispatchRescueRequest} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 import {
   getAllVehicles
 } from "../../../../api/axios/ManagerApi/vehicleApi";
+import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./rc-dispatch-map.css";
 
@@ -22,7 +24,7 @@ export default function DispatchMapView({ request }) {
 
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
-
+  const [shifts, setShifts] = useState([]);
   const [rescueTeams, setRescueTeams] = useState([]);
   const [vehicles, setVehicles] = useState([]);
 
@@ -96,6 +98,31 @@ export default function DispatchMapView({ request }) {
 
   }, [request]);
 
+  /* ================= LOAD SHIFTS ================= */
+
+useEffect(() => {
+
+  const fetchShifts = async () => {
+
+    try {
+
+      const res = await getRescueShifts();
+      const data = res?.data || [];
+
+      setShifts(data);
+
+    } catch (err) {
+
+      console.error("Load shifts error:", err);
+
+    }
+
+  };
+
+  fetchShifts();
+
+}, []);
+
   /* ================= LOAD VEHICLES ================= */
 
   useEffect(() => {
@@ -107,7 +134,13 @@ export default function DispatchMapView({ request }) {
         const res = await getAllVehicles();
         const list = res?.data || [];
 
-        const mappedVehicles = list.map((v) => ({
+        const mappedVehicles = list
+        .filter((v) =>
+          ["ready", "available"].includes(
+            v.vehicleStatus?.toLowerCase()
+          )
+        )
+        .map((v) => ({
 
           id: v.vehicleId,
           name: v.vehicleName,
@@ -184,19 +217,68 @@ export default function DispatchMapView({ request }) {
     selectedVehicles.length > 0;
 
   /* ================= CONFIRM ================= */
+  const handleConfirmDispatch = async () => {
 
-  const handleConfirmDispatch = () => {
-
-    if (!canConfirm) return;
-
-    navigate("/coordinator/mina", {
-      state: {
-        teamId: selectedTeam,
-        vehicleIds: selectedVehicles,
-        request
+    if (!canConfirm) {
+      AuthNotify.warning(
+        "Thiếu thông tin",
+        "Vui lòng chọn đội cứu hộ và phương tiện"
+      );
+      return;
+    }
+  
+    try {
+  
+      const openShift = shifts.find(
+        (s) => s.shiftStatus === "OPEN"
+      );
+  
+      if (!openShift) {
+  
+        AuthNotify.error(
+          "Không có ca trực",
+          "Hiện tại không có ca trực đang mở để điều phối"
+        );
+  
+        return;
+  
       }
-    });
-
+  
+      await confirmDispatchRescueRequest(
+        request.requestId,
+        {
+          rescueTeamId: Number(selectedTeam),
+          shiftId: Number(openShift.shiftId),
+          vehicleId: Number(selectedVehicles[0]),
+          assignmentStatus: "Assigned"
+        }
+      );
+  
+      AuthNotify.success(
+        "Điều động thành công",
+        "Đội cứu hộ đã được điều động tới hiện trường"
+      );
+  
+      navigate("/coordinator/mina", {
+        state: {
+          teamId: selectedTeam,
+          vehicleIds: selectedVehicles,
+          request
+        }
+      });
+  
+    } catch (err) {
+  
+      console.error("Dispatch confirm error:", err);
+  
+      AuthNotify.error(
+        "Điều động thất bại",
+        err?.response?.data?.message ||
+        "Không thể xác nhận điều động"
+      );
+  
+    }
+  
   };
 
   /* ================= VEHICLE STATUS ================= */

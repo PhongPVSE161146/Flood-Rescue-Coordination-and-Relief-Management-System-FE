@@ -1,12 +1,13 @@
 import "./UserTable.css";
 import { Tag, Spin, Pagination } from "antd";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useEffect, useState, useMemo } from "react";
 import { getProvinces } from "../../../../../api/axios/Auth/authApi";
 
 export default function UserTable({
   onRowClick,
   onEdit,
+  onDelete, 
   loading,
   users = [],
 }) {
@@ -111,7 +112,7 @@ export default function UserTable({
                 <th>Vai trò</th>
                 <th>Khu vực</th>
                 <th>Trạng thái</th>
-                <th style={{ width: "60px" }}>Sửa</th>
+                <th style={{ width: "120px" }}>Hành động</th>
               </tr>
             </thead>
 
@@ -171,15 +172,29 @@ export default function UserTable({
                     </td>
 
                     {/* EDIT */}
-                    <td>
-                      <EditOutlined
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit?.(user);
-                        }}
-                        style={{ cursor: "pointer" }}
-                      />
-                    </td>
+                    <td className="userTable__actions">
+
+  <EditOutlined
+    onClick={(e) => {
+      e.stopPropagation();
+      onEdit?.(user);
+    }}
+    style={{ cursor: "pointer", marginRight: 12, color: "#1677ff" }}
+  />
+
+<DeleteOutlined
+  onClick={(e) => {
+    e.stopPropagation();
+    onDelete?.(user);
+  }}
+  style={{
+    cursor: "pointer",
+    color: "#ff4d4f",
+    fontSize: 18
+  }}
+/>
+
+</td>
 
                   </tr>
 

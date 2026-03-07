@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Button, Form, message } from "antd";
-
+import { Button, Form, message, Modal} from "antd";
 import {
   PlusOutlined
 } from "@ant-design/icons";
 
 import "./UserManagement.css";
-
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 import UserTable from "../../../components/AdminComponents/TableUser/UserListManager/UserTable";
 import UserFormModal from "../../../components/AdminComponents/TableUser/FormModal/UserFormModal";
 import StatCard from "../../../components/AdminComponents/TableUser/FormModal/StatCard";
@@ -14,6 +13,7 @@ import AuthNotify from "../../../utils/Common/AuthNotify";
 import {
   registerUser,
   getAllUser,
+  deleteUser
 } from "../../../../api/axios/AdminApi/userApi";
  import {updateUser} from "../../../../api/axios/Auth/authApi";
 
@@ -78,7 +78,46 @@ export default function UserManagement() {
     }
 
   };
-
+  const handleDelete = (user) => {
+    Modal.confirm({
+      title: (
+        <span style={{ fontSize: 18, fontWeight: 600, color: "#ff4d4f" }}>
+           Xóa người dùng
+        </span>
+      ),
+      icon: <ExclamationCircleOutlined style={{ color: "#ff4d4f" }} />,
+      content: (
+        <div style={{ marginTop: 10 }}>
+          <p style={{ fontSize: 15 }}>
+            Bạn có chắc muốn xóa:
+            <b style={{ color: "#1677ff", marginLeft: 6 }}>{user.name}</b> ?
+          </p>
+        </div>
+      ),
+      okText: "🗑 Xóa",
+      cancelText: "Hủy",
+      okType: "danger",
+      centered: true,
+  
+      async onOk() {
+        try {
+          await deleteUser(user.id);
+  
+          AuthNotify.success(
+            "Xóa user thành công",
+            `User "${user.name}" đã được xóa`
+          );
+  
+          loadUsers();
+        } catch (err) {
+          AuthNotify.error("Xóa user thất bại", err?.message || "");
+        }
+      },
+    });
+  
+    console.log(user);
+  };
+  
   const filteredUsers =
     roleFilter === "ALL"
       ? users
@@ -315,6 +354,7 @@ export default function UserManagement() {
           setSelectedUser(user);
         }}
         onEdit={openEditModal}
+        onDelete={handleDelete}
       />
 
       <UserFormModal
