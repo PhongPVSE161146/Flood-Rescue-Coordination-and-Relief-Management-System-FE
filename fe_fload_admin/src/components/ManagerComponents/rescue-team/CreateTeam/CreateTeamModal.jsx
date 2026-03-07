@@ -284,9 +284,9 @@ export default function CreateTeamModal({
               Sẵn sàng
             </Option>
 
-            <Option value="off duty">
+            {/* <Option value="off duty">
               Đang nghỉ
-            </Option>
+            </Option> */}
 
           </Select>
 

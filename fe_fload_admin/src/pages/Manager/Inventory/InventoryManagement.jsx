@@ -480,13 +480,21 @@ export default function InventoryManagement() {
             ),
           },
 
-          {
-            key: "transactions",
-            label: "Giao dịch",
-            children: (
-              <div className="inventory-card">
+         {
+  key: "transactions",
+  label: "Giao dịch",
+  children: (
+    <div className="inventory-card">
 
-                <Tabs
+      <Button
+        type="primary"
+        style={{ marginBottom: 16 }}
+        onClick={() => setTransactionDrawer(true)}
+      >
+        Tạo Transaction
+      </Button>
+
+      <Tabs
                   items={[
                     {
                       key: "pending",
@@ -592,11 +600,134 @@ export default function InventoryManagement() {
           <Button type="primary" htmlType="submit" block>
             {editingItem ? "Update" : "Create"}
           </Button>
-
+          
         </Form>
 
       </Drawer>
+       <Drawer
+  title="Create Transaction"
+  open={transactionDrawer}
+  onClose={() => setTransactionDrawer(false)}
+  width={480}
+>
+<Form
+  form={transactionForm}
+  layout="vertical"
+  onFinish={handleCreateTransaction}
+>
 
+<Form.Item
+  label="Warehouse"
+  name="warehouseId"
+  rules={[{ required: true }]}
+>
+<Select
+  options={warehouses.map((w) => ({
+    value: w.id,
+    label: w.warehouseName
+  }))}
+/>
+</Form.Item>
+
+<Form.Item
+  label="Transaction Type"
+  name="transactionType"
+  initialValue="IN"
+>
+<Select
+  options={[
+    { value: "IN", label: "Nhập kho" },
+    { value: "OUT", label: "Xuất kho" }
+  ]}
+/>
+</Form.Item>
+
+<Form.Item
+  label="Rescue Request ID"
+  name="rescueRequestId"
+>
+<InputNumber style={{ width: "100%" }} />
+</Form.Item>
+
+<Form.Item
+  label="Note"
+  name="note"
+>
+<Input />
+</Form.Item>
+
+{/* ITEM LIST */}
+
+<Form.List name="lines">
+
+{(fields, { add, remove }) => (
+
+<>
+{fields.map(({ key, name }) => (
+
+<Row gutter={10} key={key}>
+
+<Col span={12}>
+<Form.Item
+  name={[name, "reliefItemId"]}
+  label="Item"
+  rules={[{ required: true }]}
+>
+<Select
+  options={items.map((i) => ({
+    value: i.id,
+    label: i.itemName
+  }))}
+/>
+</Form.Item>
+</Col>
+
+<Col span={8}>
+<Form.Item
+  name={[name, "quantity"]}
+  label="Quantity"
+  rules={[{ required: true }]}
+>
+<InputNumber style={{ width: "100%" }} />
+</Form.Item>
+</Col>
+
+<Col span={4} style={{ display: "flex", alignItems: "center" }}>
+<Button danger onClick={() => remove(name)}>
+X
+</Button>
+</Col>
+
+</Row>
+
+))}
+
+<Button
+type="dashed"
+block
+onClick={() => add()}
+>
++ Add Item
+</Button>
+
+</>
+
+)}
+
+</Form.List>
+
+<Button
+type="primary"
+htmlType="submit"
+block
+style={{ marginTop: 20 }}
+>
+Create Transaction
+</Button>
+
+</Form>
+
+</Drawer>
     </div>
   );
 }
