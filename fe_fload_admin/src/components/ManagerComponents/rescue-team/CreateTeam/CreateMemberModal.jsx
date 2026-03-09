@@ -16,8 +16,7 @@ import {
 import { useState, useEffect } from 'react';
 
 import {
-  createTeamMember,
-  getRescueTeamMembers
+  createTeamMember
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
 
 import { getAllUser } from '../../../../../api/axios/AdminApi/userApi';
@@ -32,7 +31,9 @@ export default function CreateMemberModal({
   open,
   onClose,
   teamId,
-  onSuccess
+  onSuccess,
+  memberCount,
+  members
 }) {
 
   const [form] = Form.useForm();
@@ -40,21 +41,17 @@ export default function CreateMemberModal({
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  /* ================= LOAD USERS + FILTER ================= */
+  /* ================= LOAD USERS ================= */
 
   useEffect(() => {
 
     if (open) {
-
       fetchData();
-
-      form.setFieldsValue({
-        roleInTeam: "Member"
-      });
-
     }
 
-  }, [open]);
+  }, [open, members]);
+
+
 
   const fetchData = async () => {
 
@@ -62,13 +59,9 @@ export default function CreateMemberModal({
 
       setLoadingUsers(true);
 
-      const [allUsersRes, teamMembersRes] = await Promise.all([
-        getAllUser(),
-        getRescueTeamMembers(teamId)
-      ]);
+      const allUsersRes = await getAllUser();
 
       let allUsers = [];
-      let teamMembers = [];
 
       /* normalize users */
 
@@ -82,29 +75,32 @@ export default function CreateMemberModal({
         allUsers = allUsersRes.items;
       }
 
-      /* normalize team members */
+      /* ===== user đã trong team ===== */
 
-      if (Array.isArray(teamMembersRes?.data)) {
-        teamMembers = teamMembersRes.data;
-      }
-      else if (Array.isArray(teamMembersRes?.data?.data)) {
-        teamMembers = teamMembersRes.data.data;
-      }
-
-      const existingUserIds = teamMembers.map(
-        member => Number(member.userId)
+      const existingUserIds = new Set(
+        (members || []).map(m => String(m.userId))
       );
 
-      const filteredUsers = allUsers.filter(
-        user => !existingUserIds.includes(Number(user.userId))
-      );
+      /* ===== filter ===== */
+
+      const filteredUsers = allUsers.filter(user => {
+
+        const userId = String(user.userId);
+
+        if (user.roleName === "Admin") return false;
+
+        if (existingUserIds.has(userId)) return false;
+
+        return true;
+
+      });
 
       setUsers(filteredUsers);
 
     }
     catch (err) {
 
-      console.log("Load data error:", err);
+      console.log(err);
 
       AuthNotify.error(
         "Không thể tải dữ liệu",
@@ -120,6 +116,8 @@ export default function CreateMemberModal({
 
   };
 
+
+
   /* ================= AUTO FILL ================= */
 
   const handleUserChange = (userId) => {
@@ -134,15 +132,40 @@ export default function CreateMemberModal({
 
       fullName: selectedUser.fullName || selectedUser.name || "",
 
-      phone: selectedUser.phone || ""
+      phone: selectedUser.phone || "",
+
+      roleInTeam: selectedUser.roleName || "Member"
 
     });
 
   };
 
+
+
   /* ================= CREATE ================= */
 
   const handleCreate = async () => {
+
+    if (memberCount >= 5) {
+
+      AuthNotify.error(
+        "Không thể thêm thành viên",
+        "Mỗi đội chỉ được tối đa 5 thành viên"
+      );
+
+      return;
+    }
+
+    if (users.length === 0) {
+
+      AuthNotify.error(
+        "Không có user khả dụng",
+        "Tất cả user đã thuộc đội"
+      );
+
+      return;
+
+    }
 
     try {
 
@@ -171,6 +194,8 @@ export default function CreateMemberModal({
         "Thành viên đã được thêm vào đội"
       );
 
+      await fetchData();
+
       form.resetFields();
 
       onClose();
@@ -196,6 +221,8 @@ export default function CreateMemberModal({
 
   };
 
+
+
   /* ================= UI ================= */
 
   return (
@@ -215,6 +242,8 @@ export default function CreateMemberModal({
         layout="vertical"
         className="create-member-form"
       >
+
+        {/* USER */}
 
         <Form.Item
           name="userId"
@@ -243,7 +272,7 @@ export default function CreateMemberModal({
                 key={user.userId}
                 value={user.userId}
               >
-                {user.userId} - {user.fullName || user.name}
+                {user.userId} - {user.fullName || user.name} ({user.roleName})
               </Option>
 
             ))}
@@ -252,10 +281,14 @@ export default function CreateMemberModal({
 
         </Form.Item>
 
+
+
+        {/* NAME */}
+
         <Form.Item
           name="fullName"
           label="Họ và tên"
-          rules={[{ required: true }]}
+          // rules={[{ required: true }]}
         >
 
           <Input
@@ -266,10 +299,14 @@ export default function CreateMemberModal({
 
         </Form.Item>
 
+
+
+        {/* PHONE */}
+
         <Form.Item
           name="phone"
           label="Số điện thoại"
-          rules={[{ required: true }]}
+          // rules={[{ required: true }]}
         >
 
           <Input
@@ -280,21 +317,33 @@ export default function CreateMemberModal({
 
         </Form.Item>
 
+
+
+        {/* ROLE */}
+
         <Form.Item
           name="roleInTeam"
           label="Vai trò trong đội"
-          rules={[{ required: true }]}
+          // rules={[{ required: true }]}
         >
 
-          <Select size="large">
-
-            <Option value="Member">
-              👤 Thành viên
-            </Option>
-
-          </Select>
+          <Input
+            prefix={<UserOutlined />}
+            size="large"
+            disabled
+          />
 
         </Form.Item>
+
+
+
+        {memberCount >= 5 && (
+          <p style={{color:"#ef4444", marginBottom:10}}>
+            Đội đã đạt tối đa 5 thành viên
+          </p>
+        )}
+
+
 
         <Button
           type="primary"
@@ -302,6 +351,7 @@ export default function CreateMemberModal({
           size="large"
           loading={loading}
           onClick={handleCreate}
+          disabled={memberCount >= 5}
           className="create-member-btn"
         >
           Tạo thành viên

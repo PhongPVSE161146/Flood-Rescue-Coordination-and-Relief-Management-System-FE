@@ -206,13 +206,14 @@ export default function MemberTable({ teamId }) {
 
       </div>
 
-
       <CreateMemberModal
-        open={createOpen}
-        teamId={teamId}
-        onClose={() => setCreateOpen(false)}
-        onSuccess={fetchMembers}
-      />
+  open={createOpen}
+  teamId={teamId}
+  members={members}        // thêm dòng này
+  memberCount={members.length}
+  onClose={() => setCreateOpen(false)}
+  onSuccess={fetchMembers}
+/>
 
     </div>
 
