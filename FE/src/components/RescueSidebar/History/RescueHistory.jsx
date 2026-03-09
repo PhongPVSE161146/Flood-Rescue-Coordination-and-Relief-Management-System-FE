@@ -27,11 +27,10 @@ import "./RescueHistory.css";
 
 /* ================= INCIDENT TYPE ================= */
 
-const MAIN_INCIDENT_OPTIONS = [
-  { value: "MedicalEmergency", label: "Y tế khẩn cấp" },
-  { value: "TrafficAccident", label: "Tai nạn giao thông" },
-  { value: "FireExplosion", label: "Cháy nổ" },
-  { value: "DisasterFlood", label: "Ngập lụt" },
+
+const MAIN_INCIDENT_OPTIONS  = [
+  { value: "rescue", label: "Cứu hộ khẩn cấp" },
+  { value: "relief", label: "Hỗ trợ cứu trợ" }
 ];
 
 const getIncidentLabel = (value) => {
@@ -125,7 +124,7 @@ const RescueHistory = () => {
 
           return {
             id: item.rescueRequestId,
-            fullname: item.fullname,
+            fullName: item.fullName,
             code: `#CH-${item.rescueRequestId}`,
             status: statusInfo.text,
             color: statusInfo.color,
@@ -348,7 +347,7 @@ function HistoryCard({ data, onEdit, onDelete }) {
       </div>
 
         <div className="time">
-          Họ và tên: {data.fullname}
+          Họ và tên: {data.fullName}
         </div>
       <div className="time">
         Thời Gian : {data.time}

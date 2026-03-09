@@ -3,21 +3,38 @@ import axiosInstance from "../service/axiosInstance"; // import instance axios c
 
 // 1. Tra cứu lịch sử cứu hộ theo số điện thoại (GET)
 export const getRescueHistoryByPhone = async (phone) => {
+
   if (!phone) throw new Error("Số điện thoại không được để trống");
 
-  // Chuẩn hóa số điện thoại (loại bỏ dấu +, khoảng trắng, dấu - nếu có)
-  const cleanPhone = phone.replace(/[\s+\-]/g, "");
+  // Chuẩn hóa số điện thoại
+  const cleanPhone = phone.replace(/[^\d]/g, "");
 
   try {
+
     const response = await axiosInstance.get(
-      `/api/RescueRequest/citizen/${cleanPhone}`
+      `/api/RescueRequests`,
+      {
+        params: {
+          ContactPhone: cleanPhone
+        }
+      }
     );
-    return response.data; // Trả về array yêu cầu cứu hộ hoặc object tùy backend
+
+    return response.data;
+
   } catch (error) {
+
     console.error("Lỗi tra cứu lịch sử cứu hộ:", error);
-    const errMsg = error.response?.data?.message || error.message || "Không tìm thấy lịch sử";
+
+    const errMsg =
+      error.response?.data?.message ||
+      error.message ||
+      "Không tìm thấy lịch sử";
+
     throw new Error(errMsg);
+
   }
+
 };
 // 2. Xóa yêu cầu cứu hộ theo ID (DELETE)
 export const deleteRescueRequest = async (id) => {
