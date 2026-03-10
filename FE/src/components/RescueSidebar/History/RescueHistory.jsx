@@ -21,8 +21,10 @@ import {
   getRescueHistoryByPhone,
   deleteRescueRequest
 } from "../../../api/service/historyApi";
+
 import RescueDetailModal from "../RescueDetail/RescueDetailModal";
 import EditRescueModal from "../EditResscue/EditRescueModal";
+
 import "./RescueHistory.css";
 
 
@@ -46,6 +48,7 @@ const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
   value: t,
   label: t
 }));
+
 const getIncidentLabel = (value) => {
   const found = MAIN_INCIDENT_OPTIONS.find(
     (item) => item.value === value
@@ -59,6 +62,31 @@ const getIncidentLabel = (value) => {
 const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
 
 
+/* ================= STATUS MAP FROM API ================= */
+
+const getStatusInfo = (statusId) => {
+
+  const statusMap = {
+
+    1: { text: "Đang xử lý", color: "orange" },       
+    2: { text: "Đã được tiếp nhận", color: "blue" },  
+    3: { text: "Đang trên đường", color: "cyan" },    
+    4: { text: "Đang cứu hộ", color: "purple" },      
+    5: { text: "Đã hoàn thành", color: "green" },     
+    6: { text: "Đã huỷ", color: "red" }               
+
+  };
+
+  return statusMap[statusId] || {
+    text: "Không xác định",
+    color: "default"
+  };
+
+};
+
+
+/* ================= COMPONENT ================= */
+
 const RescueHistory = () => {
 
   const [phone, setPhone] = useState("");
@@ -68,28 +96,6 @@ const RescueHistory = () => {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
-
-  /* ================= STATUS ================= */
-
-  const getStatusInfo = (statusId) => {
-
-    switch (statusId) {
-
-      case 1:
-        return { text: "Đang xử lý", color: "orange" };
-
-      case 2:
-        return { text: "Hoàn thành", color: "green" };
-
-      case 3:
-        return { text: "Đã hủy", color: "red" };
-
-      default:
-        return { text: "Đã Xoá", color: "blue" };
-
-    }
-
-  };
 
 
   /* ================= SEARCH ================= */
@@ -139,10 +145,11 @@ const RescueHistory = () => {
 
           return {
 
-            ...item,   // ⭐ GIỮ TOÀN BỘ DATA GỐC
+            ...item,
 
             id: item.rescueRequestId,
             code: `#CH-${item.rescueRequestId}`,
+
             status: statusInfo.text,
             color: statusInfo.color,
 
@@ -268,6 +275,7 @@ const RescueHistory = () => {
 
       </div>
 
+
       {error && (
 
         <Alert
@@ -279,6 +287,7 @@ const RescueHistory = () => {
 
       )}
 
+
       {searched && !loading && (
 
         <div className="history-list-title">
@@ -286,6 +295,7 @@ const RescueHistory = () => {
         </div>
 
       )}
+
 
       {loading ? (
 
@@ -317,6 +327,7 @@ const RescueHistory = () => {
 
       )}
 
+
       {searched &&
         !loading &&
         histories.length === 0 &&
@@ -328,19 +339,19 @@ const RescueHistory = () => {
 
         )}
 
+
       <EditRescueModal
         data={editing}
         onClose={() => setEditing(null)}
-        onUpdated={() => {
-
-          handleSearch(); // reload lại danh sách
-
-        }}
+        onUpdated={handleSearch}
       />
-<RescueDetailModal
-  data={viewing}
-  onClose={() => setViewing(null)}
-/>
+
+
+      <RescueDetailModal
+        data={viewing}
+        onClose={() => setViewing(null)}
+      />
+
     </div>
 
   );
@@ -360,12 +371,10 @@ function HistoryCard({ data, onEdit, onDelete, onView }) {
   return (
 
     <div
-    className={`history-card ${data.color}`}
-    onClick={onView}
-    style={{ cursor: "pointer" }}
-  >
-
-
+      className={`history-card ${data.color}`}
+      onClick={onView}
+      style={{ cursor: "pointer" }}
+    >
 
       <div className="history-row">
 
@@ -432,17 +441,17 @@ function HistoryCard({ data, onEdit, onDelete, onView }) {
         ) : (
 
           <Button
-          size="small"
-          type="text"
-          icon={<EyeOutlined />}
-          className="action-btn view-btn"
-          onClick={(e)=>{
-            e.stopPropagation();
-            onView();
-          }}
-        >
-          Xem chi tiết
-        </Button>
+            size="small"
+            type="text"
+            icon={<EyeOutlined />}
+            className="action-btn view-btn"
+            onClick={(e)=>{
+              e.stopPropagation();
+              onView();
+            }}
+          >
+            Xem chi tiết
+          </Button>
 
         )}
 
