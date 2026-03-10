@@ -34,6 +34,7 @@ import {
     setLocation,
     errors,
     setErrors,
+    setAddress
     }) => {
     
     return (
@@ -195,84 +196,89 @@ import {
     
     <div className="location-left">
     
-    <label>ĐỊA CHỈ HIỆN TẠI </label>
-    
-    <Input
-    value={address}
-    readOnly
-    />
-    
-    <Button
-    type="primary"
-    className="gps-locate-btn"
-    loading={loadingGPS}
-    onClick={handleGetGPS}
-    >
-    🎯 LẤY TỌA ĐỘ GPS
-    </Button>
-    
-    {!gpsSuccess && (
-    
-    <>
-    
-    <label style={{marginTop:20}}>LATITUDE</label>
-    
-    <Input
-    placeholder="Ví dụ 10.8231"
-    value={location.lat}
-    onChange={(e)=>{
-    
-    const value=e.target.value;
-    
-    setLocation(prev=>({
-    ...prev,
-    lat:value
-    }));
-    
-    }}
-    />
-    
-    <label style={{marginTop:10}}>LONGITUDE</label>
-    
-    <Input
-    placeholder="Ví dụ 106.6297"
-    value={location.lng}
-    onChange={(e)=>{
-    
-    const value=e.target.value;
-    
-    setLocation(prev=>({
-    ...prev,
-    lng:value
-    }));
-    
-    }}
-    />
-    
-    </>
-    
-    )}
-    
-    </div>
-    
-    <div className="location-map">
-    
-    <iframe
-    title="google-map"
-    width="100%"
-    height="100%"
-    frameBorder="0"
-    style={{ border: 0 }}
-    referrerPolicy="no-referrer-when-downgrade"
-    src={`${import.meta.env.VITE_GOOGLE_MAP_EMBED}?q=${
-    location.lat || 10.8231
-    },${
-    location.lng || 106.6297
-    }&z=16&output=embed`}
-    allowFullScreen
-    />
-    
-    </div>
+    <label>ĐỊA CHỈ HIỆN TẠI</label>
+
+<Input
+placeholder="Nhập địa chỉ hoặc dùng GPS"
+value={address}
+onChange={(e)=>{
+  const value = e.target.value;
+
+  setAddress(value);
+}}
+/>
+
+<Button
+type="primary"
+className="gps-locate-btn"
+loading={loadingGPS}
+onClick={handleGetGPS}
+>
+🎯 LẤY TỌA ĐỘ GPS
+</Button>
+
+{!gpsSuccess && (
+
+<>
+
+<label style={{marginTop:20}}>LATITUDE</label>
+
+<Input
+placeholder="Ví dụ 10.8231"
+value={location.lat}
+onChange={(e)=>{
+
+const value=e.target.value;
+
+setLocation(prev=>({
+...prev,
+lat:value
+}));
+
+}}
+/>
+
+<label style={{marginTop:10}}>LONGITUDE</label>
+
+<Input
+placeholder="Ví dụ 106.6297"
+value={location.lng}
+onChange={(e)=>{
+
+const value=e.target.value;
+
+setLocation(prev=>({
+...prev,
+lng:value
+}));
+
+}}
+/>
+
+</>
+
+)}
+
+</div>
+
+<div className="location-map">
+
+<iframe
+title="google-map"
+width="100%"
+height="100%"
+frameBorder="0"
+style={{ border: 0 }}
+referrerPolicy="no-referrer-when-downgrade"
+src={`${import.meta.env.VITE_GOOGLE_MAP_EMBED}?q=${
+location.lat || 10.8231
+},${
+location.lng || 106.6297
+}&z=16&output=embed`}
+allowFullScreen
+/>
+
+</div>
     
     </div>
     

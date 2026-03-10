@@ -25,10 +25,10 @@ import {
 import EditRescueModal from "../EditResscue/EditRescueModal";
 import "./RescueHistory.css";
 
+
 /* ================= INCIDENT TYPE ================= */
 
-
-const MAIN_INCIDENT_OPTIONS  = [
+const MAIN_INCIDENT_OPTIONS = [
   { value: "rescue", label: "Cứu hộ khẩn cấp" },
   { value: "relief", label: "Hỗ trợ cứu trợ" }
 ];
@@ -40,9 +40,11 @@ const getIncidentLabel = (value) => {
   return found ? found.label : value;
 };
 
+
 /* ================= PHONE VALIDATE ================= */
 
 const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+
 
 const RescueHistory = () => {
 
@@ -52,6 +54,9 @@ const RescueHistory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
+
+
+  /* ================= STATUS ================= */
 
   const getStatusInfo = (statusId) => {
 
@@ -67,11 +72,12 @@ const RescueHistory = () => {
         return { text: "Đã hủy", color: "red" };
 
       default:
-        return { text: "Không xác định", color: "blue" };
+        return { text: "Đã Xoá", color: "blue" };
 
     }
 
   };
+
 
   /* ================= SEARCH ================= */
 
@@ -80,8 +86,6 @@ const RescueHistory = () => {
     const cleanPhone = phone.trim();
 
     if (!cleanPhone) {
-
-      // setError("Vui lòng nhập số điện thoại");
 
       AuthNotify.error(
         "Thiếu số điện thoại",
@@ -94,11 +98,9 @@ const RescueHistory = () => {
 
     if (!phoneRegex.test(cleanPhone)) {
 
-      // setError("Số điện thoại không hợp lệ");
-
       AuthNotify.error(
         "Số điện thoại không hợp lệ",
-        "Số điện thoại phải gồm 10 số "
+        "Số điện thoại phải gồm 10 số"
       );
 
       return;
@@ -123,11 +125,14 @@ const RescueHistory = () => {
           const statusInfo = getStatusInfo(item.statusId);
 
           return {
+
+            ...item,   // ⭐ GIỮ TOÀN BỘ DATA GỐC
+
             id: item.rescueRequestId,
-            fullName: item.fullName,
             code: `#CH-${item.rescueRequestId}`,
             status: statusInfo.text,
             color: statusInfo.color,
+
             time: new Date(item.createdAt).toLocaleString(
               "vi-VN",
               {
@@ -138,8 +143,10 @@ const RescueHistory = () => {
                 minute: "2-digit",
               }
             ),
+
             phone: item.contactPhone,
             type: item.requestType,
+
           };
 
         });
@@ -148,8 +155,6 @@ const RescueHistory = () => {
 
     }
     catch (err) {
-
-      // setError("Không thể tải lịch sử");
 
       AuthNotify.error(
         "Lỗi tải lịch sử",
@@ -164,6 +169,7 @@ const RescueHistory = () => {
     }
 
   };
+
 
   /* ================= DELETE ================= */
 
@@ -211,6 +217,7 @@ const RescueHistory = () => {
     });
 
   };
+
 
   return (
 
@@ -307,13 +314,16 @@ const RescueHistory = () => {
 
         )}
 
-<EditRescueModal
-  data={editing}
-  onClose={() => setEditing(null)}
-  onUpdated={() => {
-    handleSearch(); // load lại dữ liệu từ DB
-  }}
-/>
+      <EditRescueModal
+        data={editing}
+        onClose={() => setEditing(null)}
+        onUpdated={() => {
+
+          handleSearch(); // reload lại danh sách
+
+        }}
+      />
+
     </div>
 
   );
@@ -346,9 +356,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
 
       </div>
 
-        <div className="time">
-          Họ và tên: {data.fullName}
-        </div>
+      <div className="time">
+        Họ và tên: {data.fullName}
+      </div>
+
       <div className="time">
         Thời Gian : {data.time}
       </div>

@@ -42,7 +42,7 @@ export const deleteRescueRequest = async (id) => {
 
   try {
     const response = await axiosInstance.delete(
-      `/api/RescueRequest/${id}`
+      `/api/RescueRequests/${id}`
     );
     return response.data;
   } catch (error) {
@@ -61,7 +61,7 @@ export const updateRescueRequest = async (id, payload) => {
 
   try {
     const response = await axiosInstance.put(
-      `/api/RescueRequest/${id}`,
+      `/api/RescueRequests/${id}`,
       payload,
       {
         headers: {
