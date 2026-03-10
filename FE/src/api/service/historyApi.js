@@ -80,3 +80,35 @@ export const updateRescueRequest = async (id, payload) => {
     );
   }
 };
+export const getRescueRequestById = async (id) => {
+
+  if (!id) {
+    throw new Error("Thiếu ID yêu cầu");
+  }
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueRequests/${id}`,
+      {
+        headers: {
+          accept: "*/*"
+        }
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("Get Rescue Request Detail Error:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải chi tiết yêu cầu"
+    );
+
+  }
+
+};

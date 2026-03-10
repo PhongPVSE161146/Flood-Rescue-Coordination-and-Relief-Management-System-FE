@@ -21,7 +21,7 @@ import {
   getRescueHistoryByPhone,
   deleteRescueRequest
 } from "../../../api/service/historyApi";
-
+import RescueDetailModal from "../RescueDetail/RescueDetailModal";
 import EditRescueModal from "../EditResscue/EditRescueModal";
 import "./RescueHistory.css";
 
@@ -67,7 +67,7 @@ const RescueHistory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
-
+  const [viewing, setViewing] = useState(null);
 
   /* ================= STATUS ================= */
 
@@ -310,6 +310,7 @@ const RescueHistory = () => {
             data={item}
             onEdit={() => setEditing(item)}
             onDelete={() => handleDelete(item.id)}
+            onView={() => setViewing(item)}
           />
 
         ))
@@ -336,7 +337,10 @@ const RescueHistory = () => {
 
         }}
       />
-
+<RescueDetailModal
+  data={viewing}
+  onClose={() => setViewing(null)}
+/>
     </div>
 
   );
@@ -348,14 +352,20 @@ export default RescueHistory;
 
 /* ================= CARD ================= */
 
-function HistoryCard({ data, onEdit, onDelete }) {
+function HistoryCard({ data, onEdit, onDelete, onView }) {
 
   const isProcessing =
     data.status === "Đang xử lý";
 
   return (
 
-    <div className={`history-card ${data.color}`}>
+    <div
+    className={`history-card ${data.color}`}
+    onClick={onView}
+    style={{ cursor: "pointer" }}
+  >
+
+
 
       <div className="history-row">
 
@@ -395,7 +405,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
               size="small"
               type="text"
               icon={<EditOutlined />}
-              onClick={onEdit}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onEdit();
+              }}
               className="action-btn edit-btn"
             >
               Chỉnh sửa
@@ -405,7 +418,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
               size="small"
               type="text"
               icon={<DeleteOutlined />}
-              onClick={onDelete}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onDelete();
+              }}
               className="action-btn delete-btn"
             >
               Xóa
@@ -416,13 +432,17 @@ function HistoryCard({ data, onEdit, onDelete }) {
         ) : (
 
           <Button
-            size="small"
-            type="text"
-            icon={<EyeOutlined />}
-            className="action-btn view-btn"
-          >
-            Xem chi tiết
-          </Button>
+          size="small"
+          type="text"
+          icon={<EyeOutlined />}
+          className="action-btn view-btn"
+          onClick={(e)=>{
+            e.stopPropagation();
+            onView();
+          }}
+        >
+          Xem chi tiết
+        </Button>
 
         )}
 

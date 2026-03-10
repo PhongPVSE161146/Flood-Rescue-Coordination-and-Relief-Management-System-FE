@@ -72,7 +72,7 @@ import {
     <label>HỌ VÀ TÊN <span className="required">*</span></label>
     
     <Input
-    placeholder="Họ và tên"
+    placeholder="Nhập họ và tên người gửi yêu cầu"
     status={errors.fullName ? "error" : undefined}
     value={form.fullName}
     onChange={(e)=>{
@@ -108,8 +108,9 @@ import {
     
     <Input
     prefix={<PhoneOutlined />}
+    
     maxLength={10}
-    placeholder="SĐT"
+    placeholder="Nhập số điện thoại liên hệ"
     status={errors.contactPhone ? "error" : undefined}
     value={form.contactPhone}
     onChange={(e)=>{
@@ -210,10 +211,11 @@ import {
     
     <div className="location-left">
     
-    <label>ĐỊA CHỈ HIỆN TẠI</label>
+    <label>ĐỊA CHỈ HIỆN TẠI <span className="required">*</span></label>
 
 <Input
-placeholder="Nhập địa chỉ hoặc dùng GPS"
+placeholder="Nhập địa chỉ chi tiết hoặc dùng GPS"
+
 value={address}
 onChange={(e)=>{
   const value = e.target.value;
@@ -235,7 +237,7 @@ onClick={handleGetGPS}
 
 <>
 
-<label style={{marginTop:20}}>LATITUDE</label>
+<label style={{marginTop:20}}>LATITUDE(nếu không lấy được gps mặc định nhập 0)</label>
 
 <Input
 placeholder="Ví dụ 10.8231"
@@ -252,7 +254,7 @@ lat:value
 }}
 />
 
-<label style={{marginTop:10}}>LONGITUDE</label>
+<label style={{marginTop:10}}>LONGITUDE(nếu không lấy được gps mặc định nhập 0)</label>
 
 <Input
 placeholder="Ví dụ 106.6297"
@@ -312,6 +314,7 @@ allowFullScreen
     
     <InputNumber
     style={{ width:"100%" }}
+    placeholder="Nhập số người gặp nạn"
     min={0}
     status={errors.victimCount ? "error" : undefined}
     value={form.victimCount}
@@ -360,6 +363,7 @@ allowFullScreen
     
     <Input
     value={form.availableRescueTool}
+    placeholder="Ví dụ: thuyền, phao cứu sinh, dây thừng..."
     status={errors.availableRescueTool ? "error" : undefined}
     onChange={(e)=>{
     
@@ -419,6 +423,7 @@ allowFullScreen
     
     <Input
     value={form.specialNeeds}
+    placeholder="Ví dụ: có người già, trẻ em, người khuyết tật..."
     status={errors.specialNeeds ? "error" : undefined}
     onChange={(e)=>{
     
@@ -474,6 +479,7 @@ allowFullScreen
     
     <TextArea
     rows={4}
+    placeholder="Mô tả chi tiết tình trạng hiện trường, ví dụ: nước ngập đến đâu, có người mắc kẹt ở đâu, có nguy cơ sạt lở không..."
     status={errors.detailDescription ? "error" : undefined}
     value={form.detailDescription}
     onChange={(e)=>{
@@ -504,12 +510,13 @@ allowFullScreen
     </p>
     )}
     
-    <label>GHI CHÚ CHO ĐỘI CỨU HỘ(nếu không lấy được vị trí tọa độ yêu cầu nhập địa chỉ chi tiết) <span className="required">*</span></label>
+    <label>GHI CHÚ ĐỊA ĐIỂM CHI TIẾT CHO ĐỘI CỨU HỘ <span className="required">*</span></label>
 
 
     
     <Input
     rows={4}
+  placeholder="Ví dụ: gần cây đa, nhà văn hóa, có trẻ em đi cùng..."
     status={errors.rescueTeamNote ? "error" : undefined}
     value={form.rescueTeamNote}
     onChange={(e)=>{
