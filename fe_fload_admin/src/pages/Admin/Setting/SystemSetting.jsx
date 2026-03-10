@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Switch, message, Tabs, Select } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
 import "./SystemSetting.css";
+import { getAllSystemConfigs, updateSystemConfig } from "../../../../api/axios/AdminApi/systemConfigApi";
 
 const GROUPS = [
   { id: "rescue", title: "Tham số vận hành", label: "Tham số vận hành" },
@@ -149,9 +150,49 @@ export default function SystemSetting() {
   });
 
   const [activeTab, setActiveTab] = useState("rescue");
+  const [backendConfigKeys, setBackendConfigKeys] = useState(new Set());
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // nothing else on mount for now
+    const fetchConfigs = async () => {
+      try {
+        const data = await getAllSystemConfigs();
+        if (data && Array.isArray(data)) {
+          const fetchedKeys = new Set(data.map(item => item.configKey));
+          setBackendConfigKeys(fetchedKeys);
+
+          setConfigs(prev => prev.map(c => {
+            const backendConfig = data.find(b => b.configKey === c.key);
+            if (backendConfig) {
+              let parsedValue = backendConfig.configValue;
+              if (c.type === "boolean") {
+                parsedValue = backendConfig.configValue === "true" || backendConfig.configValue === true;
+              } else if (c.type === "number") {
+                parsedValue = Number(backendConfig.configValue);
+              } else if (c.type === "json") {
+                try { parsedValue = JSON.parse(backendConfig.configValue); } catch(e) {}
+              } else if (c.type === "list") {
+                try { 
+                  parsedValue = JSON.parse(backendConfig.configValue);
+                  if (!Array.isArray(parsedValue)) {
+                    parsedValue = typeof backendConfig.configValue === 'string' ? backendConfig.configValue.split(",").map(s => s.trim()) : [];
+                  }
+                } catch(e) {
+                  if (typeof backendConfig.configValue === 'string') {
+                    parsedValue = backendConfig.configValue.split(",").map(s => s.trim());
+                  }
+                }
+              }
+              return { ...c, value: parsedValue };
+            }
+            return c;
+          }));
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy System Configurations:", error);
+      }
+    };
+    fetchConfigs();
   }, []);
 
   const handleToggle = (key, checked) => {
@@ -162,12 +203,37 @@ export default function SystemSetting() {
     setConfigs((prev) => prev.map((c) => (c.key === key ? { ...c, value: val } : c)));
   };
 
-  const handleSaveGroup = (groupId) => {
+  const handleSaveGroup = async (groupId) => {
     try {
+      setSaving(true);
+      const currentGroupConfigs = configs.filter((c) => c.group === groupId);
+      const configsToUpdateBackend = currentGroupConfigs.filter(c => backendConfigKeys.has(c.key));
+
+      if (configsToUpdateBackend.length > 0) {
+        const promises = configsToUpdateBackend.map(c => {
+          let strValue = c.value;
+          if (c.type === "json" || c.type === "list") {
+            strValue = JSON.stringify(c.value);
+          } else {
+            strValue = String(c.value);
+          }
+          return updateSystemConfig(c.key, {
+            configKey: c.key,
+            configValue: strValue,
+            configGroup: c.group,
+            description: c.name
+          });
+        });
+        await Promise.all(promises);
+      }
+
       localStorage.setItem("system_configs", JSON.stringify(configs));
       message.success("Lưu cấu hình thành công");
     } catch (e) {
-      message.error("Lưu cấu hình thất bại");
+      console.error(e);
+      message.error("Lưu cấu hình thất bại, vui lòng thử lại sau.");
+    } finally {
+      setSaving(false);
     }
   };
 
