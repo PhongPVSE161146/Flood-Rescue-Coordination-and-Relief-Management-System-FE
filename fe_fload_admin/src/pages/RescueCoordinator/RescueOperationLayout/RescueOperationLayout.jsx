@@ -1,23 +1,29 @@
+import { useState } from "react";
 import ListTeamCuuHo from "../../../components/RescueCoordinatorComponents/RescueOperation/ListTeamCuuHo";
 import RescueOperationDetail from "../../../components/RescueCoordinatorComponents/RescueOperation/RescueOperationDetail";
 import "./rescue-operation.layout.css";
-import { Outlet } from "react-router-dom";
 
 export default function RescueOperationLayout() {
+
+  const [selectedAssignmentId,setSelectedAssignmentId] = useState(null);
+
   return (
     <div className="rc-operation-layout">
+
       {/* LEFT */}
       <aside className="rc-operation-layout__left">
-        <ListTeamCuuHo />
+        <ListTeamCuuHo
+          onSelectMission={setSelectedAssignmentId}
+        />
       </aside>
 
       {/* RIGHT */}
       <main className="rc-operation-layout__right">
-        <RescueOperationDetail />
+        <RescueOperationDetail
+          assignmentId={selectedAssignmentId}
+        />
       </main>
-      {/* <main className="app-layout__content">
-          <Outlet />
-        </main> */}
+
     </div>
   );
 }

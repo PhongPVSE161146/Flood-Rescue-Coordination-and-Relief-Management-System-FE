@@ -9,7 +9,8 @@ import { createRescueRequest } from "../../api/service/emergencyApi";
 
 import EmergencyRequestForm from "../../components/EmergencyRequestPage/EmergencyRequestForm";
 import EmergencyInfoPanel from "../../components/EmergencyRequestPage/EmergencyInfoPanel";
-
+import { getProvinces } from "../../api/service/geographicApi";
+import { getWardsByProvince } from "../../api/service/geographicApi";
 import "./EmergencyRequest.css";
 
 const DEFAULT_AREA_ID = 1;
@@ -23,6 +24,8 @@ const [address, setAddress] = useState("");
 const [loadingGPS, setLoadingGPS] = useState(false);
 const [gpsSuccess, setGpsSuccess] = useState(false);
 const [submitting, setSubmitting] = useState(false);
+const [provinces, setProvinces] = useState([]);
+const [wards, setWards] = useState([]);
 const [location, setLocation] = useState({
   lat: "",
   lng: ""
@@ -239,6 +242,34 @@ const validateRescueRequest = (data) => {
   return Object.keys(newErrors).length === 0;
 };
 
+
+
+/* ================= LOAD PROVINCES ================= */
+
+useEffect(() => {
+
+  const fetchProvinces = async () => {
+
+    try {
+
+      const res = await getProvinces();
+
+      const data = res?.data || res || [];
+
+      setProvinces(data);
+
+    } catch (error) {
+
+      console.log("Load provinces error:", error);
+
+    }
+
+  };
+
+  fetchProvinces();
+
+}, []);
+
 /* ================= TIME ================= */
 
 useEffect(() => {
@@ -330,12 +361,67 @@ const handleGetGPS = () => {
 
 };
 
+const normalizeAddress = (addr) => {
+
+  if (!addr) return "";
+
+  return addr
+    .replace("Thành phố ", "")
+    .replace("Tỉnh ", "")
+    .replace("TP. ", "")
+    .replace("TP ", "")
+    .replace("Việt Nam", "")
+    .trim();
+
+};
+
+/* ================= DETECT AREA ================= */
+
+const detectAreaId = (address) => {
+
+  if (!address || provinces.length === 0) return null;
+
+  const lowerAddress = address.toLowerCase();
+
+  const found = provinces.find(p => {
+
+    const provinceName = p.name.toLowerCase();
+
+    return (
+      lowerAddress.includes(provinceName) ||
+      lowerAddress.includes(`tỉnh ${provinceName}`) ||
+      lowerAddress.includes(`thành phố ${provinceName}`)
+    );
+
+  });
+
+  return found?.id || null;
+
+};
+
 /* ================= SUBMIT ================= */
 
 const handleSubmit = async () => {
+
   if (submitting) return;
+
+  const normalizedAddress = normalizeAddress(address);
+
   const lat = location.lat ? Number(location.lat) : null;
   const lng = location.lng ? Number(location.lng) : null;
+
+  const areaId = detectAreaId(normalizedAddress); // FIX
+
+  if (!areaId) {
+
+    AuthNotify.error(
+      "Không xác định được khu vực",
+      "Vui lòng bật GPS hoặc kiểm tra lại địa chỉ"
+    );
+
+    return;
+
+  }
 
   const payload = {
     requestType: form.requestType,
@@ -343,19 +429,23 @@ const handleSubmit = async () => {
     locationLat: lat,
     locationLng: lng,
     locationImageUrl: form.images?.[0]?.name || "",
-    areaId: DEFAULT_AREA_ID,
+    areaId: areaId,
     fullName: form.fullName,
     victimCount: Number(form.victimCount),
     availableRescueTool: form.availableRescueTool,
     specialNeeds: form.specialNeeds,
     detailDescription: form.detailDescription,
     rescueTeamNote: form.rescueTeamNote,
-    address: address || ""
+    address: normalizedAddress
   };
+
+  console.log("Payload gửi API:", payload);
 
   if (!validateRescueRequest(payload)) return;
 
   try {
+
+    setSubmitting(true);
 
     await createRescueRequest(payload);
 
@@ -373,43 +463,44 @@ const handleSubmit = async () => {
       error?.response?.data?.title ||
       error?.message ||
       "";
-      const lowerMsg = msg.toLowerCase();
 
-      if (
-        lowerMsg.includes("phone") ||
-        lowerMsg.includes("duplicate") ||
-        lowerMsg.includes("exists")
-      ) {
-  
-        setErrors(prev => ({
-          ...prev,
-          contactPhone: true,
-          messages: {
-            ...(prev.messages || {}),
-            contactPhone: "Số điện thoại đã tồn tại. Vui lòng dùng số khác."
-          }
-        }));
-  
-        AuthNotify.error(
-          "Số điện thoại đã tồn tại",
-          "Vui lòng sử dụng số điện thoại khác"
-        );
-  
-        return;
-      }
-  
+    const lowerMsg = msg.toLowerCase();
+
+    if (
+      lowerMsg.includes("phone") ||
+      lowerMsg.includes("duplicate") ||
+      lowerMsg.includes("exists")
+    ) {
+
+      setErrors(prev => ({
+        ...prev,
+        contactPhone: true,
+        messages: {
+          ...(prev.messages || {}),
+          contactPhone: "Số điện thoại đã tồn tại. Vui lòng dùng số khác."
+        }
+      }));
+
       AuthNotify.error(
-        "Gửi yêu cầu thất bại",
-        msg || "Có lỗi xảy ra"
+        "Số điện thoại đã tồn tại",
+        "Vui lòng sử dụng số điện thoại khác"
       );
-  
-    } finally {
-  
-      setSubmitting(false);
-  
+
+      return;
     }
-  
-  };
+
+    AuthNotify.error(
+      "Gửi yêu cầu thất bại",
+      msg || "Có lỗi xảy ra"
+    );
+
+  } finally {
+
+    setSubmitting(false);
+
+  }
+
+};
 
 /* ================= UI ================= */
 
@@ -434,7 +525,7 @@ return (
   errors={errors}
   setErrors={setErrors}
   submitting={submitting}
-  setAddress={setAddress}
+  setAddress={setAddress} 
 />
 
 <EmergencyInfoPanel timeAgo={timeAgo} />

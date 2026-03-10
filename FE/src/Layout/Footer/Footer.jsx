@@ -13,10 +13,6 @@ const Footer = () => {
 
   const navigate = useNavigate();
 
-  // const handleCall = () => {
-  //   window.location.href = "tel:19008888";
-  // };
-
   return (
     <footer className="footer">
 
@@ -29,14 +25,15 @@ const Footer = () => {
             <div className="logo">✱</div>
 
             <div>
-              <h3>CỨU HỘ VIỆT NAM</h3>
-              <span>HỆ THỐNG QUỐC GIA TRỰC TUYẾN</span>
+              <h3>CỨU HỘ BÃO LŨ VIỆT NAM</h3>
+              <span>HỆ THỐNG HỖ TRỢ THIÊN TAI TRỰC TUYẾN</span>
             </div>
           </div>
 
           <p className="mission">
-            “Sứ mệnh của chúng tôi là không để bất kỳ ai bị bỏ lại
-            phía sau khi gặp sự cố trên mọi nẻo đường của Tổ quốc.”
+            “Sứ mệnh của chúng tôi là hỗ trợ và cứu trợ người dân
+            trong các tình huống thiên tai như bão, lũ lụt và sạt lở,
+            đảm bảo không ai bị bỏ lại phía sau.”
           </p>
 
           <div className="socials">
@@ -46,7 +43,7 @@ const Footer = () => {
             </button>
 
             <button onClick={() => navigator.share?.({
-              title: "Cứu hộ Việt Nam",
+              title: "Cứu hộ bão lũ Việt Nam",
               url: window.location.href
             })}>
               <FaShareAlt />
@@ -65,23 +62,23 @@ const Footer = () => {
           <h4>DỊCH VỤ</h4>
 
           <ul>
-            <li onClick={() => navigate("/rescue-car")}>Cứu hộ Ô tô</li>
-            <li onClick={() => navigate("/rescue-motorbike")}>Cứu hộ Xe máy</li>
-            <li onClick={() => navigate("/medical")}>Y tế khẩn cấp</li>
-            <li onClick={() => navigate("/disaster")}>Cứu nạn thiên tai</li>
+            <li onClick={() => navigate("/rescue")}>Cứu nạn người mắc kẹt</li>
+            <li onClick={() => navigate("/evacuation")}>Hỗ trợ sơ tán</li>
+            <li onClick={() => navigate("/medical-support")}>Hỗ trợ y tế khẩn cấp</li>
+            <li onClick={() => navigate("/relief")}>Tiếp tế lương thực</li>
           </ul>
 
         </div>
 
         {/* LEGAL */}
         <div className="footer-col">
-          <h4>PHÁP LÝ</h4>
+          <h4>THÔNG TIN</h4>
 
           <ul>
-            <li onClick={() => navigate("/terms")}>Điều khoản sử dụng</li>
-            <li onClick={() => navigate("/privacy")}>Chính sách bảo mật</li>
-            <li onClick={() => navigate("/license")}>Giấy phép hoạt động</li>
-            <li onClick={() => navigate("/feedback")}>Khiếu nại & Góp ý</li>
+            <li onClick={() => navigate("/about")}>Giới thiệu hệ thống</li>
+            <li onClick={() => navigate("/guide")}>Hướng dẫn yêu cầu cứu hộ</li>
+            <li onClick={() => navigate("/safety")}>Hướng dẫn an toàn mùa bão</li>
+            <li onClick={() => navigate("/feedback")}>Góp ý & phản hồi</li>
           </ul>
 
         </div>
@@ -91,15 +88,17 @@ const Footer = () => {
           <span className="contact-title">LIÊN HỆ TRỰC TIẾP</span>
 
           <div className="hotline-box">
-            <small>TỔNG ĐÀI 24/7</small>
+            <small>TRUNG TÂM ĐIỀU PHỐI 24/7</small>
             <h2>1900 8888</h2>
+
             <div className="address">
               <FaMapMarkerAlt />
               <span>
-                Tầng 10, Tòa nhà Công nghệ, <br />
-                Cầu Giấy, Hà Nội
+                Trung tâm điều phối cứu hộ <br />
+                Hà Nội, Việt Nam
               </span>
             </div>
+
           </div>
         </div>
 
@@ -109,7 +108,7 @@ const Footer = () => {
 
       <div className="footer-bottom">
 
-        <span>© 2026 CỨU HỘ VIỆT NAM. ĐÃ ĐĂNG KÝ BẢN QUYỀN.</span>
+        <span>© 2026 HỆ THỐNG CỨU HỘ BÃO LŨ VIỆT NAM</span>
 
         <div className="bottom-right">
 
@@ -122,7 +121,7 @@ const Footer = () => {
           </span>
 
           <span className="status">
-            TRẠNG THÁI: <strong>Hoạt Động</strong>
+            TRẠNG THÁI: <strong>ĐANG HOẠT ĐỘNG</strong>
           </span>
 
         </div>
