@@ -195,3 +195,26 @@
   padding: 3px 10px;
   font-weight: 500;
 }
+.rc-empty{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:120px;
+  font-size:16px;
+  font-weight:500;
+  color:#888;
+  margin-top: 200px;
+}
+
+.rc-loading{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:120px;
+  font-size:16px;
+  font-weight:500;
+  color:#666;
+}
+.rc-filter{
+  margin-top: 10px;
+}

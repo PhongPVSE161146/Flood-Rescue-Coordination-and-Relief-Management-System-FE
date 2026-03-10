@@ -7,7 +7,7 @@ export const getPendingRescueRequests = async () => {
   try {
 
     const response = await axiosInstance.get(
-      "/api/RescueRequest/PendingRequest"
+      "/api/RescueRequests"
     );
 
     return response.data;
@@ -55,7 +55,7 @@ export const getDispatchingRescueRequests = async () => {
   try {
 
     const response = await axiosInstance.get(
-      "/api/RescueRequest/DispatchingRequest"
+      "/api/RescueRequests/dispatch"
     );
 
     return response.data;
@@ -84,7 +84,7 @@ export const verifyAndDispatchRescueRequest = async (
   try {
 
     const response = await axiosInstance.put(
-      `/api/RescueRequest/${requestId}/verify-and-dispatch`,
+      `/api/RescueRequests/${requestId}/verify`,
       {
         urgencyLevelId: data.urgencyLevelId,
         note: data.note
@@ -109,20 +109,17 @@ export const verifyAndDispatchRescueRequest = async (
 };
 /* ================= CONFIRM DISPATCH ================= */
 
-export const confirmDispatchRescueRequest = async (
-  requestId,
-  data
-) => {
+export const confirmDispatchRescueRequest = async (data) => {
 
   try {
 
     const response = await axiosInstance.post(
-      `/api/RescueRequest/${requestId}/dispatch/confirm`,
+      "/api/RescueAssignments",
       {
+        rescueRequestId: data.rescueRequestId,
         rescueTeamId: data.rescueTeamId,
-        shiftId: data.shiftId,
         vehicleId: data.vehicleId,
-        assignmentStatus: data.assignmentStatus
+        assignedBy: data.assignedBy
       }
     );
 
@@ -131,12 +128,87 @@ export const confirmDispatchRescueRequest = async (
   }
   catch (error) {
 
-    console.error("Lỗi xác nhận dispatch:", error);
+    console.error("DISPATCH ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+
+  }
+
+};
+
+/* ================= GET ALL ASSIGNMENTS ================= */
+
+export const getAllAssignments = async () => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/RescueAssignments"
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy danh sách assignments:", error);
 
     throw new Error(
       error.response?.data?.message ||
       error.message ||
-      "Không thể xác nhận điều phối đội cứu hộ"
+      "Không thể tải danh sách điều phối cứu hộ"
+    );
+
+  }
+
+};
+
+/* ================= UPDATE ASSIGNMENT ================= */
+
+export const updateRescueAssignment = async (
+  assignmentId,
+  payload
+) => {
+
+  try {
+
+    const response = await axiosInstance.put(
+      `/api/RescueAssignments/${assignmentId}`,
+      payload
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("UPDATE ASSIGNMENT ERROR:", error);
+
+    throw error;
+
+  }
+
+};
+/* ================= GET ASSIGNMENT BY ID ================= */
+
+export const getRescueAssignmentById = async (assignmentId) => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueAssignments/${assignmentId}`
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy assignment:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải thông tin điều phối cứu hộ"
     );
 
   }

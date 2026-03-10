@@ -8,28 +8,39 @@ import "./dispatch-map-layout.css";
 export default function DispatchMapPage() {
 
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [removedRequests, setRemovedRequests] = useState([]);
+
+  const handleDispatchSuccess = (requestId) => {
+
+    setRemovedRequests(prev => [...prev, requestId]);
+    setSelectedRequest(null);
+
+  };
 
   return (
+
     <div className="rcd-layout">
 
-      {/* LEFT */}
       <aside className="rcd-layout__sidebar">
 
         <ListTeamRescue
           onSelectRequest={setSelectedRequest}
+      
         />
 
       </aside>
 
-      {/* RIGHT */}
       <main className="rcd-layout__main">
 
         <DispatchMapView
           request={selectedRequest}
+          onDispatchSuccess={handleDispatchSuccess}
         />
 
       </main>
 
     </div>
+
   );
+
 }

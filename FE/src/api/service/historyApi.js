@@ -112,3 +112,27 @@ export const getRescueRequestById = async (id) => {
   }
 
 };
+export const getRequestStatuses = async () => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/request-statuses",
+      {
+        headers: {
+          accept: "*/*",
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET REQUEST STATUSES ERROR:", error?.response);
+
+    throw error?.response?.data || error;
+
+  }
+
+};
