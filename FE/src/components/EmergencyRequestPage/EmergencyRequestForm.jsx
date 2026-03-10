@@ -17,10 +17,24 @@ import {
     const { TextArea } = Input;
     const { Option } = Select;
     
-    const REQUEST_TYPE_OPTIONS = [
-    { value: "rescue", label: "Cứu hộ khẩn cấp" },
-    { value: "relief", label: "Hỗ trợ cứu trợ" }
+    const REQUEST_TYPES = [
+      "cứu hộ khẩn cấp",
+      "hỗ trợ cứu trợ",
+      "cứu hộ ngập lụt",
+      "cứu hộ lũ quét",
+      "cứu hộ sạt lở",
+      "hỗ trợ sơ tán",
+      "hỗ trợ y tế khẩn cấp",
+      "tiếp tế lương thực",
+      "tìm kiếm cứu nạn",
+      "cứu người mắc kẹt",
+      "đưa đến nơi trú ẩn"
     ];
+    
+    const REQUEST_TYPE_OPTIONS = REQUEST_TYPES.map(t => ({
+      value: t,
+      label: t
+    }));
     
     const EmergencyRequestForm = ({
     form,

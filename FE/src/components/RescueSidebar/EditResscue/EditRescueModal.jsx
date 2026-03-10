@@ -21,10 +21,24 @@ import "./EditRescueModal.css";
 const { TextArea } = Input;
 const { Option } = Select;
 
-const REQUEST_TYPE_OPTIONS = [
-  { value: "rescue", label: "Cứu hộ khẩn cấp" },
-  { value: "relief", label: "Hỗ trợ cứu trợ" }
+const REQUEST_TYPES = [
+  "cứu hộ khẩn cấp",
+  "hỗ trợ cứu trợ",
+  "cứu hộ ngập lụt",
+  "cứu hộ lũ quét",
+  "cứu hộ sạt lở",
+  "hỗ trợ sơ tán",
+  "hỗ trợ y tế khẩn cấp",
+  "tiếp tế lương thực",
+  "tìm kiếm cứu nạn",
+  "cứu người mắc kẹt",
+  "đưa đến nơi trú ẩn"
 ];
+
+const REQUEST_TYPE_OPTIONS = REQUEST_TYPES.map(t => ({
+  value: t,
+  label: t
+}));
 
 function EditRescueModal({ data, onClose, onUpdated }) {
 
@@ -460,23 +474,34 @@ function EditRescueModal({ data, onClose, onUpdated }) {
           )}
 
           {/* IMAGE */}
-
+          <div className="form-section section-5">
           <label>ẢNH HIỆN TRƯỜNG *</label>
 
           <Upload
+           className="emergency-upload"
             listType="picture"
             maxCount={1}
             beforeUpload={handleImageUpload}
           >
 
-            <Button icon={<UploadOutlined />}>
-              Tải ảnh
-            </Button>
+<div className="upload-dropzone">
+    
+    <UploadOutlined className="upload-icon"/>
+    
+    <p className="upload-title">
+    TẢI ẢNH HIỆN TRƯỜNG
+    </p>
+    
+    <span className="upload-sub">
+    Nhấn để chụp hoặc tải ảnh (JPG, PNG)
+    </span>
+    
+    </div>
 
           </Upload>
 
-          {errors.image && (
-            <p className="error-message">{errors.image}</p>
+          {errors.locationImageUrl && (
+            <p className="error-message">{errors.locationImageUrl}</p>
           )}
 
 {form.locationImageUrl && (
@@ -497,6 +522,7 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 </div>
 
 )}
+ </div>
 
         </div>
 
