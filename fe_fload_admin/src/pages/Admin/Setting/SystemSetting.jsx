@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Input, Switch, message, Tabs, Select } from "antd";
+import { Button, Input, Switch, message, Tabs, Select, Table, Modal, Form, Checkbox } from "antd";
 import { SaveOutlined } from "@ant-design/icons";
 import "./SystemSetting.css";
 import { getAllSystemConfigs, updateSystemConfig } from "../../../../api/axios/AdminApi/systemConfigApi";
+import { getAllRequestStatuses, createRequestStatus, updateRequestStatus } from "../../../../api/axios/AdminApi/requestStatusApi";
 
 const GROUPS = [
   { id: "rescue", title: "Tham số vận hành", label: "Tham số vận hành" },
-  { id: "emergency_levels", title: "Mức độ Khẩn Cấp", label: "Mức độ Khẩn Cấp" },
+  // { id: "emergency_levels", title: "Mức độ Khẩn Cấp", label: "Mức độ Khẩn Cấp" }, // Tạm ẩn do chưa có API
   { id: "emergency", title: "Cảnh báo & SLA", label: "Thông báo & SLA" },
   { id: "request", title: "Tham số cứu trợ", label: "Tham số cứu trợ" },
-  { id: "stock", title: "Kho & Cứu trợ", label: "Kho & Cứu trợ" },
-  { id: "donation", title: "Tiền & Quyên góp", label: "Tiền & Quyên góp" },
-  { id: "media", title: "Media & Dữ liệu", label: "Media & Dữ liệu" },
-  { id: "map", title: "Bản đồ & Hiển thị", label: "Bản đồ & Hiển thị" },
-  { id: "security", title: "Bảo mật & Hệ thống", label: "Bảo mật & Hệ thống" },
-  { id: "permission", title: "Phân quyền", label: "Phân quyền" },
+  { id: "request_status", title: "Trạng thái yêu cầu", label: "Trạng thái yêu cầu" },
+  // { id: "stock", title: "Kho & Cứu trợ", label: "Kho & Cứu trợ" }, // Tạm ẩn do chưa có API
+  // { id: "donation", title: "Tiền & Quyên góp", label: "Tiền & Quyên góp" }, // Tạm ẩn do chưa có API
+  // { id: "media", title: "Media & Dữ liệu", label: "Media & Dữ liệu" }, // Tạm ẩn do chưa có API
+  // { id: "map", title: "Bản đồ & Hiển thị", label: "Bản đồ & Hiển thị" }, // Tạm ẩn do chưa có API
+  // { id: "security", title: "Bảo mật & Hệ thống", label: "Bảo mật & Hệ thống" }, // Tạm ẩn do chưa có API
+  // { id: "permission", title: "Phân quyền", label: "Phân quyền" }, // Tạm ẩn do chưa có API
 ];
 
 const DEFAULT_CONFIGS = [
@@ -153,6 +155,13 @@ export default function SystemSetting() {
   const [backendConfigKeys, setBackendConfigKeys] = useState(new Set());
   const [saving, setSaving] = useState(false);
 
+  // States for Request Statuses Tab
+  const [requestStatuses, setRequestStatuses] = useState([]);
+  const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
+  const [editingStatus, setEditingStatus] = useState(null);
+  const [statusForm] = Form.useForm();
+  const [statusesLoading, setStatusesLoading] = useState(false);
+
   useEffect(() => {
     const fetchConfigs = async () => {
       try {
@@ -192,7 +201,23 @@ export default function SystemSetting() {
         console.error("Lỗi khi lấy System Configurations:", error);
       }
     };
+
+    const fetchRequestStatuses = async () => {
+      try {
+        setStatusesLoading(true);
+        const data = await getAllRequestStatuses();
+        if (data && Array.isArray(data)) {
+          setRequestStatuses(data);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy Request Statuses:", error);
+      } finally {
+        setStatusesLoading(false);
+      }
+    };
+
     fetchConfigs();
+    fetchRequestStatuses();
   }, []);
 
   const handleToggle = (key, checked) => {
@@ -454,6 +479,120 @@ export default function SystemSetting() {
     );
   };
 
+  const handleEditStatus = (record) => {
+    setEditingStatus(record);
+    statusForm.setFieldsValue({
+      statusName: record.statusName,
+      description: record.description,
+      isFinal: record.isFinal,
+    });
+    setIsStatusModalVisible(true);
+  };
+
+  const handleAddStatus = () => {
+    setEditingStatus(null);
+    statusForm.resetFields();
+    setIsStatusModalVisible(true);
+  };
+
+  const handleSaveStatus = async () => {
+    try {
+      const values = await statusForm.validateFields();
+      if (editingStatus) {
+        await updateRequestStatus(editingStatus.statusId, values);
+        message.success("Cập nhật trạng thái thành công");
+      } else {
+        await createRequestStatus(values);
+        message.success("Thêm trạng thái thành công");
+      }
+      setIsStatusModalVisible(false);
+      
+      setStatusesLoading(true);
+      const data = await getAllRequestStatuses();
+      if (data && Array.isArray(data)) {
+        setRequestStatuses(data);
+      }
+    } catch (error) {
+      if (!error.errorFields) {
+        console.error(error);
+        message.error("Lưu trạng thái thất bại");
+      }
+    } finally {
+      setStatusesLoading(false);
+    }
+  };
+
+  const statusColumns = [
+    { title: 'ID', dataIndex: 'statusId', key: 'statusId', width: 60, align: 'center' },
+    { title: 'Tên trạng thái', dataIndex: 'statusName', key: 'statusName', width: 200 },
+    { title: 'Mô tả', dataIndex: 'description', key: 'description' },
+    { 
+      title: 'Trạng thái cuối?', 
+      dataIndex: 'isFinal', 
+      key: 'isFinal', 
+      width: 150, 
+      align: 'center',
+      render: (val) => val ? <span style={{color: '#f5222d', fontWeight: 500}}>Có</span> : <span style={{color: '#52c41a'}}>Không</span> 
+    },
+    {
+      title: 'Hành động',
+      key: 'action',
+      width: 120,
+      align: 'center',
+      render: (_, record) => (
+        <Button type="link" onClick={() => handleEditStatus(record)}>Sửa</Button>
+      ),
+    },
+  ];
+
+  const renderRequestStatusesSection = () => {
+    return (
+      <div className="tab-content" style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h3 style={{ margin: 0 }}>Quản lý Trạng thái Yêu cầu</h3>
+          <Button type="primary" onClick={handleAddStatus}>Thêm trạng thái mới</Button>
+        </div>
+        <Table
+          dataSource={requestStatuses}
+          columns={statusColumns}
+          rowKey="statusId"
+          pagination={false}
+          bordered
+          loading={statusesLoading}
+        />
+        <Modal
+          title={editingStatus ? "Sửa trạng thái yêu cầu" : "Thêm trạng thái yêu cầu"}
+          open={isStatusModalVisible}
+          onOk={handleSaveStatus}
+          onCancel={() => setIsStatusModalVisible(false)}
+          okText="Lưu"
+          cancelText="Hủy"
+          confirmLoading={statusesLoading}
+        >
+          <Form form={statusForm} layout="vertical">
+            <Form.Item 
+              name="statusName" 
+              label="Tên trạng thái" 
+              rules={[{ required: true, message: 'Vui lòng nhập tên trạng thái' }]}
+            >
+              <Input placeholder="Nhập tên trạng thái (VD: Rescuing)" />
+            </Form.Item>
+            <Form.Item 
+              name="description" 
+              label="Mô tả chi tiết" 
+              rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
+            >
+              <Input.TextArea rows={3} placeholder="Mô tả ý nghĩa trạng thái này..." />
+            </Form.Item>
+            <Form.Item name="isFinal" valuePropName="checked">
+              <Checkbox>Đây là trạng thái kết thúc (Final)</Checkbox>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
+    );
+  };
+
   const tabItems = GROUPS.map((g) => {
     // Special rendering for emergency_levels
     if (g.id === "emergency_levels") {
@@ -461,6 +600,14 @@ export default function SystemSetting() {
         key: g.id,
         label: g.label,
         children: renderEmergencyLevelsSection(),
+      };
+    }
+
+    if (g.id === "request_status") {
+      return {
+        key: g.id,
+        label: g.label,
+        children: renderRequestStatusesSection(),
       };
     }
 
