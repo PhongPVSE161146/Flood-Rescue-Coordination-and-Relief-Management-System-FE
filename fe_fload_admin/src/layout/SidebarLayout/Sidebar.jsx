@@ -125,7 +125,7 @@ const menuByRole = {
     {
       label: "Nhiệm vụ",
       icon: <CarryOutOutlined />,
-      path: "/rescue",
+      path: "/rescueTeam",
       end: true
     },
     {
