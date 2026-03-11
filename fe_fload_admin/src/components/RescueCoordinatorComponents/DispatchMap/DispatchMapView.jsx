@@ -1,21 +1,28 @@
 import { useMemo, useState, useEffect } from "react";
 import { UpOutlined, DownOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { Button } from "antd";
 
 import {
   getAllRescueTeams,
-  getRescueTeamLocation,
-  getRescueShifts
+  getRescueTeamLocation
 } from "../../../../api/axios/ManagerApi/rescueTeamApi";
-    import {confirmDispatchRescueRequest} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+
+import {
+  getAllAssignments,
+  confirmDispatchRescueRequest,
+  updateRescueAssignment
+} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+
 import {
   getAllVehicles
 } from "../../../../api/axios/ManagerApi/vehicleApi";
+
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./rc-dispatch-map.css";
 
-export default function DispatchMapView({ request }) {
+export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   const navigate = useNavigate();
 
@@ -24,158 +31,170 @@ export default function DispatchMapView({ request }) {
 
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
-  const [shifts, setShifts] = useState([]);
+
   const [rescueTeams, setRescueTeams] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const teamCount = rescueTeams.length;
+  const vehicleCount = vehicles.length;
+  /* ================= REQUEST INFO ================= */
+
+  const id = request?.id || request?.requestId || "N/A";
+  const fullname = request?.fullname || request?.name || "Không rõ";
+  const address = request?.address || request?.location || "Không rõ địa chỉ";
+  const status = request?.statusText || "Đang xử lý";
 
   /* ================= LOAD TEAMS ================= */
 
   useEffect(() => {
 
     const fetchTeams = async () => {
-
+  
       try {
-
-        const res = await getAllRescueTeams();
-        const teams = res?.data?.items || [];
-
-        const mappedTeams = await Promise.all(
-
-          teams.map(async (team) => {
-
+  
+        const [teamRes, assignmentRes] = await Promise.all([
+          getAllRescueTeams(),
+          getAllAssignments()
+        ]);
+  
+        const teams = teamRes?.data?.items || [];
+  
+        const assignments = assignmentRes?.data || assignmentRes || [];
+  
+        /* team đang được assign */
+  
+        const busyTeamIds = assignments
+          .filter(a => a.assignmentStatus !== "COMPLETED")
+          .map(a => a.rescueTeamId);
+  
+        const filteredTeams = teams.filter(
+          team => !busyTeamIds.includes(team.rcid)
+        );
+  
+        const mapped = await Promise.all(
+  
+          filteredTeams.map(async (team) => {
+  
             let lat = request?.lat || 10.8231;
             let lng = request?.lng || 106.6297;
             let address = "Không xác định";
-
+  
             try {
-
-              const locRes = await getRescueTeamLocation(team.rcid);
-              const location = locRes?.data?.location;
-
+  
+              const loc = await getRescueTeamLocation(team.rcid);
+  
+              const location = loc?.data?.location;
+  
               if (location) {
-
+  
                 const [lngStr, latStr] = location.split(",");
-
+  
                 lat = parseFloat(latStr);
                 lng = parseFloat(lngStr);
-
+  
                 address = `${lat}, ${lng}`;
-
+  
               }
-
+  
             } catch {}
-
+  
             return {
-
+  
               id: team.rcid,
               name: team.rcName,
               specialty: "Cứu hộ tổng hợp",
-              members: 6,
+              members: team.memberCount || 6,
               address,
               lat,
-              lng,
-              eta: "10 phút",
-              distance: "3 km"
-
+              lng
+  
             };
-
+  
           })
-
+  
         );
-
-        setRescueTeams(mappedTeams);
-
+  
+        setRescueTeams(mapped);
+  
       }
       catch (err) {
-
+  
         console.error("Load teams error:", err);
-
+  
       }
-
+  
     };
-
+  
     fetchTeams();
-
+  
   }, [request]);
 
-  /* ================= LOAD SHIFTS ================= */
-
-useEffect(() => {
-
-  const fetchShifts = async () => {
-
-    try {
-
-      const res = await getRescueShifts();
-      const data = res?.data || [];
-
-      setShifts(data);
-
-    } catch (err) {
-
-      console.error("Load shifts error:", err);
-
-    }
-
-  };
-
-  fetchShifts();
-
-}, []);
-
   /* ================= LOAD VEHICLES ================= */
-
   useEffect(() => {
 
     const fetchVehicles = async () => {
-
+  
       try {
-
-        const res = await getAllVehicles();
-        const list = res?.data || [];
-
-        const mappedVehicles = list
-        .filter((v) =>
-          ["ready", "available"].includes(
-            v.vehicleStatus?.toLowerCase()
+  
+        const [vehicleRes, assignmentRes] = await Promise.all([
+          getAllVehicles(),
+          getAllAssignments()
+        ]);
+  
+        const vehicles = vehicleRes?.data || [];
+  
+        const assignments = assignmentRes?.data || assignmentRes || [];
+  
+        const busyVehicleIds = assignments
+          .filter(a => a.assignmentStatus !== "COMPLETED")
+          .map(a => a.vehicleId);
+  
+        const filteredVehicles = vehicles.filter(
+          v => !busyVehicleIds.includes(v.vehicleId)
+        );
+  
+        const mapped = filteredVehicles
+          .filter(v =>
+            ["ready","available"].includes(
+              v.vehicleStatus?.toLowerCase()
+            )
           )
-        )
-        .map((v) => ({
-
-          id: v.vehicleId,
-          name: v.vehicleName,
-          type: v.vehicleType,
-          capacity: v.vehicleLocation || "Không rõ",
-          status: v.vehicleStatus?.toLowerCase() || ""
-
-        }));
-
-        setVehicles(mappedVehicles);
-
+          .map(v => ({
+  
+            id: v.vehicleId,
+            name: v.vehicleName,
+            type: v.vehicleType,
+            capacity: v.vehicleLocation || "Không rõ"
+  
+          }));
+  
+        setVehicles(mapped);
+  
       }
       catch (err) {
-
+  
         console.error("Load vehicles error:", err);
-
+  
       }
-
+  
     };
-
+  
     fetchVehicles();
-
+  
   }, []);
 
   /* ================= SELECT ================= */
 
   const toggleTeam = (id) => {
+
     setSelectedTeam(id);
+
   };
 
   const toggleVehicle = (id) => {
 
-    setSelectedVehicles((prev) =>
+    setSelectedVehicles(prev =>
       prev.includes(id)
-        ? prev.filter((v) => v !== id)
+        ? prev.filter(v => v !== id)
         : [...prev, id]
     );
 
@@ -186,120 +205,150 @@ useEffect(() => {
   const mapUrl = useMemo(() => {
 
     if (!request) {
+
       return "https://www.google.com/maps?q=10.8231,106.6297&z=13&output=embed";
+
     }
 
     if (!selectedTeam) {
+
       return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
+
     }
 
-    const team = rescueTeams.find(
-      (t) => t.id === selectedTeam
-    );
+    const team = rescueTeams.find(t => t.id === selectedTeam);
 
     if (!team) {
+
       return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
+
     }
 
     return `https://www.google.com/maps?saddr=${team.lat},${team.lng}&daddr=${request.lat},${request.lng}&z=15&output=embed`;
 
   }, [selectedTeam, rescueTeams, request]);
 
-  /* ================= COUNT ================= */
-
-  const availableCount =
-    tab === "team"
-      ? rescueTeams.length
-      : vehicles.length;
+  /* ================= CONFIRM DISPATCH ================= */
 
   const canConfirm =
     Boolean(selectedTeam) &&
     selectedVehicles.length > 0;
 
-  /* ================= CONFIRM ================= */
   const handleConfirmDispatch = async () => {
 
     if (!canConfirm) {
+
       AuthNotify.warning(
         "Thiếu thông tin",
         "Vui lòng chọn đội cứu hộ và phương tiện"
       );
+
       return;
+
     }
-  
+
     try {
-  
-      const openShift = shifts.find(
-        (s) => s.shiftStatus === "OPEN"
+
+      /* STEP 1: GET ASSIGNMENTS */
+
+      const res = await getAllAssignments();
+
+      const assignments =
+        res?.data || res || [];
+
+      let assignment = assignments.find(
+        a => a.rescueRequestId === Number(id)
       );
-  
-      if (!openShift) {
-  
-        AuthNotify.error(
-          "Không có ca trực",
-          "Hiện tại không có ca trực đang mở để điều phối"
-        );
-  
-        return;
-  
-      }
-  
-      await confirmDispatchRescueRequest(
-        request.requestId,
-        {
+
+      /* STEP 2: CREATE ASSIGNMENT (POST) */
+
+      if (!assignment) {
+
+        const created = await confirmDispatchRescueRequest({
+
+          rescueRequestId: Number(id),
+
           rescueTeamId: Number(selectedTeam),
-          shiftId: Number(openShift.shiftId),
+
           vehicleId: Number(selectedVehicles[0]),
-          assignmentStatus: "Assigned"
-        }
-      );
-  
+
+          assignedBy: 5
+
+        });
+
+        assignment = created?.data || created;
+
+      }
+
+      /* STEP 3: UPDATE ASSIGNMENT (PUT) */
+
+      else {
+
+        await updateRescueAssignment(
+          assignment.assignmentId,
+          {
+
+            rescueTeamId: Number(selectedTeam),
+
+            vehicleId: Number(selectedVehicles[0])
+
+          }
+        );
+
+      }
+
       AuthNotify.success(
         "Điều động thành công",
-        "Đội cứu hộ đã được điều động tới hiện trường"
+        "Đội cứu hộ đã được điều động"
       );
-  
+      onDispatchSuccess?.(id);
+
       navigate("/coordinator/mina", {
+
         state: {
+
           teamId: selectedTeam,
           vehicleIds: selectedVehicles,
           request
+
         }
+
       });
-  
-    } catch (err) {
-  
-      console.error("Dispatch confirm error:", err);
-  
+
+    }
+    catch (err) {
+
+      console.error("Dispatch error:", err);
+
       AuthNotify.error(
         "Điều động thất bại",
         err?.response?.data?.message ||
-        "Không thể xác nhận điều động"
+        err?.message ||
+        "Không thể điều động"
       );
-  
+
     }
-  
-  };
-
-  /* ================= VEHICLE STATUS ================= */
-
-  const getVehicleStatus = (status) => {
-
-    if (status === "ready")
-      return "● SẴN SÀNG";
-
-    if (status === "maintenance")
-      return "● BẢO TRÌ";
-
-    if (status === "in use")
-      return "● ĐANG SỬ DỤNG";
-
-    if (status === "broken")
-      return "● HỎNG";
-
-    return "● KHÔNG XÁC ĐỊNH";
 
   };
+
+  /* ================= EMPTY ================= */
+
+  if (!request) {
+
+    return (
+      <div style={{
+        height:"100%",
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center",
+        fontSize:22,
+        fontWeight:600
+      }}>
+        Chọn yêu cầu bên trái để xem chi tiết
+      </div>
+    );
+
+  }
 
   /* ================= UI ================= */
 
@@ -307,7 +356,30 @@ useEffect(() => {
 
     <section className={`rc-map ${collapsed ? "rc-map--expanded" : ""}`}>
 
-      {/* MAP */}
+      <header className="dispatch-header">
+
+        <div className="dispatch-header-left">
+
+          <h2 className="dispatch-title">
+            Yêu cầu #{id}
+            <span className="dispatch-status">{status}</span>
+          </h2>
+
+        </div>
+
+        <div className="dispatch-header-right">
+
+          <div className="dispatch-user">
+            Họ Và Tên : {fullname}
+          </div>
+
+          <div className="dispatch-address">
+            📍 {address}
+          </div>
+
+        </div>
+
+      </header>
 
       <div className="rc-map__canvas">
 
@@ -320,124 +392,92 @@ useEffect(() => {
 
       </div>
 
-      {/* PANEL */}
-
       <div className={`rc-map__panel ${collapsed ? "is-collapsed" : ""}`}>
 
         <div className="rc-map__panel-header">
 
           <div className="rc-map__panel-title">
 
-            <h4>LỰA CHỌN NGUỒN LỰC</h4>
+          <h4>
+  LỰA CHỌN NGUỒN LỰC 
+  <span className="rc-resource-count">
+    ({teamCount} đội | {vehicleCount} xe)
+  </span>
+</h4>
 
-            <span className="rc-map__badge">
-              {availableCount} SẴN SÀNG
-            </span>
+<span
+  className={`rc-map__tab ${tab==="team"?"active":""}`}
+  onClick={()=>setTab("team")}
+>
+  Đội Cứu Hộ ({teamCount})
+</span>
 
-            <span
-              className={`rc-map__tab ${tab === "team" ? "active" : ""}`}
-              onClick={() => setTab("team")}
-            >
-              Đội Cứu Hộ
-            </span>
-
-            <span
-              className={`rc-map__tab ${tab === "vehicle" ? "active" : ""}`}
-              onClick={() => setTab("vehicle")}
-            >
-              Phương Tiện
-            </span>
+<span
+  className={`rc-map__tab ${tab==="vehicle"?"active":""}`}
+  onClick={()=>setTab("vehicle")}
+>
+  Phương Tiện ({vehicleCount})
+</span>
 
           </div>
 
           <button
             className="rc-map__collapse-btn"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={()=>setCollapsed(!collapsed)}
           >
-            {collapsed
-              ? <>MỞ RỘNG <DownOutlined /></>
-              : <>THU GỌN <UpOutlined /></>}
+            {collapsed ? <>MỞ RỘNG <DownOutlined/></> : <>THU GỌN <UpOutlined/></>}
           </button>
 
         </div>
 
-        {/* LIST */}
-
         <div className="rc-map__teams">
 
-          {tab === "team" &&
-            rescueTeams.map((team) => (
+          {tab==="team" && rescueTeams.map(team=>(
+            <div
+              key={team.id}
+              className={`rc-team ${selectedTeam===team.id?"active":""}`}
+              onClick={()=>toggleTeam(team.id)}
+            >
+              <h5>{team.name}</h5>
+              <p><b>Chuyên môn:</b> {team.specialty}</p>
+              <p><b>Quân số:</b> {team.members}</p>
+              <p><b>Vị trí:</b> {team.address}</p>
+            </div>
+          ))}
 
-              <div
-                key={team.id}
-                className={`rc-team ${selectedTeam === team.id ? "active" : ""}`}
-                onClick={() => toggleTeam(team.id)}
-              >
-
-                <h5>{team.name}</h5>
-
-                <p><b>Chuyên môn:</b> {team.specialty}</p>
-                <p><b>Quân số:</b> {team.members}</p>
-                <p><b>Vị trí:</b> {team.address}</p>
-
-                <span className="rc-team__status">
-                  ● SẴN SÀNG
-                </span>
-
-                <div className="rc-team__meta">
-                  <span>ETA: {team.eta}</span>
-                  <span>{team.distance}</span>
-                </div>
-
-              </div>
-
-            ))}
-
-          {tab === "vehicle" &&
-            vehicles.map((v) => (
-
-              <div
-                key={v.id}
-                className={`rc-team ${selectedVehicles.includes(v.id) ? "active" : ""}`}
-                onClick={() => toggleVehicle(v.id)}
-              >
-
-                <h5>Phương tiện : {v.name}</h5>
-
-                <p><b>Loại:</b> {v.type}</p>
-                <p><b>Khu vực:</b> {v.capacity}</p>
-
-                <span className="rc-team__status">
-                  {getVehicleStatus(v.status)}
-                </span>
-
-              </div>
-
-            ))}
+          {tab==="vehicle" && vehicles.map(v=>(
+            <div
+              key={v.id}
+              className={`rc-team ${selectedVehicles.includes(v.id)?"active":""}`}
+              onClick={()=>toggleVehicle(v.id)}
+            >
+              <h5>{v.name}</h5>
+              <p><b>Loại:</b> {v.type}</p>
+              <p><b>Khu vực:</b> {v.capacity}</p>
+            </div>
+          ))}
 
         </div>
-
-        {/* FOOTER */}
 
         <div className="rc-map__footer">
 
           <span className="rc-map__selected">
-            Đã chọn <b>{selectedTeam ? 1 : 0}</b> Đội và <b>{selectedVehicles.length}</b> Phương tiện
+            Đã chọn <b>{selectedTeam?1:0}</b> đội và <b>{selectedVehicles.length}</b> xe
           </span>
 
           <div className="rc-map__actions">
 
-            <button className="btn-cancel">
+            <Button onClick={()=>navigate(-1)}>
               Hủy bỏ
-            </button>
+            </Button>
 
-            <button
-              className="btn-confirm"
+            <Button
+              type="primary"
               disabled={!canConfirm}
               onClick={handleConfirmDispatch}
             >
               ▶ Xác nhận điều động
-            </button>
+            </Button>
 
           </div>
 

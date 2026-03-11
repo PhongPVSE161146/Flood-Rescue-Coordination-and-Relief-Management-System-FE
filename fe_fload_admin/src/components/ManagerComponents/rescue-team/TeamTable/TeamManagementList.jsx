@@ -100,11 +100,13 @@ export default function TeamManagementList({
 
   const startIndex = (currentPage - 1) * pageSize;
 
+  const sortedTeams = [...teamsData].sort((a, b) => b.id - a.id);
+
   const paginatedTeams =
-    teamsData.slice(
-      startIndex,
-      startIndex + pageSize
-    );
+  sortedTeams.slice(
+    startIndex,
+    startIndex + pageSize
+  );
 
   useEffect(() => {
     fetchProvinces();
@@ -309,15 +311,33 @@ export default function TeamManagementList({
           onTeamChanged?.();
   
         } catch (error) {
-  
-          console.log("DELETE ERROR:", error.response);
-  
-          AuthNotify.error(
-            "Không thể xóa đội",
+
+          console.log("DELETE ERROR:", error);
+        
+          const message =
             error?.response?.data?.message ||
-            "Đội đang có dữ liệu liên quan"
-          );
-  
+            error?.response?.data?.title ||
+            "";
+        
+          if (
+            error?.response?.status === 500 ||
+            message.includes("entity changes")
+          ) {
+        
+            AuthNotify.error(
+              "Không thể xóa đội",
+              "Đội đang có thành viên. Vui lòng xóa tất cả thành viên trước."
+            );
+        
+          } else {
+        
+            AuthNotify.error(
+              "Không thể xóa đội",
+              message || "Lỗi hệ thống"
+            );
+        
+          }
+        
         }
   
       }
@@ -465,10 +485,13 @@ export default function TeamManagementList({
       </div>
 
       <CreateTeamModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onSuccess={() => onTeamChanged?.()}
-      />
+open={createOpen}
+onClose={() => setCreateOpen(false)}
+onSuccess={() => {
+  setCurrentPage(1);
+  onTeamChanged?.();
+}}
+/>
 
       {/* ================= EDIT MODAL ================= */}
 

@@ -4,13 +4,16 @@ import {
   Input,
   Select,
   InputNumber,
-  Button
+  Button,
+  Upload
 } from "antd";
 
-import { UserOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  UploadOutlined
+} from "@ant-design/icons";
 
 import { updateRescueRequest } from "../../../api/service/historyApi";
-
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./EditRescueModal.css";
@@ -18,42 +21,66 @@ import "./EditRescueModal.css";
 const { TextArea } = Input;
 const { Option } = Select;
 
-const MAIN_INCIDENT_OPTIONS = [
-  { value: "MedicalEmergency", label: "Y tế khẩn cấp" },
-  { value: "TrafficAccident", label: "Tai nạn giao thông" },
-  { value: "FireExplosion", label: "Cháy nổ" },
-  { value: "DisasterFlood", label: "Ngập lụt" },
+const REQUEST_TYPES = [
+  "cứu hộ khẩn cấp",
+  "hỗ trợ cứu trợ",
+  "cứu hộ ngập lụt",
+  "cứu hộ lũ quét",
+  "cứu hộ sạt lở",
+  "hỗ trợ sơ tán",
+  "hỗ trợ y tế khẩn cấp",
+  "tiếp tế lương thực",
+  "tìm kiếm cứu nạn",
+  "cứu người mắc kẹt",
+  "đưa đến nơi trú ẩn"
 ];
+
+const REQUEST_TYPE_OPTIONS = REQUEST_TYPES.map(t => ({
+  value: t,
+  label: t
+}));
 
 function EditRescueModal({ data, onClose, onUpdated }) {
 
   const [loading, setLoading] = useState(false);
-
   const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
-    fullname: "",
-    mainIncidentType: "",
+    fullName: "",
+    requestType: "",
     victimCount: 0,
-    availableRescueTools: "",
+    availableRescueTool: "",
     specialNeeds: "",
     detailDescription: "",
+    rescueTeamNote: "",
+    address: "",
+    locationLat: 0,
+    locationLng: 0,
+    locationImageUrl: "",
+    imageFile: null
   });
 
-  /* ================= LOAD DATA CŨ ================= */
+  /* ================= LOAD DATA ================= */
 
   useEffect(() => {
 
     if (data) {
 
       setForm({
-        fullname: data.fullname || "",
-        mainIncidentType: data.type || "",
+        fullName: data.fullName || "",
+        requestType: data.requestType || "",
         victimCount: data.victimCount || 0,
-        availableRescueTools: data.availableRescueTools || "",
+        availableRescueTool: data.availableRescueTool || "",
         specialNeeds: data.specialNeeds || "",
         detailDescription: data.detailDescription || "",
+        rescueTeamNote: data.rescueTeamNote || "",
+        address: data.address || "",
+        locationLat: data.locationLat || 0,
+        locationLng: data.locationLng || 0,
+        locationImageUrl: data.locationImageUrl || ""
       });
+
+      setErrors({});
 
     }
 
@@ -61,32 +88,63 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 
   if (!data) return null;
 
+  /* ================= CLEAR ERROR ================= */
+
+  const clearError = (field) => {
+
+    setErrors(prev => {
+
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+
+    });
+
+  };
+
   /* ================= VALIDATE ================= */
 
   const validateForm = () => {
 
     const newErrors = {};
 
-    if (!form.fullname.trim()) {
-      newErrors.fullname = "Vui lòng nhập họ và tên";
-    }
-    else if (form.fullname.trim().length < 3) {
-      newErrors.fullname = "Họ tên phải ít nhất 3 ký tự";
+    if (!form.fullName.trim()) {
+      newErrors.fullName = "Vui lòng nhập họ và tên";
     }
 
-    if (!form.mainIncidentType) {
-      newErrors.mainIncidentType = "Vui lòng chọn loại sự cố";
+    if (!form.requestType) {
+      newErrors.requestType = "Vui lòng chọn loại yêu cầu";
     }
 
-    if (form.victimCount === null || form.victimCount < 0) {
-      newErrors.victimCount = "Số người gặp nạn không hợp lệ";
+    if (form.victimCount === null || form.victimCount <= 0) {
+      newErrors.victimCount = "Số người gặp nạn phải lớn hơn 0";
+    }
+
+    if (!form.availableRescueTool?.trim()) {
+      newErrors.availableRescueTool = "Vui lòng nhập dụng cụ cứu hộ";
+    }
+    else if (form.availableRescueTool.length > 200) {
+      newErrors.availableRescueTool = "Tối đa 200 ký tự";
+    }
+
+    if (!form.specialNeeds?.trim()) {
+      newErrors.specialNeeds = "Vui lòng nhập nhu cầu đặc biệt";
     }
 
     if (!form.detailDescription?.trim()) {
       newErrors.detailDescription = "Vui lòng nhập mô tả chi tiết";
     }
-    else if (form.detailDescription?.trim().length < 10) {
-      newErrors.detailDescription = "Mô tả phải ít nhất 10 ký tự";
+
+    if (!form.rescueTeamNote?.trim()) {
+      newErrors.rescueTeamNote = "Vui lòng nhập ghi chú cho đội cứu hộ";
+    }
+
+    if (!form.address?.trim()) {
+      newErrors.address = "Vui lòng nhập địa chỉ";
+    }
+
+    if (!form.locationImageUrl) {
+      newErrors.image = "Vui lòng tải ảnh hiện trường";
     }
 
     setErrors(newErrors);
@@ -106,6 +164,46 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 
   };
 
+  /* ================= IMAGE UPLOAD ================= */
+
+  const handleImageUpload = (file) => {
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+
+      AuthNotify.error(
+        "Sai định dạng",
+        "Chỉ chấp nhận JPG PNG WEBP"
+      );
+
+      return Upload.LIST_IGNORE;
+    }
+
+    if (file.size / 1024 / 1024 > 5) {
+
+      AuthNotify.error(
+        "Ảnh quá lớn",
+        "Ảnh phải nhỏ hơn 5MB"
+      );
+
+      return Upload.LIST_IGNORE;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setForm(prev => ({
+      ...prev,
+      locationImageUrl: previewUrl
+    }));
+  
+    return false;
+  };
+
   /* ================= UPDATE ================= */
 
   const handleUpdate = async () => {
@@ -118,12 +216,17 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 
       await updateRescueRequest(data.id, {
 
-        fullname: form.fullname,
-        mainIncidentType: form.mainIncidentType,
+        requestType: form.requestType,
+        locationLat: Number(form.locationLat),
+        locationLng: Number(form.locationLng),
+        locationImageUrl: form.locationImageUrl,
+        fullName: form.fullName,
         victimCount: Number(form.victimCount),
-        availableRescueTools: form.availableRescueTools,
+        availableRescueTool: form.availableRescueTool,
         specialNeeds: form.specialNeeds,
         detailDescription: form.detailDescription,
+        rescueTeamNote: form.rescueTeamNote,
+        address: form.address
 
       });
 
@@ -133,7 +236,6 @@ function EditRescueModal({ data, onClose, onUpdated }) {
       );
 
       onUpdated?.();
-
       onClose();
 
     }
@@ -164,14 +266,12 @@ function EditRescueModal({ data, onClose, onUpdated }) {
       width={800}
       className="edit-emergency-modal"
       centered
-      destroyOnClose
+      destroyOnHidden
     >
 
       <section className="emergency-form edit-form">
 
         <h2>CHỈNH SỬA YÊU CẦU CỨU HỘ</h2>
-
-        {/* ================= THÔNG TIN ================= */}
 
         <div className="form-section">
 
@@ -182,87 +282,59 @@ function EditRescueModal({ data, onClose, onUpdated }) {
           <label>HỌ VÀ TÊN *</label>
 
           <Input
-            status={errors.fullname ? "error" : ""}
-            value={form.fullname}
-            placeholder="Nhập họ và tên"
-            onChange={(e) => {
+            status={errors.fullName ? "error" : ""}
+            value={form.fullName}
+            onChange={(e)=>{
 
               const value = e.target.value;
 
-              setForm({
-                ...form,
-                fullname: value
-              });
+              setForm({...form, fullName:value});
 
-              if (value.trim()) {
-
-                setErrors(prev => ({
-                  ...prev,
-                  fullname: ""
-                }));
-
+              if(value.trim()){
+                clearError("fullName");
               }
 
             }}
           />
 
-          {errors.fullname && (
-            <p className="error-message">{errors.fullname}</p>
+          {errors.fullName && (
+            <p className="error-message">{errors.fullName}</p>
           )}
 
         </div>
 
-        {/* ================= LOẠI SỰ CỐ ================= */}
-
         <div className="form-section">
 
-          <h4>LOẠI SỰ CỐ</h4>
-
-          <label>LOẠI SỰ CỐ CHÍNH *</label>
+          <h4>LOẠI YÊU CẦU</h4>
 
           <Select
-            status={errors.mainIncidentType ? "error" : ""}
             className="full-width"
-            value={form.mainIncidentType || undefined}
-            placeholder="Chọn loại sự cố"
-            onChange={(v) => {
+            status={errors.requestType ? "error" : ""}
+            value={form.requestType || undefined}
+            onChange={(v)=>{
 
-              setForm({
-                ...form,
-                mainIncidentType: v
-              });
+              setForm({...form, requestType:v});
 
-              if (v) {
-
-                setErrors(prev => ({
-                  ...prev,
-                  mainIncidentType: ""
-                }));
-
+              if(v){
+                clearError("requestType");
               }
 
             }}
           >
 
-            {MAIN_INCIDENT_OPTIONS.map((o) => (
-
+            {REQUEST_TYPE_OPTIONS.map(o=>(
               <Option key={o.value} value={o.value}>
                 {o.label}
               </Option>
-
             ))}
 
           </Select>
 
-          {errors.mainIncidentType && (
-            <p className="error-message">
-              {errors.mainIncidentType}
-            </p>
+          {errors.requestType && (
+            <p className="error-message">{errors.requestType}</p>
           )}
 
         </div>
-
-        {/* ================= CHI TIẾT ================= */}
 
         <div className="form-section">
 
@@ -271,97 +343,188 @@ function EditRescueModal({ data, onClose, onUpdated }) {
           <label>SỐ NGƯỜI GẶP NẠN *</label>
 
           <InputNumber
+            style={{width:"100%"}}
+            min={1}
             status={errors.victimCount ? "error" : ""}
-            style={{ width: "100%" }}
-            min={0}
             value={form.victimCount}
-            onChange={(v) => {
+            onChange={(v)=>{
 
-              setForm({
-                ...form,
-                victimCount: v
-              });
+              setForm({...form, victimCount:v});
 
-              if (v !== null && v >= 0) {
-
-                setErrors(prev => ({
-                  ...prev,
-                  victimCount: ""
-                }));
-
+              if(v > 0){
+                clearError("victimCount");
               }
 
             }}
           />
 
           {errors.victimCount && (
-            <p className="error-message">
-              {errors.victimCount}
-            </p>
+            <p className="error-message">{errors.victimCount}</p>
           )}
 
-          <label>DỤNG CỤ CỨU HỘ</label>
+          <label>DỤNG CỤ CỨU HỘ *</label>
 
           <Input
-            value={form.availableRescueTools}
-            placeholder="Nhập dụng cụ cứu hộ"
-            onChange={(e) =>
-              setForm({
-                ...form,
-                availableRescueTools: e.target.value
-              })
-            }
+            status={errors.availableRescueTool ? "error" : ""}
+            value={form.availableRescueTool}
+            onChange={(e)=>{
+
+              const value=e.target.value;
+
+              setForm({...form, availableRescueTool:value});
+
+              if(value.trim()){
+                clearError("availableRescueTool");
+              }
+
+            }}
           />
 
-          <label>NHU CẦU ĐẶC BIỆT</label>
+          {errors.availableRescueTool && (
+            <p className="error-message">{errors.availableRescueTool}</p>
+          )}
+
+          <label>NHU CẦU ĐẶC BIỆT *</label>
 
           <Input
+            status={errors.specialNeeds ? "error" : ""}
             value={form.specialNeeds}
-            placeholder="Nhập nhu cầu đặc biệt"
-            onChange={(e) =>
-              setForm({
-                ...form,
-                specialNeeds: e.target.value
-              })
-            }
-            
+            onChange={(e)=>{
+
+              const value=e.target.value;
+
+              setForm({...form, specialNeeds:value});
+
+              if(value.trim()){
+                clearError("specialNeeds");
+              }
+
+            }}
           />
-             {errors.specialNeeds && (
-            <p className="error-message">
-              {errors.specialNeeds}
-            </p>
+
+          {errors.specialNeeds && (
+            <p className="error-message">{errors.specialNeeds}</p>
           )}
 
           <label>MÔ TẢ CHI TIẾT *</label>
 
           <TextArea
-            status={errors.detailDescription ? "error" : ""}
             rows={4}
-            placeholder="Mô tả chi tiết"
+            status={errors.detailDescription ? "error" : ""}
             value={form.detailDescription}
-            onChange={(e) => {
-              const value = e.target.value;
-              setForm({ ...form, detailDescription: value });
-            
-              if (value.trim()) {
-                setErrors(prev => ({
-                  ...prev,
-                  detailDescription: false,
-                  messages: { ...prev.messages, detailDescription: "" }
-                }));
+            onChange={(e)=>{
+
+              const value=e.target.value;
+
+              setForm({...form, detailDescription:value});
+
+              if(value.trim()){
+                clearError("detailDescription");
               }
+
             }}
           />
 
           {errors.detailDescription && (
-            <p className="error-message">
-              {errors.detailDescription}
-            </p>
+            <p className="error-message">{errors.detailDescription}</p>
           )}
 
-        </div>
+          <label>GHI CHÚ CHO ĐỘI CỨU HỘ *</label>
 
-        {/* ================= BUTTON ================= */}
+          <Input
+            status={errors.rescueTeamNote ? "error" : ""}
+            value={form.rescueTeamNote}
+            onChange={(e)=>{
+
+              const value=e.target.value;
+
+              setForm({...form, rescueTeamNote:value});
+
+              if(value.trim()){
+                clearError("rescueTeamNote");
+              }
+
+            }}
+          />
+
+          {errors.rescueTeamNote && (
+            <p className="error-message">{errors.rescueTeamNote}</p>
+          )}
+
+          <label>ĐỊA CHỈ *</label>
+
+          <Input
+            status={errors.address ? "error" : ""}
+            value={form.address}
+            onChange={(e)=>{
+
+              const value=e.target.value;
+
+              setForm({...form, address:value});
+
+              if(value.trim()){
+                clearError("address");
+              }
+
+            }}
+          />
+
+          {errors.address && (
+            <p className="error-message">{errors.address}</p>
+          )}
+
+          {/* IMAGE */}
+          <div className="form-section section-5">
+          <label>ẢNH HIỆN TRƯỜNG *</label>
+
+          <Upload
+           className="emergency-upload"
+            listType="picture"
+            maxCount={1}
+            beforeUpload={handleImageUpload}
+          >
+
+<div className="upload-dropzone">
+    
+    <UploadOutlined className="upload-icon"/>
+    
+    <p className="upload-title">
+    TẢI ẢNH HIỆN TRƯỜNG
+    </p>
+    
+    <span className="upload-sub">
+    Nhấn để chụp hoặc tải ảnh (JPG, PNG)
+    </span>
+    
+    </div>
+
+          </Upload>
+
+          {errors.locationImageUrl && (
+            <p className="error-message">{errors.locationImageUrl}</p>
+          )}
+
+{form.locationImageUrl && (
+
+<div style={{marginTop:10}}>
+
+  <img
+    src={form.locationImageUrl}
+    alt="preview"
+    style={{
+      width:"100%",
+      maxHeight:250,
+      objectFit:"cover",
+      borderRadius:8
+    }}
+  />
+
+</div>
+
+)}
+ </div>
+
+        </div>
 
         <Button
           block

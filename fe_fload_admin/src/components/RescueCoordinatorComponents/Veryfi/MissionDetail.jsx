@@ -28,32 +28,6 @@ export default function MissionDetail({ mission }) {
 
   const navigate = useNavigate();
 
-  /* ================= CHECK MISSION ================= */
-
-  if (!mission) {
-
-    return (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 22,
-          fontWeight: 600,
-          color: "#555"
-        }}
-      >
-        Chọn yêu cầu bên trái để xem chi tiết
-      </div>
-    );
-
-  }
-
-  /* ================= DEBUG ================= */
-
-  console.log("MISSION DATA:", mission);
-
   /* ================= LOAD URGENCY LEVEL ================= */
 
   useEffect(() => {
@@ -77,12 +51,21 @@ export default function MissionDetail({ mission }) {
 
   }, []);
 
-  /* ================= IMAGE FIX ================= */
+  /* ================= FORMAT SLA ================= */
 
-  const images =
-    mission?.imageUrls ||
-    mission?.images ||
-    [];
+  const formatSla = (minutes) => {
+
+    if (!minutes) return "Không xác định";
+
+    if (minutes < 60)
+      return `${minutes} phút`;
+
+    if (minutes < 1440)
+      return `${Math.floor(minutes / 60)} giờ`;
+
+    return `${Math.floor(minutes / 1440)} ngày`;
+
+  };
 
   /* ================= HANDLE CONFIRM ================= */
 
@@ -91,7 +74,6 @@ export default function MissionDetail({ mission }) {
     if (!priority) return;
 
     const index = parseInt(priority.replace("P", "")) - 1;
-
     const level = urgencyLevels[index];
 
     if (!level) return;
@@ -123,7 +105,36 @@ export default function MissionDetail({ mission }) {
 
   };
 
-  /* ================= RENDER ================= */
+  /* ================= CHECK MISSION ================= */
+
+  if (!mission) {
+
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22,
+          fontWeight: 600,
+          color: "#555"
+        }}
+      >
+        Chọn yêu cầu bên trái để xem chi tiết
+      </div>
+    );
+
+  }
+
+  /* ================= IMAGE FIX ================= */
+
+  const images =
+    mission?.imageUrls ||
+    mission?.images ||
+    [];
+
+  /* ================= UI ================= */
 
   return (
 
@@ -192,7 +203,7 @@ export default function MissionDetail({ mission }) {
             <label>ĐỊA CHỈ HIỆN TẠI</label>
 
             <p className="address-text">
-              {mission.location}
+              {mission.address}
             </p>
 
           </section>
@@ -205,9 +216,15 @@ export default function MissionDetail({ mission }) {
               📋 TÌNH TRẠNG KHẨN CẤP
             </h4>
 
+            <label>GHI CHÚ</label>
+
             <p className="quote">
               {mission.detailDescription}
             </p>
+
+            <label>GHI CHÚ ĐỘI CỨU HỘ</label>
+
+            <p>{mission.rescueTeamNote}</p>
 
           </section>
 
@@ -336,9 +353,7 @@ export default function MissionDetail({ mission }) {
                     <p>{level.description}</p>
 
                     <small className="sla-text">
-                      Thời gian xử lý:
-                      {" "}
-                      {Math.floor(level.slaMinutes / 60)} giờ
+                      Thời gian xử lý: {formatSla(level.slaMinutes)}
                     </small>
 
                   </div>

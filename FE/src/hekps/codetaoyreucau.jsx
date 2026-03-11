@@ -434,7 +434,6 @@ return (
   errors={errors}
   setErrors={setErrors}
   submitting={submitting}
-  setAddress={setAddress}
 />
 
 <EmergencyInfoPanel timeAgo={timeAgo} />

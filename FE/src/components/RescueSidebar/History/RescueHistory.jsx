@@ -22,17 +22,32 @@ import {
   deleteRescueRequest
 } from "../../../api/service/historyApi";
 
+import RescueDetailModal from "../RescueDetail/RescueDetailModal";
 import EditRescueModal from "../EditResscue/EditRescueModal";
+
 import "./RescueHistory.css";
+
 
 /* ================= INCIDENT TYPE ================= */
 
-const MAIN_INCIDENT_OPTIONS = [
-  { value: "MedicalEmergency", label: "Y tế khẩn cấp" },
-  { value: "TrafficAccident", label: "Tai nạn giao thông" },
-  { value: "FireExplosion", label: "Cháy nổ" },
-  { value: "DisasterFlood", label: "Ngập lụt" },
+const REQUEST_TYPES = [
+  "cứu hộ khẩn cấp",
+  "hỗ trợ cứu trợ",
+  "cứu hộ ngập lụt",
+  "cứu hộ lũ quét",
+  "cứu hộ sạt lở",
+  "hỗ trợ sơ tán",
+  "hỗ trợ y tế khẩn cấp",
+  "tiếp tế lương thực",
+  "tìm kiếm cứu nạn",
+  "cứu người mắc kẹt",
+  "đưa đến nơi trú ẩn"
 ];
+
+const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
+  value: t,
+  label: t
+}));
 
 const getIncidentLabel = (value) => {
   const found = MAIN_INCIDENT_OPTIONS.find(
@@ -41,9 +56,36 @@ const getIncidentLabel = (value) => {
   return found ? found.label : value;
 };
 
+
 /* ================= PHONE VALIDATE ================= */
 
 const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+
+
+/* ================= STATUS MAP FROM API ================= */
+
+const getStatusInfo = (statusId) => {
+
+  const statusMap = {
+
+    1: { text: "Đang xử lý", color: "orange" },       
+    2: { text: "Đã được tiếp nhận", color: "blue" },  
+    3: { text: "Đang trên đường", color: "cyan" },    
+    4: { text: "Đang cứu hộ", color: "purple" },      
+    5: { text: "Đã hoàn thành", color: "green" },     
+    6: { text: "Đã huỷ", color: "red" }               
+
+  };
+
+  return statusMap[statusId] || {
+    text: "Không xác định",
+    color: "default"
+  };
+
+};
+
+
+/* ================= COMPONENT ================= */
 
 const RescueHistory = () => {
 
@@ -53,26 +95,8 @@ const RescueHistory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
 
-  const getStatusInfo = (statusId) => {
-
-    switch (statusId) {
-
-      case 1:
-        return { text: "Đang xử lý", color: "orange" };
-
-      case 2:
-        return { text: "Hoàn thành", color: "green" };
-
-      case 3:
-        return { text: "Đã hủy", color: "red" };
-
-      default:
-        return { text: "Không xác định", color: "blue" };
-
-    }
-
-  };
 
   /* ================= SEARCH ================= */
 
@@ -81,8 +105,6 @@ const RescueHistory = () => {
     const cleanPhone = phone.trim();
 
     if (!cleanPhone) {
-
-      // setError("Vui lòng nhập số điện thoại");
 
       AuthNotify.error(
         "Thiếu số điện thoại",
@@ -95,11 +117,9 @@ const RescueHistory = () => {
 
     if (!phoneRegex.test(cleanPhone)) {
 
-      // setError("Số điện thoại không hợp lệ");
-
       AuthNotify.error(
         "Số điện thoại không hợp lệ",
-        "Số điện thoại phải gồm 10 số "
+        "Số điện thoại phải gồm 10 số"
       );
 
       return;
@@ -124,11 +144,15 @@ const RescueHistory = () => {
           const statusInfo = getStatusInfo(item.statusId);
 
           return {
+
+            ...item,
+
             id: item.rescueRequestId,
-            fullname: item.fullname,
             code: `#CH-${item.rescueRequestId}`,
+
             status: statusInfo.text,
             color: statusInfo.color,
+
             time: new Date(item.createdAt).toLocaleString(
               "vi-VN",
               {
@@ -139,8 +163,10 @@ const RescueHistory = () => {
                 minute: "2-digit",
               }
             ),
+
             phone: item.contactPhone,
             type: item.requestType,
+
           };
 
         });
@@ -149,8 +175,6 @@ const RescueHistory = () => {
 
     }
     catch (err) {
-
-      // setError("Không thể tải lịch sử");
 
       AuthNotify.error(
         "Lỗi tải lịch sử",
@@ -165,6 +189,7 @@ const RescueHistory = () => {
     }
 
   };
+
 
   /* ================= DELETE ================= */
 
@@ -213,6 +238,7 @@ const RescueHistory = () => {
 
   };
 
+
   return (
 
     <div className="sidebar-top">
@@ -249,6 +275,7 @@ const RescueHistory = () => {
 
       </div>
 
+
       {error && (
 
         <Alert
@@ -260,6 +287,7 @@ const RescueHistory = () => {
 
       )}
 
+
       {searched && !loading && (
 
         <div className="history-list-title">
@@ -267,6 +295,7 @@ const RescueHistory = () => {
         </div>
 
       )}
+
 
       {loading ? (
 
@@ -291,11 +320,13 @@ const RescueHistory = () => {
             data={item}
             onEdit={() => setEditing(item)}
             onDelete={() => handleDelete(item.id)}
+            onView={() => setViewing(item)}
           />
 
         ))
 
       )}
+
 
       {searched &&
         !loading &&
@@ -308,13 +339,19 @@ const RescueHistory = () => {
 
         )}
 
-<EditRescueModal
-  data={editing}
-  onClose={() => setEditing(null)}
-  onUpdated={() => {
-    handleSearch(); // load lại dữ liệu từ DB
-  }}
-/>
+
+      <EditRescueModal
+        data={editing}
+        onClose={() => setEditing(null)}
+        onUpdated={handleSearch}
+      />
+
+
+      <RescueDetailModal
+        data={viewing}
+        onClose={() => setViewing(null)}
+      />
+
     </div>
 
   );
@@ -326,14 +363,18 @@ export default RescueHistory;
 
 /* ================= CARD ================= */
 
-function HistoryCard({ data, onEdit, onDelete }) {
+function HistoryCard({ data, onEdit, onDelete, onView }) {
 
   const isProcessing =
     data.status === "Đang xử lý";
 
   return (
 
-    <div className={`history-card ${data.color}`}>
+    <div
+      className={`history-card ${data.color}`}
+      onClick={onView}
+      style={{ cursor: "pointer" }}
+    >
 
       <div className="history-row">
 
@@ -347,9 +388,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
 
       </div>
 
-        <div className="time">
-          Họ và tên: {data.fullname}
-        </div>
+      <div className="time">
+        Họ và tên: {data.fullName}
+      </div>
+
       <div className="time">
         Thời Gian : {data.time}
       </div>
@@ -372,7 +414,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
               size="small"
               type="text"
               icon={<EditOutlined />}
-              onClick={onEdit}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onEdit();
+              }}
               className="action-btn edit-btn"
             >
               Chỉnh sửa
@@ -382,7 +427,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
               size="small"
               type="text"
               icon={<DeleteOutlined />}
-              onClick={onDelete}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onDelete();
+              }}
               className="action-btn delete-btn"
             >
               Xóa
@@ -397,6 +445,10 @@ function HistoryCard({ data, onEdit, onDelete }) {
             type="text"
             icon={<EyeOutlined />}
             className="action-btn view-btn"
+            onClick={(e)=>{
+              e.stopPropagation();
+              onView();
+            }}
           >
             Xem chi tiết
           </Button>
