@@ -7,7 +7,7 @@ import {
 } from "@ant-design/icons";
 
 import {
-  getDispatchingRescueRequests,
+  getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
@@ -49,16 +49,36 @@ function formatSla(minutes) {
   return `${Math.floor(minutes / 1440)} ngày`;
 
 }
+/* ================= PARSE TIME (FIX TIMEZONE) ================= */
+
+function parseVietnamTime(dateString) {
+
+  if (!dateString) return Date.now();
+
+  /* nếu đã có timezone thì dùng luôn */
+
+  if (
+    dateString.includes("Z") ||
+    dateString.includes("+")
+  ) {
+    return new Date(dateString).getTime();
+  }
+
+  /* nếu chưa có timezone thì thêm +07:00 */
+
+  return new Date(dateString + "+07:00").getTime();
+
+}
 
 /* ================= FILTER TIME ================= */
 
-const isExpired = (createdAt) => {
-  const diff = (Date.now() - createdAt) / 60000;
+const isExpired = (verifiedAt) => {
+  const diff = (Date.now() - verifiedAt) / 60000;
   return diff > 60;
 };
 
-const isNew = (createdAt) => {
-  const diff = (Date.now() - createdAt) / 60000;
+const isNew = (verifiedAt) => {
+  const diff = (Date.now() - verifiedAt) / 60000;
   return diff <= 60;
 };
 
@@ -135,9 +155,7 @@ const convertApiToMission = (data = [], urgencyList = []) => {
       lat: item.locationLat,
       lng: item.locationLng,
 
-      createdAt: item.createdAt
-        ? new Date(item.createdAt).getTime()
-        : Date.now(),
+      verifiedAt: parseVietnamTime(item.verifiedAt),
 
       level: levelColorMap[urgency?.levelName] || "medium",
 
@@ -197,13 +215,19 @@ export default function ListTeamRescue({ onSelectRequest }) {
       setLoading(true);
 
       const [requestRes, urgencyRes] = await Promise.all([
-        getDispatchingRescueRequests(),
+        getPendingRescueRequests(),
         getUrgencyLevels()
       ]);
 
-      const list = Array.isArray(requestRes)
-        ? requestRes
-        : requestRes?.data || [];
+      const raw = Array.isArray(requestRes)
+  ? requestRes
+  : requestRes?.data || [];
+
+/* CHỈ LẤY VERIFIED */
+
+const list = raw.filter(
+  r => Number(r.statusId) === 2
+);
 
       const urgencyList = urgencyRes || [];
 
@@ -313,10 +337,10 @@ export default function ListTeamRescue({ onSelectRequest }) {
     let list = [...missions];
 
     if (tab === "new")
-      list = list.filter(m => isNew(m.createdAt));
+      list = list.filter(m => isNew(m.verifiedAt));
 
     if (tab === "expired")
-      list = list.filter(m => isExpired(m.createdAt));
+      list = list.filter(m => isExpired(m.verifiedAt));
 
     if (tab === "merge") {
 
@@ -334,7 +358,7 @@ export default function ListTeamRescue({ onSelectRequest }) {
 
     }
 
-    list.sort((a, b) => b.createdAt - a.createdAt);
+    list.sort((a, b) => b.verifiedAt - a.verifiedAt);
 
     return list;
 
@@ -501,7 +525,7 @@ export default function ListTeamRescue({ onSelectRequest }) {
                   </div>
 
                   <span className="ltr-queue__time">
-                    {timeAgo(item.createdAt)}
+                    {timeAgo(item.verifiedAt)}
                   </span>
 
                 </div>

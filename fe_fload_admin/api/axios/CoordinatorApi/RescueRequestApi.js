@@ -109,18 +109,13 @@ export const verifyAndDispatchRescueRequest = async (
 };
 /* ================= CONFIRM DISPATCH ================= */
 
-export const confirmDispatchRescueRequest = async (data) => {
+export const confirmDispatchRescueRequest = async (payload) => {
 
   try {
 
     const response = await axiosInstance.post(
       "/api/RescueAssignments",
-      {
-        rescueRequestId: data.rescueRequestId,
-        rescueTeamId: data.rescueTeamId,
-        vehicleId: data.vehicleId,
-        assignedBy: data.assignedBy
-      }
+      payload
     );
 
     return response.data;
@@ -128,9 +123,15 @@ export const confirmDispatchRescueRequest = async (data) => {
   }
   catch (error) {
 
-    console.error("DISPATCH ERROR:", error?.response);
+    console.error(
+      "DISPATCH ERROR:",
+      error?.response?.data || error.message
+    );
 
-    throw error?.response?.data || error;
+    throw (
+      error?.response?.data ||
+      { message: "Dispatch rescue request failed" }
+    );
 
   }
 
