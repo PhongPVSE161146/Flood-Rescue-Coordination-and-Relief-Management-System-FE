@@ -1,56 +1,33 @@
 'use client';
 
+import React, { useEffect, useState } from "react";
+
 import {
   Modal,
   Form,
   Input,
   Select,
   Button
-} from 'antd';
+} from "antd";
 
 import {
-  SafetyOutlined,
-  PhoneOutlined,
-  EnvironmentOutlined
-} from '@ant-design/icons';
+  updateRescueTeam
+} from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 
 import {
-  createRescueTeam
-} from '../../../../../api/axios/ManagerApi/rescueTeamApi';
-
-import { getProvinces } from '../../../../../api/axios/Auth/authApi';
-
-import { useState, useEffect } from 'react';
+  getProvinces
+} from "../../../../../api/axios/Auth/authApi";
 
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
-import './CreateTeamModal.css';
+import "./EditTeamModal.css";
 
 const { Option } = Select;
 
-/* ================= PHONE VALIDATOR ================= */
-
-const validateVietnamPhone = (_, value) => {
-
-  if (!value) {
-    return Promise.reject("Vui lòng nhập số điện thoại");
-  }
-
-  const phoneRegex = /^0\d{9}$/;
-
-  if (!phoneRegex.test(value)) {
-    return Promise.reject(
-      "Số điện thoại phải gồm 10 số và bắt đầu bằng 0 (VD: 0901234567)"
-    );
-  }
-
-  return Promise.resolve();
-
-};
-
-export default function CreateTeamModal({
+export default function EditTeamModal({
   open,
   onClose,
+  team,
   onSuccess
 }) {
 
@@ -66,11 +43,6 @@ export default function CreateTeamModal({
 
     if (open) {
       fetchProvinces();
-
-      form.setFieldsValue({
-        rcStatus: "on duty"
-      });
-
     }
 
   }, [open]);
@@ -90,7 +62,7 @@ export default function CreateTeamModal({
     }
     catch (error) {
 
-      console.error(error);
+      console.log("Load provinces error:", error);
 
       AuthNotify.error(
         "Không tải được khu vực",
@@ -101,9 +73,29 @@ export default function CreateTeamModal({
 
   };
 
-  /* ================= CREATE TEAM ================= */
+  /* ================= LOAD TEAM DATA ================= */
 
-  const handleCreate = async () => {
+  useEffect(() => {
+
+    if (!team) return;
+
+    const mappedStatus =
+      team.status === "active"
+        ? "active"
+        : "rest";
+
+    form.setFieldsValue({
+      rcName: team.name,
+      rcPhone: team.phone,
+      areaId: team.areaId,
+      rcStatus: mappedStatus
+    });
+
+  }, [team]);
+
+  /* ================= UPDATE TEAM ================= */
+
+  const handleUpdate = async () => {
 
     try {
 
@@ -111,21 +103,26 @@ export default function CreateTeamModal({
 
       setLoading(true);
 
-      await createRescueTeam({
+      const mappedStatus =
+        values.rcStatus === "active"
+          ? "on duty"
+          : "off duty";
+
+      await updateRescueTeam(team.id, {
 
         rcName: values.rcName,
+
         rcPhone: values.rcPhone,
+
         areaId: Number(values.areaId),
 
-        /* STATUS MẶC ĐỊNH */
-
-        rcStatus: "on duty"
+        rcStatus: mappedStatus
 
       });
 
       AuthNotify.success(
-        "Tạo đội cứu hộ thành công",
-        "Đội cứu hộ mới đã được tạo"
+        "Cập nhật thành công",
+        "Thông tin đội cứu hộ đã được cập nhật"
       );
 
       form.resetFields();
@@ -137,11 +134,11 @@ export default function CreateTeamModal({
     }
     catch (error) {
 
-      console.error(error);
+      console.log(error);
 
       AuthNotify.error(
-        "Tạo đội thất bại",
-        "Không thể tạo đội cứu hộ"
+        "Cập nhật thất bại",
+        "Không thể cập nhật đội cứu hộ"
       );
 
     }
@@ -159,11 +156,13 @@ export default function CreateTeamModal({
 
     <Modal
       open={open}
-      title="🚑 Tạo đội cứu hộ mới"
+      title="✏️ Chỉnh sửa đội cứu hộ"
       onCancel={onClose}
       footer={null}
       width={520}
-      className="createTeamModal"
+      centered
+      destroyOnClose
+      className="editTeamModal"
     >
 
       <Form
@@ -185,27 +184,26 @@ export default function CreateTeamModal({
         >
 
           <Input
-            prefix={<SafetyOutlined />}
             placeholder="VD: Đội cứu hộ Quận 1"
             size="large"
           />
 
         </Form.Item>
 
-
         {/* PHONE */}
 
         <Form.Item
           name="rcPhone"
           label="Số điện thoại"
-          validateTrigger="onChange"
           rules={[
-            { validator: validateVietnamPhone }
+            {
+              required: true,
+              message: "Nhập số điện thoại"
+            }
           ]}
         >
 
           <Input
-            prefix={<PhoneOutlined />}
             placeholder="0901234567"
             size="large"
             maxLength={10}
@@ -223,7 +221,6 @@ export default function CreateTeamModal({
 
         </Form.Item>
 
-
         {/* AREA */}
 
         <Form.Item
@@ -240,30 +237,80 @@ export default function CreateTeamModal({
           <Select
             size="large"
             placeholder="Chọn khu vực"
-            suffixIcon={<EnvironmentOutlined />}
-            options={provinces.map((item) => ({
-              label: item.name,
-              value: item.id
-            }))}
-          />
+          >
+
+            {provinces.map((item) => (
+
+              <Option
+                key={item.id}
+                value={item.id}
+              >
+
+                {item.name}
+
+              </Option>
+
+            ))}
+
+          </Select>
 
         </Form.Item>
 
+        {/* STATUS */}
+
+        <Form.Item
+          name="rcStatus"
+          label="Trạng thái"
+          rules={[
+            {
+              required: true,
+              message: "Chọn trạng thái"
+            }
+          ]}
+        >
+
+          <Select
+            size="large"
+          >
+
+            <Option value="active">
+              Sẵn sàng
+            </Option>
+
+            <Option value="rest">
+              Đang nghỉ
+            </Option>
+
+          </Select>
+
+        </Form.Item>
 
         {/* BUTTON */}
 
-        <Button
-          type="primary"
-          block
-          size="large"
-          loading={loading}
-          onClick={handleCreate}
-          className="createTeamModal__btn"
-        >
+        <div className="editTeamModal__actions">
 
-          🚑 Tạo đội cứu hộ
+          <Button
+            size="large"
+            onClick={onClose}
+          >
 
-        </Button>
+            Hủy
+
+          </Button>
+
+          <Button
+            type="primary"
+            size="large"
+            loading={loading}
+            onClick={handleUpdate}
+            className="editTeamModal__submit"
+          >
+
+            Cập nhật
+
+          </Button>
+
+        </div>
 
       </Form>
 
