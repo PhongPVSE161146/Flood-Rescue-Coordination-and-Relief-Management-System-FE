@@ -7,7 +7,7 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-
+import UpdateDetailTeam from "./UpdateDetailTeam";
 import { getAllRescueTeams } from "../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
@@ -17,6 +17,17 @@ const priorityTranslate = {
   Medium: "Mức Độ Trung Bình",
   Low: "Mức Độ Thấp"
 };
+
+
+
+const STATUS_STEPS = [
+  { key:"PENDING", label:"Chờ Điều Phối", icon:"🕒" },
+  { key:"ASSIGNED", label:"Đã Điều Động", icon:"📋" },
+  { key:"ACCEPTED", label:"Đội đã nhận", icon:"🚑" },
+  { key:"RESCUING", label:"Đang cứu hộ", icon:"🛟" },
+  { key:"COMPLETED", label:"Hoàn thành", icon:"✔" },
+  { key:"CANCELLED", label:"Đã hủy", icon:"❌" }
+]
 
 export default function RescueOperationDetail({ assignmentId }) {
 
@@ -30,125 +41,126 @@ export default function RescueOperationDetail({ assignmentId }) {
   })
 
   const [images,setImages] = useState([])
-
+  const [openEdit,setOpenEdit] = useState(false)
   const [messages,setMessages] = useState([])
   const [input,setInput] = useState("")
   const messagesRef = useRef(null)
 
+  const normalizeStatus = (s)=> s?.trim().toLowerCase()
+
   /* ================= LOAD DATA ================= */
+
+  const fetchData = async()=>{
+
+    try{
+  
+      const [
+        assignment,
+        requestRes,
+        urgencyRes,
+        teamRes,
+        vehicleRes,
+        statusRes
+      ] = await Promise.all([
+        getRescueAssignmentById(assignmentId),
+        getPendingRescueRequests(),
+        getUrgencyLevels(),
+        getAllRescueTeams(),
+        getAllVehicles(),
+        getRequestStatuses()
+      ])
+  
+      const requests = requestRes?.data || requestRes || []
+      const teams = teamRes?.data?.items || []
+      const vehicles = vehicleRes?.data || []
+      const urgencies = urgencyRes || []
+      const statuses = statusRes?.data || statusRes || []
+  
+      const teamMap={}
+      teams.forEach(t=>{
+        teamMap[t.rcid]=t.rcName
+      })
+  
+      const vehicleMap={}
+      vehicles.forEach(v=>{
+        vehicleMap[v.vehicleId]=v.vehicleName
+      })
+  
+      const urgencyMap={}
+      urgencies.forEach(u=>{
+        urgencyMap[u.urgencyLevelId]=u.levelName
+      })
+  
+      const statusMap={}
+      statuses.forEach(s=>{
+        statusMap[s.statusId]=s.description
+      })
+  
+      const req = requests.find(
+        r=>r.rescueRequestId===assignment.rescueRequestId
+      )
+  
+      const urgencyLevel = urgencyMap[req?.urgencyLevelId]
+  
+      const urgencyText =
+        priorityTranslate[urgencyLevel] ||
+        urgencyLevel ||
+        "Không xác định"
+  
+        const data={
+
+          missionId:assignment.assignmentId,
+          rescueRequestId:assignment.rescueRequestId,
+          rescueTeamId:assignment.rescueTeamId,
+          vehicleId:assignment.vehicleId,
+        
+          team:teamMap[assignment.rescueTeamId],
+          vehicle:vehicleMap[assignment.vehicleId],
+          assignmentStatus: assignment.assignmentStatus,
+          fullname:req?.fullname || req?.fullName,
+          phone:req?.contactPhone,
+          address:req?.address,
+        
+          urgency:urgencyText,
+        
+          status:statusMap[req?.requestStatusId],
+          statusId:req?.requestStatusId,
+        
+          startTime:assignment.assignedAt
+        
+        }
+  
+      setDetail(data)
+  
+      if(req?.locationLat && req?.locationLng){
+  
+        setLocation({
+          lat:req.locationLat,
+          lng:req.locationLng
+        })
+  
+      }
+  
+      if(req?.images){
+        setImages(req.images)
+      }
+  
+    }catch(err){
+  
+      console.error("Load detail error:",err)
+  
+    }
+  
+  }
+
 
   useEffect(()=>{
 
     if(!assignmentId) return
-
-    const fetchData = async()=>{
-
-      try{
-
-        const [
-          assignment,
-          requestRes,
-          urgencyRes,
-          teamRes,
-          vehicleRes,
-          statusRes
-        ] = await Promise.all([
-          getRescueAssignmentById(assignmentId),
-          getPendingRescueRequests(),
-          getUrgencyLevels(),
-          getAllRescueTeams(),
-          getAllVehicles(),
-          getRequestStatuses()
-        ])
-
-        const requests = requestRes?.data || requestRes || []
-        const teams = teamRes?.data?.items || []
-        const vehicles = vehicleRes?.data || []
-        const urgencies = urgencyRes || []
-        const statuses = statusRes?.data || statusRes || []
-
-        /* MAP LOOKUP */
-
-        const teamMap={}
-        teams.forEach(t=>{
-          teamMap[t.rcid]=t.rcName
-        })
-
-        const vehicleMap={}
-        vehicles.forEach(v=>{
-          vehicleMap[v.vehicleId]=v.vehicleName
-        })
-
-        const urgencyMap={}
-        urgencies.forEach(u=>{
-          urgencyMap[u.urgencyLevelId]=u.levelName
-        })
-
-        const statusMap={}
-        statuses.forEach(s=>{
-          statusMap[s.statusId]=s.description
-        })
-
-        const req = requests.find(
-          r=>r.rescueRequestId===assignment.rescueRequestId
-        )
-
-        const urgencyLevel = urgencyMap[req?.urgencyLevelId]
-
-        const urgencyText =
-        priorityTranslate[urgencyLevel] ||
-        urgencyLevel ||
-        "Không xác định"
-
-        const data={
-
-          missionId:assignment.assignmentId,
-
-          team:teamMap[assignment.rescueTeamId],
-
-          vehicle:vehicleMap[assignment.vehicleId],
-
-          fullname:req?.fullname || req?.fullName,
-
-          phone:req?.contactPhone,
-
-          address:req?.address,
-
-          urgency:urgencyText,
-
-          status:statusMap[req?.requestStatusId],
-
-          startTime:assignment.assignedAt
-
-        }
-
-        setDetail(data)
-
-        if(req?.locationLat && req?.locationLng){
-
-          setLocation({
-            lat:req.locationLat,
-            lng:req.locationLng
-          })
-
-        }
-
-        if(req?.images){
-          setImages(req.images)
-        }
-
-      }catch(err){
-
-        console.error("Load detail error:",err)
-
-      }
-
-    }
-
+  
     fetchData()
-
+  
   },[assignmentId])
-
 
   /* ===== AUTO SCROLL CHAT ===== */
 
@@ -199,8 +211,35 @@ export default function RescueOperationDetail({ assignmentId }) {
   }
 
   if(!detail){
-    return <div style={{padding:20}}>Chọn nhiệm vụ bên trái</div>
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22,
+          fontWeight: 600,
+          color: "#555"
+        }}
+      >
+        Chọn yêu cầu bên trái để xem chi tiết
+      </div>
+    );
   }
+
+  let visibleSteps = STATUS_STEPS
+
+  if(detail.assignmentStatus === "CANCELLED"){
+    visibleSteps = STATUS_STEPS.filter(step =>
+      ["ASSIGNED","CANCELLED"].includes(step.key)
+    )
+  }
+
+  const currentIndex = visibleSteps.findIndex(
+    s => s.key === detail.assignmentStatus
+  )
+
 
   return(
 
@@ -213,7 +252,7 @@ export default function RescueOperationDetail({ assignmentId }) {
 <div>
 
 <h2>
-Nhiệm vụ #{detail.missionId}
+Nhiệm vụ #{detail.rescueRequestId}
 
 <span className="rc-badge rc-badge--danger">
 {detail.urgency}
@@ -252,70 +291,40 @@ Kết thúc nhiệm vụ
 
 <div className="rc-timeline">
 
-<div className={`rc-timeline__item ${
-detail.status==="Đã được tiếp nhận" ||
-detail.status==="Đang trên đường" ||
-detail.status==="Đang cứu hộ" ||
-detail.status==="Đã hoàn thành"
-?"done":""
-}`}>
+{visibleSteps.map((step,index)=>{
 
-<div className="rc-timeline__icon">✓</div>
+const isActive = index === currentIndex
+const isDone = index < currentIndex
+
+return(
+
+<div key={step.key} className="rc-timeline__step">
+
+<div
+className={`rc-timeline__item 
+${isActive ? "active":""}
+${isDone ? "done":""}`}
+>
+
+<div className="rc-timeline__icon">
+{step.icon}
+</div>
 
 <div className="rc-timeline__content">
-<b>ĐÃ TIẾP NHẬN</b>
+<b>{step.label.toUpperCase()}</b>
 </div>
 
 </div>
 
-<div className="rc-timeline__line"/>
-
-<div className={`rc-timeline__item ${
-detail.status==="Đang trên đường"
-?"active"
-: detail.status==="Đang cứu hộ" || detail.status==="Đã hoàn thành"
-?"done":""
-}`}>
-
-<div className="rc-timeline__icon">🚑</div>
-
-<div className="rc-timeline__content">
-<b>ĐANG TRÊN ĐƯỜNG</b>
-</div>
+{index < visibleSteps.length-1 && (
+<div className={`rc-timeline__line ${isDone ? "done":""}`} />
+)}
 
 </div>
 
-<div className="rc-timeline__line"/>
+)
 
-<div className={`rc-timeline__item ${
-detail.status==="Đang cứu hộ"
-?"active"
-: detail.status==="Đã hoàn thành"
-?"done":""
-}`}>
-
-<div className="rc-timeline__icon">🛟</div>
-
-<div className="rc-timeline__content">
-<b>ĐANG CỨU HỘ</b>
-</div>
-
-</div>
-
-<div className="rc-timeline__line"/>
-
-<div className={`rc-timeline__item ${
-detail.status==="Đã hoàn thành"
-?"done":""
-}`}>
-
-<div className="rc-timeline__icon">✔</div>
-
-<div className="rc-timeline__content">
-<b>HOÀN THÀNH</b>
-</div>
-
-</div>
+})}
 
 </div>
 
@@ -329,33 +338,29 @@ detail.status==="Đã hoàn thành"
 
 {/* INFO */}
 
-<section className="rc-op-card">
+<section className="card">
 
-<h4>👤 THÔNG TIN NẠN NHÂN</h4>
+<h4 className="card-title">👤 THÔNG TIN NGƯỜI DÂN</h4>
 
-<div className="rc-info-row">
+<div className="info-row">
 
-<div>
+  <div className="info-item">
+    <label>HỌ VÀ TÊN</label>
+    <strong>{detail.name || detail.fullname}</strong>
+  </div>
 
-<label>NGƯỜI GỬI YÊU CẦU</label>
-
-<b>{detail.fullname}</b>
-
-<span className="link">
-{detail.phone}
-</span>
-
-</div>
-
-<div>
-
-<label>ĐỊA CHỈ</label>
-
-<p>{detail.address}</p>
+  <div className="info-item">
+    <label>SỐ ĐIỆN THOẠI</label>
+    <strong className="phone">{detail.phone}</strong>
+  </div>
 
 </div>
 
-</div>
+<label>ĐỊA CHỈ HIỆN TẠI</label>
+
+<p className="address-text">
+  {detail.address}
+</p>
 
 </section>
 
@@ -363,11 +368,35 @@ detail.status==="Đã hoàn thành"
 
 <section className="rc-op-card">
 
-<h4>🚑 ĐỘI CỨU HỘ</h4>
+  <div className="rc-op-card-header">
 
-<p>👥 {detail.team}</p>
+    <h4>🚑 ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
 
-<p>🚑 {detail.vehicle}</p>
+    <button
+  className="rc-op-edit-btn"
+  onClick={()=>setOpenEdit(true)}
+  disabled={detail?.statusId >= 3}
+>
+  ✏️ Chỉnh sửa
+</button>
+
+  </div>
+
+  <div className="rc-op-item">
+
+    <label>Đội Cứu Hộ</label>
+
+    <p>👥 {detail.team}</p>
+
+  </div>
+
+  <div className="rc-op-item">
+
+    <label>Phương Tiện</label>
+
+    <p>🚑 {detail.vehicle}</p>
+
+  </div>
 
 </section>
 
@@ -392,7 +421,11 @@ loading="lazy"
 
 </section>
 
-{/* IMAGES */}
+</div>
+
+{/* CHAT */}
+
+<div className="rc-op-col">
 
 <section className="rc-op-card">
 
@@ -427,12 +460,6 @@ backgroundPosition:"center"
 </div>
 
 </section>
-
-</div>
-
-{/* CHAT */}
-
-<div className="rc-op-col">
 
 <section className="rc-op-card rc-chat">
 
@@ -494,8 +521,19 @@ onKeyDown={handleKeyDown}
 
 </div>
 
+<UpdateDetailTeam
+open={openEdit}
+detail={detail}
+onClose={()=>setOpenEdit(false)}
+onSave={()=>{
+
+  fetchData()
+
+}}
+/>
+
 </section>
 
-  )
+)
 
 }

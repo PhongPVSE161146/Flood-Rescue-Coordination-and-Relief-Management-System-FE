@@ -19,6 +19,20 @@ const priorityTranslate = {
   Low: "Mức Độ Thấp"
 };
 
+const assignmentStatusMap = {
+  ASSIGNED:"Đã điều động",
+  ACCEPTED:"Đội đã nhận",
+  COMPLETED:"Hoàn thành",
+  PENDING:"Chờ điều phối"
+}
+
+const assignmentStatusClass = {
+  ASSIGNED:"status-assigned",
+  ACCEPTED:"status-accepted",
+  COMPLETED:"status-completed",
+  PENDING:"status-pending"
+}
+
 export default function ListTeamCuuHo({ onSelectMission }) {
 
   const [missions, setMissions] = useState([]);
@@ -96,9 +110,7 @@ export default function ListTeamCuuHo({ onSelectMission }) {
 
       /* ACTIVE ASSIGNMENTS */
 
-      const activeAssignments = assignments.filter(
-        a=>a.assignmentStatus==="ASSIGNED"
-      )
+      const activeAssignments = assignments.map(a => a)
 
       const mapped = activeAssignments.map(a=>{
 
@@ -106,12 +118,14 @@ export default function ListTeamCuuHo({ onSelectMission }) {
         
         const urgencyLevel = urgencyMap[req?.urgencyLevelId]
         
-        const requestStatus = statusMap[req?.requestStatusId]
+        const requestStatus = statusMap[req?.statusId]
+        
+        const assignmentStatus = a.assignmentStatus
         
         return{
         
-        id:a.rescueRequestId,          // ID request
-        assignmentId:a.assignmentId,   // ID assignment
+        id:a.rescueRequestId,
+        assignmentId:a.assignmentId,
         
         team:teamMap[a.rescueTeamId] || `Team ${a.rescueTeamId}`,
         
@@ -124,6 +138,8 @@ export default function ListTeamCuuHo({ onSelectMission }) {
         address:req?.address || "Không xác định",
         
         incident:req?.requestType || "",
+        
+        assignmentStatus:assignmentStatus,
         
         urgency:
         priorityTranslate[urgencyLevel] ||
@@ -222,7 +238,27 @@ export default function ListTeamCuuHo({ onSelectMission }) {
 
 <div className="rc-team-list__header">
 
+<div className="rc-team-list__header-left">
+
+<div className="rc-team-list__title">
+
 <h3>Đang cứu hộ ({filtered.length})</h3>
+
+<button
+className="rc-refresh-btn"
+onClick={fetchData}
+disabled={loading}
+>
+
+{loading ? (
+<span className="rc-spinner"></span>
+) : (
+"🔄 Làm mới"
+)}
+
+</button>
+
+</div>
 
 <input
 className="rc-team-list__search"
@@ -230,6 +266,12 @@ placeholder="Lọc theo đội..."
 value={search}
 onChange={(e)=>setSearch(e.target.value)}
 />
+
+</div>
+
+<div className="rc-team-list__header-right">
+
+
 
 <div className="rc-queue__tabs">
 
@@ -253,6 +295,8 @@ onClick={()=>changeTab("merge")}
 >
 GỘP YÊU CẦU
 </button>
+
+</div>
 
 </div>
 
@@ -301,7 +345,9 @@ urgency:v || ""
 {loading && <div>Đang tải dữ liệu...</div>}
 
 {!loading && filtered.length===0 && (
-<div>Không có dữ liệu</div>
+  <div className="rc-empty">
+  Không có dữ liệu
+</div>
 )}
 
 {filtered.map(item => (
@@ -321,10 +367,11 @@ urgency:v || ""
 {item.urgency}
 </span>
 
-<span className="rc-team-item__status-badge">
-{item.status}
+<span
+className={`status-badge ${assignmentStatusClass[item.assignmentStatus]}`}
+>
+{assignmentStatusMap[item.assignmentStatus]}
 </span>
-
 </div>
 
 <strong>{item.fullname}</strong>

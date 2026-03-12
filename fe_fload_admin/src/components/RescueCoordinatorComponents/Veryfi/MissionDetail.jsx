@@ -150,9 +150,16 @@ export default function MissionDetail({ mission }) {
 
             Yêu cầu #{mission.id}
 
-            <span className="status status-pending">
-              CHỜ XÁC MINH
-            </span>
+            <span 
+className="status status-pending"
+style={{
+  backgroundColor:"#f59e0b",
+  color:"#fff",
+  padding:"4px 10px",
+  borderRadius:"14px"
+}}>
+ĐANG XỬ LÝ
+</span>
 
           </h2>
 

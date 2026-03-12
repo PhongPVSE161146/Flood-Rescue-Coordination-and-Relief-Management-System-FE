@@ -494,9 +494,10 @@ const list = raw.filter(
 
         ) : filtered.length === 0 ? (
 
-          <div className="ltr-empty">
-            Không có dữ liệu
-          </div>
+          <div className="rc-empty">
+          Không có dữ liệu
+        </div>
+
 
         ) : (
 

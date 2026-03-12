@@ -11,11 +11,22 @@
 
 /* ================= HEADER ================= */
 .md-header {
-  position: relative;
-  z-index: 10;
+  position: fixed;
+  top: 0;
+  left: 260px; /* nếu có sidebar */
+  right: 0;
+  z-index: 100;
+  margin-top: 67px;
   padding: 20px 28px 16px;
+
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 /* inner layout */
@@ -87,7 +98,9 @@
   display: grid;
   grid-template-columns: 360px 1fr;
   gap: 20px;
-  padding: 0 28px 120px;
+
+  padding: 110px 28px 120px; /* chừa khoảng cho header */
+
   overflow-y: auto;
 }
 
