@@ -23,9 +23,9 @@ const Header = () => {
 
         {/* CENTER - MENU */}
         <nav className="header-menu">
-          <button onClick={() => navigate("/map")}>TRA CỨU</button>
-          <button onClick={() => navigate("/guide")}>CẨM NANG</button>
-          <button onClick={() => navigate("/contact")}>LIÊN HỆ</button>
+        <button onClick={() => navigate("/")}>TRANG CHỦ</button>
+          <button onClick={() => navigate("/map")}>TRA CỨU</button>      
+          <button onClick={() => navigate("/newpage")}>TIN TỨC</button>
           <button onClick={() => navigate("/map")}>BẢN ĐỒ</button>
         </nav>
 
