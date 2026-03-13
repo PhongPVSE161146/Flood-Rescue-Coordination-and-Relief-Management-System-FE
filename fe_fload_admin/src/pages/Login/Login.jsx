@@ -13,7 +13,7 @@ import { loginApi } from "../../../api/axios/Auth/authApi";
 import shield from "../../../src/assets/LoginImage/shield.svg";
 
 import AuthNotify from "../../utils/Common/AuthNotify";
-import LoginLoaderPay from "../../layout/LoginLoader/LoginLoaderPay";
+import LoginLoaderPay from "../../utils/LoginLoader/LoginLoaderPay";
 
 import "./login.css";
 

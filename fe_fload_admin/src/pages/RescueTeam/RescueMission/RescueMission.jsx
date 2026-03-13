@@ -1,5 +1,5 @@
-import MissionListRescue from "../../../components/RescueTeamComponents/MissionListRescue";
-import MissionQuickNotify from "../../../components/RescueTeamComponents/MissionQuickNotify";
+import MissionListRescue from "../../../components/RescueTeamComponents/ListTaskMission/MissionListRescue";
+import MissionQuickNotify from "../../../components/RescueTeamComponents/ListTaskNotify/MissionQuickNotify";
 import "./RescueMission.css";
 
 export default function RescueMission() {

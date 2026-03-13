@@ -6,11 +6,11 @@ import {
   getRescueAssignmentById,
   getPendingRescueRequests,
   getUrgencyLevels
-} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
-import { getAllRescueTeams } from "../../../../api/axios/ManagerApi/rescueTeamApi";
-import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
-import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
+import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
+import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
+import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 
 const priorityTranslate = {
   High:"Mức Độ Cao",

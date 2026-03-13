@@ -17,11 +17,11 @@ import { useState, useEffect } from 'react';
 
 import {
   createTeamMember
-} from '../../../../../api/axios/ManagerApi/rescueTeamApi';
+} from '../../../../../../api/axios/ManagerApi/rescueTeamApi';
 
-import { getAllUser } from '../../../../../api/axios/AdminApi/userApi';
+import { getAllUser } from '../../../../../../api/axios/AdminApi/userApi';
 
-import AuthNotify from '../../../../utils/Common/AuthNotify';
+import AuthNotify from '../../../../../utils/Common/AuthNotify';
 
 import "./CreateMemberModal.css";
 

@@ -21,7 +21,7 @@ import {
 import './TeamManagementList.css';
 
 import MemberTable from './MemberTable';
-import CreateTeamModal from '../CreateTeam/CreateTeamModal';
+import CreateTeamModal from '../CreateTeam/TeamModal/CreateTeamModal';
 import EditTeamModal from '../EditTeam/EditTeamModal';
 
 import AuthNotify from "../../../../utils/Common/AuthNotify";

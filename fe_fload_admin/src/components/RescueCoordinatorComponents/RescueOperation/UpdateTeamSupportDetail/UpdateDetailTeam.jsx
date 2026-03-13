@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 
 import {
   getAllRescueTeams
-} from "../../../../api/axios/ManagerApi/rescueTeamApi";
+} from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 
 import {
   getAllVehicles
-} from "../../../../api/axios/ManagerApi/vehicleApi";
+} from "../../../../../api/axios/ManagerApi/vehicleApi";
 
 import {
   updateRescueAssignment
-} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import "./update-detail-team.css";
 
-import AuthNotify from "../../../utils/Common/AuthNotify";
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 
 export default function UpdateDetailTeam({
   open,

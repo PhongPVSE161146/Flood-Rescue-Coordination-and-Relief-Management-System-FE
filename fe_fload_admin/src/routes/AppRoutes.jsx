@@ -27,9 +27,9 @@ import RescueReportPage from "../pages/RescueCoordinator/RescueReportPage/Rescue
 
 /* ================= RESCUE ================= */
 import RescueTask from "../pages/RescueTeam/RescueMission/RescueMission";
-import MissionDetailRescue from "../pages/RescueTeam/RescueMission/MissionDetailRescue";
-import MissionHistory from "../pages/RescueTeam/RescueMission/MissionHistory";
-import MissionInProgress from "../pages/RescueTeam/RescueMission/MissionInProgress";
+import MissionDetailRescue from "../pages/RescueTeam/RescueMission/DetailRescueMission/MissionDetailRescue";
+import MissionHistory from "../pages/RescueTeam/RescueMissionHistory/MissionHistory";
+import MissionInProgress from "../pages/RescueTeam/RescueMissionProgress/MissionInProgress";
 // import RescueHistory from "../pages/Rescue/History";
 // import RescueMessages from "../pages/Rescue/Messages";
 // import RescueProfile from "../pages/Rescue/Profile";

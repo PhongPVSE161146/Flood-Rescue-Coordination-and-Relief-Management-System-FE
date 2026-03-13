@@ -16,13 +16,13 @@ import {
 
 import {
   createRescueTeam
-} from '../../../../../api/axios/ManagerApi/rescueTeamApi';
+} from '../../../../../../api/axios/ManagerApi/rescueTeamApi';
 
-import { getProvinces } from '../../../../../api/axios/Auth/authApi';
+import { getProvinces } from '../../../../../../api/axios/Auth/authApi';
 
 import { useState, useEffect } from 'react';
 
-import AuthNotify from "../../../../utils/Common/AuthNotify";
+import AuthNotify from "../../../../../utils/Common/AuthNotify";
 
 import './CreateTeamModal.css';
 
