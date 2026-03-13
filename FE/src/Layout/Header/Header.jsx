@@ -32,9 +32,9 @@ const Header = () => {
         {/* RIGHT */}
         <div className="header-actions">
 
-          <div className="search-box">
+          {/* <div className="search-box">
             <input placeholder="Tìm kiếm cứu trợ..." />
-          </div>
+          </div> */}
 
           <div className="hotline">
             <span>HOTLINE 24/7</span>

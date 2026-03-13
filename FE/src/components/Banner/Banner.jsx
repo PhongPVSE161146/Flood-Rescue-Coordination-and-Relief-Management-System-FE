@@ -10,9 +10,9 @@ const Banner = () => {
     navigate("/emergency");
   };
 
-  const handleMore = () => {
-    navigate("/about");
-  };
+  // const handleMore = () => {
+  //   navigate("/about");
+  // };
 
   return (
     <section className="hero-banner">
@@ -40,10 +40,10 @@ const Banner = () => {
             GỬI YÊU CẦU CỨU TRỢ
           </button>
 
-          <button className="btn-outline" onClick={handleMore}>
+          {/* <button className="btn-outline" onClick={handleMore}>
             <FaInfoCircle />
             Tìm hiểu thêm
-          </button>
+          </button> */}
         </div>
       </div>
     </section>
