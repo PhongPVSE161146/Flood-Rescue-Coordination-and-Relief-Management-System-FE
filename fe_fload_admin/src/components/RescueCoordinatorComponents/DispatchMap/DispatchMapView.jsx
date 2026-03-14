@@ -9,9 +9,7 @@ import {
 } from "../../../../api/axios/ManagerApi/rescueTeamApi";
 
 import {
-  getAllAssignments,
-  confirmDispatchRescueRequest,
-  updateRescueAssignment
+  confirmDispatchRescueRequest
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import {
@@ -34,13 +32,34 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   const [rescueTeams, setRescueTeams] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+
   const teamCount = rescueTeams.length;
   const vehicleCount = vehicles.length;
-  /* ================= REQUEST INFO ================= */
+
+  /* ================= USER ================= */
+
+  let user = {};
+
+  try {
+  
+    user =
+      JSON.parse(sessionStorage.getItem("user")) ||
+      JSON.parse(localStorage.getItem("user")) ||
+      {};
+  
+  } catch {
+  
+    user = {};
+  
+  }
+
+  const assignedBy = user?.userId || 0;
+
+  /* ================= REQUEST ================= */
 
   const id = request?.id || request?.requestId || "N/A";
   const fullname = request?.fullname || request?.name || "Không rõ";
-  const address = request?.address || request?.location || "Không rõ địa chỉ";
+  const address = request?.address || "Không rõ địa chỉ";
   const status = request?.statusText || "Đang xử lý";
 
   /* ================= LOAD TEAMS ================= */
@@ -48,141 +67,128 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
   useEffect(() => {
 
     const fetchTeams = async () => {
-  
+
       try {
-  
-        const [teamRes, assignmentRes] = await Promise.all([
-          getAllRescueTeams(),
-          getAllAssignments()
-        ]);
-  
+
+        const teamRes = await getAllRescueTeams();
+
         const teams = teamRes?.data?.items || [];
-  
-        const assignments = assignmentRes?.data || assignmentRes || [];
-  
-        /* team đang được assign */
-  
-        const busyTeamIds = assignments
-          .filter(a => a.assignmentStatus !== "COMPLETED")
-          .map(a => a.rescueTeamId);
-  
-        const filteredTeams = teams.filter(
-          team => !busyTeamIds.includes(team.rcid)
-        );
-  
+
+        /* CHỈ LẤY TEAM SẴN SÀNG */
+
+        const availableTeams =
+          teams.filter(t => t.rcStatus === "on duty");
+
         const mapped = await Promise.all(
-  
-          filteredTeams.map(async (team) => {
-  
+
+          availableTeams.map(async (team) => {
+
             let lat = request?.lat || 10.8231;
             let lng = request?.lng || 106.6297;
             let address = "Không xác định";
-  
+
             try {
-  
+
               const loc = await getRescueTeamLocation(team.rcid);
-  
+
               const location = loc?.data?.location;
-  
+
               if (location) {
-  
+
                 const [lngStr, latStr] = location.split(",");
-  
+
                 lat = parseFloat(latStr);
                 lng = parseFloat(lngStr);
-  
+
                 address = `${lat}, ${lng}`;
-  
+
               }
-  
+
             } catch {}
-  
+
             return {
-  
+
               id: team.rcid,
               name: team.rcName,
-              specialty: "Cứu hộ tổng hợp",
+              phone: team.rcPhone,
+              status: team.rcStatus,
               members: team.memberCount || 6,
               address,
               lat,
               lng
-  
+
             };
-  
+
           })
-  
+
         );
-  
+
         setRescueTeams(mapped);
-  
+
       }
       catch (err) {
-  
+
         console.error("Load teams error:", err);
-  
+
       }
-  
+
     };
-  
+
     fetchTeams();
-  
+
   }, [request]);
 
   /* ================= LOAD VEHICLES ================= */
+
   useEffect(() => {
 
     const fetchVehicles = async () => {
-  
+
       try {
-  
-        const [vehicleRes, assignmentRes] = await Promise.all([
-          getAllVehicles(),
-          getAllAssignments()
-        ]);
-  
-        const vehicles = vehicleRes?.data || [];
-  
-        const assignments = assignmentRes?.data || assignmentRes || [];
-  
-        const busyVehicleIds = assignments
-          .filter(a => a.assignmentStatus !== "COMPLETED")
-          .map(a => a.vehicleId);
-  
-        const filteredVehicles = vehicles.filter(
-          v => !busyVehicleIds.includes(v.vehicleId)
-        );
-  
-        const mapped = filteredVehicles
-          .filter(v =>
-            ["ready","available"].includes(
-              v.vehicleStatus?.toLowerCase()
-            )
-          )
-          .map(v => ({
-  
-            id: v.vehicleId,
-            name: v.vehicleName,
-            type: v.vehicleType,
-            capacity: v.vehicleLocation || "Không rõ"
-  
-          }));
-  
+
+        const res = await getAllVehicles();
+
+        const data =
+        res?.data?.items ||
+        res?.data ||
+        [];
+
+        /* CHỈ LẤY XE READY */
+
+        const availableVehicles =
+          data.filter(v =>
+            v.vehicleStatus?.toLowerCase() === "ready"
+          );
+
+        const mapped = availableVehicles.map(v => ({
+
+          id: v.vehicleId,
+          name: v.vehicleName,
+          type: v.vehicleType,
+          location: v.vehicleLocation,
+          status: v.vehicleStatus
+
+        }));
+
         setVehicles(mapped);
-  
+
       }
       catch (err) {
-  
+
         console.error("Load vehicles error:", err);
-  
+
       }
-  
+
     };
-  
+
     fetchVehicles();
-  
+
   }, []);
 
-  /* ================= SELECT ================= */
+ 
+
+
+  /* ================= SELECT TEAM ================= */
 
   const toggleTeam = (id) => {
 
@@ -190,13 +196,32 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   };
 
+  /* ================= SELECT VEHICLE ================= */
+
   const toggleVehicle = (id) => {
 
-    setSelectedVehicles(prev =>
-      prev.includes(id)
-        ? prev.filter(v => v !== id)
-        : [...prev, id]
-    );
+    setSelectedVehicles(prev => {
+
+      if (prev.includes(id)) {
+
+        return prev.filter(v => v !== id);
+
+      }
+
+      if (prev.length >= 3) {
+
+        AuthNotify.warning(
+          "Giới hạn phương tiện",
+          "Chỉ được chọn tối đa 3 phương tiện"
+        );
+
+        return prev;
+
+      }
+
+      return [...prev, id];
+
+    });
 
   };
 
@@ -228,7 +253,9 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   }, [selectedTeam, rescueTeams, request]);
 
-  /* ================= CONFIRM DISPATCH ================= */
+  
+
+  /* ================= CONFIRM ================= */
 
   const canConfirm =
     Boolean(selectedTeam) &&
@@ -249,58 +276,34 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
     try {
 
-      /* STEP 1: GET ASSIGNMENTS */
+      const payload = {
 
-      const res = await getAllAssignments();
+        rescueRequestId: Number(id),
+        rescueTeamId: Number(selectedTeam),
+        vehicleId: Number(selectedVehicles[0]),
+        assignedBy: Number(assignedBy)
 
-      const assignments =
-        res?.data || res || [];
+      };
 
-      let assignment = assignments.find(
-        a => a.rescueRequestId === Number(id)
+      await confirmDispatchRescueRequest(payload);
+
+      /* REMOVE TEAM + VEHICLE KHỎI LIST */
+
+      setRescueTeams(prev =>
+        prev.filter(t => t.id !== selectedTeam)
       );
 
-      /* STEP 2: CREATE ASSIGNMENT (POST) */
-
-      if (!assignment) {
-
-        const created = await confirmDispatchRescueRequest({
-
-          rescueRequestId: Number(id),
-
-          rescueTeamId: Number(selectedTeam),
-
-          vehicleId: Number(selectedVehicles[0]),
-
-          assignedBy: 5
-
-        });
-
-        assignment = created?.data || created;
-
-      }
-
-      /* STEP 3: UPDATE ASSIGNMENT (PUT) */
-
-      else {
-
-        await updateRescueAssignment(
-          assignment.assignmentId,
-          {
-
-            rescueTeamId: Number(selectedTeam),
-
-            vehicleId: Number(selectedVehicles[0])
-
-          }
-        );
-
-      }
+      setVehicles(prev =>
+        prev.filter(v =>
+          !selectedVehicles.includes(v.id)
+        )
+      );
 
       AuthNotify.success(
         "Điều động thành công",
         "Đội cứu hộ đã được điều động"
       );
+
       onDispatchSuccess?.(id);
 
       navigate("/coordinator/mina", {
@@ -331,19 +334,20 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   };
 
-  /* ================= EMPTY ================= */
-
   if (!request) {
 
     return (
-      <div style={{
-        height:"100%",
-        display:"flex",
-        alignItems:"center",
-        justifyContent:"center",
-        fontSize:22,
-        fontWeight:600
-      }}>
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22,
+          fontWeight: 600,
+          color: "#555"
+        }}
+      >
         Chọn yêu cầu bên trái để xem chi tiết
       </div>
     );
@@ -398,63 +402,80 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
           <div className="rc-map__panel-title">
 
-          <h4>
-  LỰA CHỌN NGUỒN LỰC 
-  <span className="rc-resource-count">
-    ({teamCount} đội | {vehicleCount} xe)
-  </span>
-</h4>
+            <h4>
+              LỰA CHỌN NGUỒN LỰC
+              <span className="rc-resource-count">
+                ({teamCount} đội | {vehicleCount} xe)
+              </span>
+            </h4>
 
-<span
-  className={`rc-map__tab ${tab==="team"?"active":""}`}
-  onClick={()=>setTab("team")}
->
-  Đội Cứu Hộ ({teamCount})
-</span>
+            <span
+              className={`rc-map__tab ${tab === "team" ? "active" : ""}`}
+              onClick={() => setTab("team")}
+            >
+              Đội Cứu Hộ ({teamCount})
+            </span>
 
-<span
-  className={`rc-map__tab ${tab==="vehicle"?"active":""}`}
-  onClick={()=>setTab("vehicle")}
->
-  Phương Tiện ({vehicleCount})
-</span>
+            <span
+              className={`rc-map__tab ${tab === "vehicle" ? "active" : ""}`}
+              onClick={() => setTab("vehicle")}
+            >
+              Phương Tiện ({vehicleCount})
+            </span>
 
           </div>
 
           <button
             className="rc-map__collapse-btn"
-            onClick={()=>setCollapsed(!collapsed)}
+            onClick={() => setCollapsed(!collapsed)}
           >
-            {collapsed ? <>MỞ RỘNG <DownOutlined/></> : <>THU GỌN <UpOutlined/></>}
+            {collapsed
+              ? <>MỞ RỘNG <DownOutlined/></>
+              : <>THU GỌN <UpOutlined/></>}
           </button>
 
         </div>
 
         <div className="rc-map__teams">
 
-          {tab==="team" && rescueTeams.map(team=>(
+          {tab === "team" && rescueTeams.map(team => (
+
             <div
               key={team.id}
-              className={`rc-team ${selectedTeam===team.id?"active":""}`}
-              onClick={()=>toggleTeam(team.id)}
+              className={`rc-team ${selectedTeam === team.id ? "active" : ""}`}
+              onClick={() => toggleTeam(team.id)}
             >
+
               <h5>{team.name}</h5>
-              <p><b>Chuyên môn:</b> {team.specialty}</p>
-              <p><b>Quân số:</b> {team.members}</p>
+
+              <p><b>SĐT:</b> {team.phone}</p>
+
+              <p><b>Trạng thái:</b> 🟢 Sẵn sàng</p>
+
               <p><b>Vị trí:</b> {team.address}</p>
+
             </div>
+
           ))}
 
-          {tab==="vehicle" && vehicles.map(v=>(
+          {tab === "vehicle" && vehicles.map(v => (
+
             <div
               key={v.id}
-              className={`rc-team ${selectedVehicles.includes(v.id)?"active":""}`}
-              onClick={()=>toggleVehicle(v.id)}
+              className={`rc-team ${selectedVehicles.includes(v.id) ? "active" : ""}`}
+              onClick={() => toggleVehicle(v.id)}
             >
+
               <h5>{v.name}</h5>
+
               <p><b>Loại:</b> {v.type}</p>
-              <p><b>Khu vực:</b> {v.capacity}</p>
+
+              <p><b>Trạng thái:</b> 🟢 Sẵn sàng</p>
+
+              <p><b>Khu vực:</b> {v.location}</p>
+
             </div>
+
           ))}
 
         </div>
@@ -462,12 +483,12 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
         <div className="rc-map__footer">
 
           <span className="rc-map__selected">
-            Đã chọn <b>{selectedTeam?1:0}</b> đội và <b>{selectedVehicles.length}</b> xe
+            Đã chọn <b>{selectedTeam ? 1 : 0}</b> đội và <b>{selectedVehicles.length}</b> xe
           </span>
 
           <div className="rc-map__actions">
 
-            <Button onClick={()=>navigate(-1)}>
+            <Button onClick={() => navigate(-1)}>
               Hủy bỏ
             </Button>
 

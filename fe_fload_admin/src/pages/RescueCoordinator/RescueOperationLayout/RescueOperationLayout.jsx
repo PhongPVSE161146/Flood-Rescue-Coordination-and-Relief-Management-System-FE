@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ListTeamCuuHo from "../../../components/RescueCoordinatorComponents/RescueOperation/ListTeamCuuHo";
-import RescueOperationDetail from "../../../components/RescueCoordinatorComponents/RescueOperation/RescueOperationDetail";
+import ListTeamCuuHo from "../../../components/RescueCoordinatorComponents/RescueOperation/ListTaskTeamSupport/ListTeamCuuHo";
+import RescueOperationDetail from "../../../components/RescueCoordinatorComponents/RescueOperation/ListTaskTeamSupportDetail/RescueOperationDetail";
 import "./rescue-operation.layout.css";
 
 export default function RescueOperationLayout() {

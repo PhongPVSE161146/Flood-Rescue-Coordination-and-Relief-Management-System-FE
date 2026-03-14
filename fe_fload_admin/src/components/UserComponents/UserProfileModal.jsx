@@ -6,7 +6,6 @@ import {
   Input,
   Button,
   Spin,
-  message,
   Row,
   Col,
   Avatar,
@@ -34,6 +33,7 @@ import {
 import "./UserProfileModal.css";
 
 import AuthNotify from "../../utils/Common/AuthNotify";
+
 export default function UserProfileModal({
   open,
   onClose
@@ -50,7 +50,11 @@ export default function UserProfileModal({
   const [userName, setUserName] = useState("");
 
   const [provinces, setProvinces] = useState([]);
+
+  const [role, setRole] = useState("");
+
   /* ================= LOAD PROFILE ================= */
+
   const fetchProfile = async () => {
 
     try {
@@ -61,30 +65,25 @@ export default function UserProfileModal({
 
       const data = res.data || res;
 
-      console.log("PROFILE DATA:", data);
-
       setUserId(data.userId);
 
       setUserName(data.fullName);
 
       form.setFieldsValue({
-
         fullName: data.fullName || "",
-
         phone: data.phone || "",
-
-        areaId: data.areaId || 0
-
+        areaId: data.areaId || null
       });
 
     }
     catch (error) {
 
       console.error(error);
+
       AuthNotify.error(
         "Không tải được thông tin cá nhân",
         "Vui lòng thử lại"
-      );  
+      );
 
     }
     finally {
@@ -95,51 +94,68 @@ export default function UserProfileModal({
 
   };
 
-  const validatePhoneVN = (_, value) => {
-
-    if (!value) {
-      return Promise.reject("Vui lòng nhập số điện thoại");
-    }
-  
-    const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
-  
-    if (!phoneRegex.test(value)) {
-      return Promise.reject(
-        "Số điện thoại phải gồm 10 số và đúng đầu số Việt Nam"
-      );
-    }
-  
-    return Promise.resolve();
-  };
+  /* ================= LOAD PROVINCES ================= */
 
   const fetchProvinces = async () => {
+
     try {
+
       const res = await getProvinces();
+
       const data = res.data || res;
-  
+
       setProvinces(data);
-  
-    } catch (error) {
+
+    }
+    catch (error) {
+
       console.error(error);
+
       AuthNotify.error(
         "Không tải được khu vực",
         "Vui lòng thử lại"
       );
+
     }
+
   };
+
+  /* ================= INIT ================= */
+
   useEffect(() => {
+
     if (open) {
+
       fetchProfile();
+
       fetchProvinces();
+
+      const userRole =
+        sessionStorage.getItem("role") ||
+        localStorage.getItem("role");
+
+      setRole(userRole);
+
     }
+
   }, [open]);
 
-
   /* ================= UPDATE PROFILE ================= */
+
   const handleUpdate = async () => {
-    
 
     try {
+
+      if (role === "admin") {
+
+        AuthNotify.error(
+          "Không được phép",
+          "Tài khoản admin không thể cập nhật thông tin"
+        );
+
+        return;
+
+      }
 
       if (!userId) {
 
@@ -162,13 +178,9 @@ export default function UserProfileModal({
 
         fullName: String(values.fullName),
 
-        phone: String(values.phone),
-
         areaId: Number(values.areaId)
 
       };
-
-      console.log("UPDATE PAYLOAD:", payload);
 
       await updateUserProfile(payload);
 
@@ -198,8 +210,8 @@ export default function UserProfileModal({
 
   };
 
-
   /* ================= AVATAR TEXT ================= */
+
   const avatarText = userName
     ?.split(" ")
     ?.map(word => word[0])
@@ -207,23 +219,15 @@ export default function UserProfileModal({
     ?.join("")
     ?.toUpperCase() || "U";
 
-
   return (
 
     <Modal
-
       open={open}
-
       onCancel={onClose}
-
       footer={null}
-
       width={520}
-
       className="profile-modal"
-
       centered
-
     >
 
       {
@@ -243,6 +247,7 @@ export default function UserProfileModal({
         <>
 
           {/* HEADER */}
+
           <div className="profile-header">
 
             <Avatar
@@ -262,140 +267,107 @@ export default function UserProfileModal({
 
           </div>
 
-
           {/* FORM */}
+
           <Form
-
             form={form}
-
             layout="vertical"
-
             className="profile-form"
-
           >
 
             <Row gutter={16}>
 
+              {/* NAME */}
+
               <Col span={24}>
 
                 <Form.Item
-
                   name="fullName"
-
                   label="Họ và tên"
-
                   rules={[
                     {
                       required: true,
                       message: "Nhập họ tên"
                     }
                   ]}
-
                 >
 
                   <Input
-
                     prefix={<UserOutlined />}
-
                     size="large"
-
                     placeholder="Nhập họ tên"
-
                   />
 
                 </Form.Item>
 
               </Col>
 
-
-              <Col span={24}>
-
-              <Form.Item
-  name="phone"
-  label="Số điện thoại"
-  validateTrigger="onChange"
-  rules={[
-    {
-      validator: validatePhoneVN
-    }
-  ]}
->
-
-  <Input
-    prefix={<PhoneOutlined />}
-    size="large"
-    placeholder="VD: 0901234567"
-    maxLength={10}
-
-    onChange={(e) => {
-
-      const onlyNumber =
-        e.target.value.replace(/\D/g, "");
-
-      form.setFieldsValue({
-        phone: onlyNumber
-      });
-
-    }}
-  />
-
-</Form.Item>
-
-              </Col>
-
+              {/* PHONE (READ ONLY) */}
 
               <Col span={24}>
 
                 <Form.Item
+                  name="phone"
+                  label="Số điện thoại"
+                >
 
+                  <Input
+                    prefix={<PhoneOutlined />}
+                    size="large"
+                    disabled
+                  />
+
+                </Form.Item>
+
+              </Col>
+
+              {/* AREA */}
+
+              <Col span={24}>
+
+                <Form.Item
                   name="areaId"
-
                   label="Khu vực"
-
                   rules={[
                     {
                       required: true,
-                      message: "Nhập areaId"
+                      message: "Chọn khu vực"
                     }
                   ]}
-
                 >
 
-<Select
-  size="large"
-  placeholder="Chọn tỉnh/thành"
-  suffixIcon={<EnvironmentOutlined />}
-  options={provinces.map(item => ({
-    label: item.name,   // tên tỉnh
-    value: item.id      // areaId
-  }))}
-/>
+                  <Select
+                    size="large"
+                    placeholder="Chọn tỉnh/thành"
+                    suffixIcon={<EnvironmentOutlined />}
+                    options={provinces.map(item => ({
+                      label: item.name,
+                      value: item.id
+                    }))}
+                  />
+
                 </Form.Item>
 
               </Col>
 
             </Row>
 
+            {/* BUTTON */}
 
             <Button
-
               type="primary"
-
               block
-
               size="large"
-
               icon={<SaveOutlined />}
-
               loading={loading}
-
               onClick={handleUpdate}
-
+              disabled={role === "admin"}
               className="profile-save-btn"
-
             >
 
-              Cập nhật thông tin
+              {role === "admin"
+                ? "Admin không được cập nhật"
+                : "Cập nhật thông tin"}
 
             </Button>
 

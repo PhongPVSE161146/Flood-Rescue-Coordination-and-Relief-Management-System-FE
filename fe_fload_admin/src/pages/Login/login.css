@@ -1,4 +1,5 @@
 /* ===== PAGE ===== */
+
 .login-page {
   min-height: 100vh;
   display: grid;
@@ -8,15 +9,25 @@
 }
 
 /* ===== LEFT HERO ===== */
+
 .login-hero {
   position: relative;
+  overflow: hidden;
   background-size: cover;
   background-position: center;
+}
+
+.hero-video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .hero-overlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
   padding: 64px;
   background: linear-gradient(
     120deg,
@@ -31,6 +42,7 @@
 }
 
 /* top */
+
 .hero-top {
   display: flex;
   align-items: center;
@@ -46,6 +58,7 @@
 }
 
 /* title */
+
 .hero-overlay h1 {
   font-size: 64px;
   line-height: 1.05;
@@ -58,15 +71,16 @@
 }
 
 /* desc */
+
 .hero-overlay p {
   max-width: 520px;
   font-size: 16px;
   line-height: 1.7;
   color: #cbd5e1;
-
 }
 
 /* metrics */
+
 .hero-metrics {
   display: flex;
   gap: 48px;
@@ -80,6 +94,7 @@
 }
 
 /* ===== RIGHT LOGIN CARD ===== */
+
 .login-card {
   background: radial-gradient(
     ellipse at top right,
@@ -94,6 +109,7 @@
 }
 
 /* title */
+
 .login-card h2 {
   font-size: 36px;
   margin: 0;
@@ -113,6 +129,7 @@
 }
 
 /* ===== FORM ===== */
+
 .login-form {
   display: flex;
   flex-direction: column;
@@ -133,6 +150,7 @@
 }
 
 /* ===== MUI INPUT OVERRIDE ===== */
+
 .MuiFilledInput-root {
   height: 56px;
   border-radius: 16px;
@@ -157,6 +175,7 @@
 }
 
 /* icons */
+
 .MuiInputAdornment-root svg {
   font-size: 20px;
   color: #9ca3af;
@@ -173,18 +192,21 @@
 }
 
 /* autofill fix */
+
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px #020617 inset !important;
   -webkit-text-fill-color: #fff !important;
 }
 
 /* error */
+
 .error-text {
   font-size: 13px;
   color: #fb7185;
 }
 
 /* ===== BUTTON ===== */
+
 .login-btn {
   height: 56px;
   border-radius: 18px;
@@ -198,21 +220,89 @@ input:-webkit-autofill {
 .login-btn:hover {
   opacity: 0.95;
 }
-.login-hero {
-  position: relative;
-  overflow: hidden;
-}
 
-.hero-video {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;   /* <-- CÁI NÀY làm nó bị crop */
-}
+/* ============================ */
+/* ===== LOGIN LOADER POPUP ==== */
+/* ============================ */
 
-.hero-overlay {
-  
-  position: absolute;
+.loader-popup {
+  position: fixed;
   inset: 0;
-  z-index: 2;
+  background: rgba(5, 10, 18, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-popup-content {
+  background: #020617;
+  padding: 40px 60px;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* loading text */
+
+.Loading-text {
+  margin-top: 16px;
+  color: #f43f5e;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* ===== LOADER BARS ===== */
+
+.loader-custom {
+  position: relative;
+  width: 100px;
+  height: 40px;
+}
+
+.loader__bar {
+  position: absolute;
+  bottom: 0;
+  width: 6px;
+  height: 20px;
+  background: #f43f5e;
+  animation: loaderBar 1s infinite ease-in-out;
+}
+
+.loader__bar:nth-child(1) { left: 0; animation-delay: 0s; }
+.loader__bar:nth-child(2) { left: 14px; animation-delay: 0.1s; }
+.loader__bar:nth-child(3) { left: 28px; animation-delay: 0.2s; }
+.loader__bar:nth-child(4) { left: 42px; animation-delay: 0.3s; }
+.loader__bar:nth-child(5) { left: 56px; animation-delay: 0.4s; }
+
+.loader__ball {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  background: #fb7185;
+  border-radius: 50%;
+  animation: loaderBall 1s infinite ease-in-out;
+}
+
+/* animations */
+
+@keyframes loaderBar {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+  }
+  20% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes loaderBall {
+  0% { left: 0; }
+  50% { left: 56px; }
+  100% { left: 0; }
 }

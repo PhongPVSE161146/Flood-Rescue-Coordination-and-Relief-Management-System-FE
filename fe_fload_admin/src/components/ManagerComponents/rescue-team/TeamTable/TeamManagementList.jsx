@@ -1,33 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import {
   Tag,
   Modal,
-  Form,
-  Input,
-  Select,
-  Spin,
   Pagination
 } from 'antd';
 
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import {
-  deleteRescueTeam,
-  updateRescueTeam,
-  getRescueTeamLocation,
-  updateRescueTeamLocation,
+  deleteRescueTeam
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
 
-import { getProvinces } from '../../../../../api/axios/Auth/authApi';
-
-import axios from "axios";
+import {
+  getProvinces
+} from '../../../../../api/axios/Auth/authApi';
 
 import './TeamManagementList.css';
 
 import MemberTable from './MemberTable';
-import CreateTeamModal from '../CreateTeam/CreateTeamModal';
+import CreateTeamModal from '../CreateTeam/TeamModal/CreateTeamModal';
+import EditTeamModal from '../EditTeam/EditTeamModal';
+
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
 /* MUI */
@@ -43,55 +39,19 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
-const { Option } = Select;
-
-/* ================= REVERSE GEOCODE ================= */
-
-const reverseGeocode = async (location) => {
-
-  try {
-
-    if (!location) return "Không xác định";
-
-    const [lng, lat] = location.split(",");
-
-    if (!lng || !lat) return "Không xác định";
-
-    const res = await axios.get(
-      "https://nominatim.openstreetmap.org/reverse",
-      {
-        params: { lat, lon: lng, format: "json" }
-      }
-    );
-
-    return res.data.display_name || "Không xác định";
-
-  }
-  catch {
-    return "Không xác định";
-  }
-
-};
-
 export default function TeamManagementList({
   teamsData,
   onTeamChanged,
 }) {
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
 
-  const [form] = Form.useForm();
-
-  const [updating, setUpdating] = useState(false);
-
-  const [teamLocations, setTeamLocations] = useState({});
-  const [teamAddresses, setTeamAddresses] = useState({});
-  const [loadingLocation, setLoadingLocation] = useState({});
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
 
   const [provinces, setProvinces] = useState([]);
+  const [provinceMap, setProvinceMap] = useState({});
 
   /* PAGINATION */
 
@@ -103,13 +63,17 @@ export default function TeamManagementList({
   const sortedTeams = [...teamsData].sort((a, b) => b.id - a.id);
 
   const paginatedTeams =
-  sortedTeams.slice(
-    startIndex,
-    startIndex + pageSize
-  );
+    sortedTeams.slice(
+      startIndex,
+      startIndex + pageSize
+    );
+
+  /* ================= LOAD PROVINCES ================= */
 
   useEffect(() => {
+
     fetchProvinces();
+
   }, []);
 
   const fetchProvinces = async () => {
@@ -122,7 +86,16 @@ export default function TeamManagementList({
 
       setProvinces(data);
 
-    } catch (err) {
+      const map = {};
+
+      data.forEach((p) => {
+        map[p.id] = p.name;
+      });
+
+      setProvinceMap(map);
+
+    }
+    catch (err) {
 
       console.log("Load provinces error:", err);
 
@@ -130,71 +103,9 @@ export default function TeamManagementList({
 
   };
 
-  useEffect(() => {
-
-    if (!teamsData?.length) return;
-
-    teamsData.forEach(team => {
-      fetchTeamLocation(team.id);
-    });
-
-  }, [teamsData]);
-
-  const fetchTeamLocation = async (teamId) => {
-
-    if (teamLocations[teamId] !== undefined) return;
-
-    try {
-
-      setLoadingLocation(prev => ({ ...prev, [teamId]: true }));
-
-      const res = await getRescueTeamLocation(teamId);
-
-      const location = res?.data?.location || null;
-
-      setTeamLocations(prev => ({ ...prev, [teamId]: location }));
-
-      if (!location) {
-
-        setTeamAddresses(prev => ({
-          ...prev,
-          [teamId]: "Không xác định"
-        }));
-
-        return;
-
-      }
-
-      const address = await reverseGeocode(location);
-
-      setTeamAddresses(prev => ({
-        ...prev,
-        [teamId]: address || "Không xác định",
-      }));
-
-    }
-    catch {
-
-      setTeamAddresses(prev => ({
-        ...prev,
-        [teamId]: "Không xác định",
-      }));
-
-    }
-    finally {
-
-      setLoadingLocation(prev => ({
-        ...prev,
-        [teamId]: false
-      }));
-
-    }
-
-  };
+  /* ================= EXPAND MEMBERS ================= */
 
   const handleTeamClick = (teamId) => {
-
-    fetchTeamLocation(teamId);
 
     setExpandedTeamId(
       expandedTeamId === teamId ? null : teamId
@@ -202,72 +113,17 @@ export default function TeamManagementList({
 
   };
 
+  /* ================= EDIT TEAM ================= */
+
   const handleEditTeam = (team) => {
 
     setEditingTeam(team);
-
-    const mappedStatus =
-      team.status === "active"
-        ? "active"
-        : "rest";
-
-    form.setFieldsValue({
-      rcName: team.name,
-      rcPhone: team.phone,
-      areaId: team.areaId,
-      rcStatus: mappedStatus,
-      location: teamLocations[team.id] || ""
-    });
 
     setEditModalVisible(true);
 
   };
 
-  const handleUpdateTeam = async (values) => {
-
-    try {
-
-      setUpdating(true);
-
-      const mappedStatus =
-        values.rcStatus === "active"
-          ? "on duty"
-          : "off duty";
-
-      await updateRescueTeam(editingTeam.id, {
-        rcName: values.rcName,
-        rcPhone: values.rcPhone,
-        areaId: Number(values.areaId),
-        rcStatus: mappedStatus,
-      });
-
-      if (values.location) {
-        await updateRescueTeamLocation(editingTeam.id, values.location);
-      }
-
-      AuthNotify.success(
-        "Cập nhật thành công",
-        "Thông tin đội cứu hộ đã được cập nhật"
-      );
-
-      setEditModalVisible(false);
-
-      onTeamChanged?.();
-
-    }
-    catch {
-
-      AuthNotify.error(
-        "Cập nhật thất bại",
-        "Không thể cập nhật đội cứu hộ"
-      );
-
-    }
-    finally {
-      setUpdating(false);
-    }
-
-  };
+  /* ================= STATUS COLOR ================= */
 
   const getStatusColor = (status) => {
 
@@ -286,69 +142,58 @@ export default function TeamManagementList({
 
   };
 
+  /* ================= DELETE TEAM ================= */
+
   const handleDeleteTeam = (teamId, teamName) => {
 
     Modal.confirm({
-  
+
       title: "Xác nhận xóa đội",
       icon: <ExclamationCircleOutlined />,
       content: `Bạn có chắc muốn xóa đội "${teamName}"?`,
       okType: "danger",
-  
+
       onOk: async () => {
-  
+
         try {
-  
-          const res = await deleteRescueTeam(teamId);
-  
-          console.log("DELETE SUCCESS:", res);
-  
+
+          await deleteRescueTeam(teamId);
+
           AuthNotify.success(
             "Đã xóa đội",
             "Đội cứu hộ đã được xóa khỏi hệ thống"
           );
-  
-          onTeamChanged?.();
-  
-        } catch (error) {
 
-          console.log("DELETE ERROR:", error);
-        
+          onTeamChanged?.();
+
+        }
+        catch (error) {
+
           const message =
             error?.response?.data?.message ||
             error?.response?.data?.title ||
             "";
-        
-          if (
-            error?.response?.status === 500 ||
-            message.includes("entity changes")
-          ) {
-        
-            AuthNotify.error(
-              "Không thể xóa đội",
-              "Đội đang có thành viên. Vui lòng xóa tất cả thành viên trước."
-            );
-        
-          } else {
-        
-            AuthNotify.error(
-              "Không thể xóa đội",
-              message || "Lỗi hệ thống"
-            );
-        
-          }
-        
+
+          AuthNotify.error(
+            "Không thể xóa đội",
+            message || "Lỗi hệ thống"
+          );
+
         }
-  
+
       }
-  
+
     });
-  
+
   };
+
+  /* ================= UI ================= */
 
   return (
 
     <div className="team-mgmt-card">
+
+      {/* HEADER */}
 
       <div className="team-mgmt-header">
 
@@ -367,15 +212,19 @@ export default function TeamManagementList({
 
       </div>
 
+      {/* TABLE */}
+
       <div className="team-mgmt-table-wrapper">
 
         <div className="team-mgmt-table-head">
+
           <span>STT</span>
           <span>TÊN ĐỘI</span>
           <span>SĐT</span>
-          <span>VỊ TRÍ</span>
+          <span>KHU VỰC</span>
           <span>TRẠNG THÁI</span>
           <span>HÀNH ĐỘNG</span>
+
         </div>
 
         {paginatedTeams.map((team, index) => (
@@ -392,33 +241,35 @@ export default function TeamManagementList({
                 {team.name}
               </div>
 
-              <div>{team.phone}</div>
+              <div>
+                {team.phone}
+              </div>
 
-              <div className="team-mgmt-location-cell">
+              {/* AREA */}
 
-                {loadingLocation[team.id]
-                  ? <Spin size="small" />
-                  : (
-                    <Tooltip title={teamAddresses[team.id]}>
-                      <span className="team-mgmt-truncate-text">
-                        {teamAddresses[team.id] || "Không xác định"}
-                      </span>
-                    </Tooltip>
-                  )}
+              <div className="team-mgmt-area-cell">
+
+                {provinceMap[team.areaId] || "Không xác định"}
 
               </div>
+
+              {/* STATUS */}
 
               <div>
 
                 <Tag color={getStatusColor(team.status)}>
+
                   {team.status === "active"
                     ? "Sẵn sàng"
                     : team.status === "rest"
                       ? "Đang nghỉ"
                       : "Không xác định"}
+
                 </Tag>
 
               </div>
+
+              {/* ACTION */}
 
               <div className="team-mgmt-col-action">
 
@@ -472,6 +323,8 @@ export default function TeamManagementList({
 
       </div>
 
+      {/* PAGINATION */}
+
       <div className="team-mgmt-pagination">
 
         <Pagination
@@ -484,111 +337,25 @@ export default function TeamManagementList({
 
       </div>
 
+      {/* CREATE TEAM */}
+
       <CreateTeamModal
-open={createOpen}
-onClose={() => setCreateOpen(false)}
-onSuccess={() => {
-  setCurrentPage(1);
-  onTeamChanged?.();
-}}
-/>
-
-      {/* ================= EDIT MODAL ================= */}
-
-      <Modal
-        title="Chỉnh sửa đội cứu hộ"
-        open={editModalVisible}
-        width={520}
-        centered
-        footer={null}
-        destroyOnClose
-        className="team-mgmt-edit-modal"
-        onCancel={() => {
-          form.resetFields();
-          setEditModalVisible(false);
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={() => {
+          setCurrentPage(1);
+          onTeamChanged?.();
         }}
-      >
+      />
 
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleUpdateTeam}
-        >
+      {/* EDIT TEAM */}
 
-          <Form.Item
-            label="Tên đội"
-            name="rcName"
-            rules={[{ required: true, message: "Vui lòng nhập tên đội" }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Số điện thoại"
-            name="rcPhone"
-            rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            label="Khu vực"
-            name="areaId"
-            rules={[{ required: true, message: "Vui lòng chọn khu vực" }]}
-          >
-            <Select>
-              {provinces.map((p) => (
-                <Option key={p.id} value={p.id}>
-                  {p.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Trạng thái"
-            name="rcStatus"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Option value="active">Sẵn sàng</Option>
-              <Option value="rest">Đang nghỉ</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Tọa độ (lng,lat)"
-            name="location"
-          >
-            <Input placeholder="106.70098,10.77689" />
-          </Form.Item>
-
-          <div className="team-mgmt-btn-group">
-
-            <Button
-              className="team-mgmt-btn-cancel"
-              onClick={() => {
-                form.resetFields();
-                setEditModalVisible(false);
-              }}
-            >
-              Hủy
-            </Button>
-
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={updating}
-              className="team-mgmt-btn-submit"
-            >
-              Cập nhật
-            </Button>
-
-          </div>
-
-        </Form>
-
-      </Modal>
+      <EditTeamModal
+        open={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        team={editingTeam}
+        onSuccess={onTeamChanged}
+      />
 
     </div>
 

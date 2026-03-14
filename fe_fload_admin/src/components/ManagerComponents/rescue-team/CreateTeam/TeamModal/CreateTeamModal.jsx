@@ -11,20 +11,18 @@ import {
 import {
   SafetyOutlined,
   PhoneOutlined,
-  EnvironmentOutlined,
-  AimOutlined
+  EnvironmentOutlined
 } from '@ant-design/icons';
 
 import {
-  createRescueTeam,
-  updateRescueTeamLocation
-} from '../../../../../api/axios/ManagerApi/rescueTeamApi';
+  createRescueTeam
+} from '../../../../../../api/axios/ManagerApi/rescueTeamApi';
 
-import { getProvinces } from '../../../../../api/axios/Auth/authApi';
+import { getProvinces } from '../../../../../../api/axios/Auth/authApi';
 
 import { useState, useEffect } from 'react';
 
-import AuthNotify from "../../../../utils/Common/AuthNotify";
+import AuthNotify from "../../../../../utils/Common/AuthNotify";
 
 import './CreateTeamModal.css';
 
@@ -68,6 +66,11 @@ export default function CreateTeamModal({
 
     if (open) {
       fetchProvinces();
+
+      form.setFieldsValue({
+        rcStatus: "on duty"
+      });
+
     }
 
   }, [open]);
@@ -108,32 +111,17 @@ export default function CreateTeamModal({
 
       setLoading(true);
 
-      const res = await createRescueTeam({
+      await createRescueTeam({
 
         rcName: values.rcName,
-
         rcPhone: values.rcPhone,
-
         areaId: Number(values.areaId),
 
-        rcStatus: values.rcStatus
+        /* STATUS MẶC ĐỊNH */
+
+        rcStatus: "on duty"
 
       });
-
-      const teamId =
-        res?.data?.id ||
-        res?.data?.teamId;
-
-      /* UPDATE LOCATION */
-
-      if (teamId && values.location) {
-
-        await updateRescueTeamLocation(
-          teamId,
-          values.location
-        );
-
-      }
 
       AuthNotify.success(
         "Tạo đội cứu hộ thành công",
@@ -257,53 +245,6 @@ export default function CreateTeamModal({
               label: item.name,
               value: item.id
             }))}
-          />
-
-        </Form.Item>
-
-
-        {/* STATUS */}
-
-        <Form.Item
-          name="rcStatus"
-          label="Trạng thái"
-          rules={[
-            {
-              required: true,
-              message: "Chọn trạng thái"
-            }
-          ]}
-        >
-
-          <Select
-            size="large"
-            placeholder="Chọn trạng thái"
-          >
-
-            <Option value="on duty">
-              Sẵn sàng
-            </Option>
-
-            <Option value="off duty">
-              Đang nghỉ
-            </Option>
-
-          </Select>
-
-        </Form.Item>
-
-
-        {/* LOCATION */}
-
-        <Form.Item
-          name="location"
-          label="Vị trí (lng,lat)"
-        >
-
-          <Input
-            prefix={<AimOutlined />}
-            placeholder="VD: 106.699018,10.779783"
-            size="large"
           />
 
         </Form.Item>

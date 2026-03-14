@@ -194,3 +194,104 @@
 }
 
 }
+.rc-team-list__title{
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+  
+  }
+  
+  .rc-refresh-btn{
+  
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:#5bb1c4;
+  color:white;
+  font-size:13px;
+  cursor:pointer;
+  
+  display:flex;
+  align-items:center;
+  gap:6px;
+  
+  }
+  
+  .rc-refresh-btn:disabled{
+  
+  opacity:0.6;
+  cursor:not-allowed;
+  
+  }
+  
+  /* spinner */
+  
+  .rc-spinner{
+  
+  width:14px;
+  height:14px;
+  border:2px solid white;
+  border-top:2px solid transparent;
+  border-radius:50%;
+  
+  animation:spin 0.7s linear infinite;
+  
+  }
+  
+  @keyframes spin{
+  
+  from{
+  transform:rotate(0deg);
+  }
+  
+  to{
+  transform:rotate(360deg);
+  }
+  
+  }
+  .rc-empty{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:120px;
+    font-size:16px;
+    font-weight:500;
+    color:#888;
+    margin-top: 200px;
+  }
+  .status-badge{
+    padding:4px 10px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+    }
+    
+    /* CHỜ ĐIỀU PHỐI */
+    
+    .status-pending{
+    background:#fff7ed;
+    color:#ea580c;
+    }
+    
+    /* ĐÃ ĐIỀU ĐỘNG */
+    
+    .status-assigned{
+    background:#eff6ff;
+    color:#2563eb;
+    }
+    
+    /* ĐỘI ĐÃ NHẬN */
+    
+    .status-accepted{
+    background:#ecfeff;
+    color:#0891b2;
+    }
+    
+    /* HOÀN THÀNH */
+    
+    .status-completed{
+    background:#ecfdf5;
+    color:#16a34a;
+    }

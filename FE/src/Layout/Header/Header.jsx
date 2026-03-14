@@ -23,18 +23,18 @@ const Header = () => {
 
         {/* CENTER - MENU */}
         <nav className="header-menu">
-          <button onClick={() => navigate("/map")}>TRA CỨU</button>
-          <button onClick={() => navigate("/guide")}>CẨM NANG</button>
-          <button onClick={() => navigate("/contact")}>LIÊN HỆ</button>
+        <button onClick={() => navigate("/")}>TRANG CHỦ</button>
+          <button onClick={() => navigate("/map")}>TRA CỨU</button>      
+          <button onClick={() => navigate("/newpage")}>TIN TỨC</button>
           <button onClick={() => navigate("/map")}>BẢN ĐỒ</button>
         </nav>
 
         {/* RIGHT */}
         <div className="header-actions">
 
-          <div className="search-box">
+          {/* <div className="search-box">
             <input placeholder="Tìm kiếm cứu trợ..." />
-          </div>
+          </div> */}
 
           <div className="hotline">
             <span>HOTLINE 24/7</span>

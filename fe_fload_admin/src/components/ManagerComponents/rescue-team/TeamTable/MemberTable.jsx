@@ -19,7 +19,7 @@ import {
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
 
 import './MemberTable.css';
-import CreateMemberModal from "../CreateTeam/CreateMemberModal";
+import CreateMemberModal from "../CreateTeam/MemberModal/CreateMemberModal";
 
 /* ✅ Custom Notify */
 import AuthNotify from "../../../../utils/Common/AuthNotify";
