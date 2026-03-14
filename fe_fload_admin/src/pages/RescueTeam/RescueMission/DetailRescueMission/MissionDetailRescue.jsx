@@ -3,19 +3,24 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect,useState } from "react";
 
 import {
-  getRescueAssignmentById,
-  getPendingRescueRequests,
-  getUrgencyLevels
+getRescueAssignmentById,
+getPendingRescueRequests,
+getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
+
+import {
+acceptRescueAssignment,
+rejectRescueAssignment
+} from "../../../../../api/axios/RescueApi/RescueTask";
 
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 
 const priorityTranslate = {
-  High:"Mức Độ Cao",
-  Medium:"Mức Độ Trung Bình",
-  Low:"Mức Độ Thấp"
+High:"Mức Độ Cao",
+Medium:"Mức Độ Trung Bình",
+Low:"Mức Độ Thấp"
 };
 
 export default function MissionDetailRescue(){
@@ -24,6 +29,7 @@ const { id } = useParams()
 const navigate = useNavigate()
 
 const [detail,setDetail] = useState(null)
+const [loading,setLoading] = useState(false)
 
 useEffect(()=>{
 
@@ -127,21 +133,74 @@ fetchDetail()
 
 },[id])
 
+
+/* ================= ACCEPT ================= */
+
+const handleAccept = async ()=>{
+
+try{
+
+setLoading(true)
+
+await acceptRescueAssignment(id)
+
+navigate(`/rescuer/mission/${id}`)
+
+}catch(err){
+
+console.error("Accept mission error:",err)
+
+}finally{
+
+setLoading(false)
+
+}
+
+}
+
+
+/* ================= REJECT ================= */
+
+const handleReject = async ()=>{
+
+try{
+
+setLoading(true)
+
+await rejectRescueAssignment(id)
+
+navigate(-1)
+
+}catch(err){
+
+console.error("Reject mission error:",err)
+
+}finally{
+
+setLoading(false)
+
+}
+
+}
+
+
 if(!detail){
 
 return <div className="md-loading">Đang tải dữ liệu nhiệm vụ...</div>
 
 }
 
+
 return(
 
 <section className="md-root">
 
-{/* HEADER */}
+
+{/* ================= HEADER ================= */}
 
 <header className="md-header">
 
-<div className="md-header-inner">
+<div className="md-header-left">
 
 <div className="md-title">
 
@@ -166,9 +225,13 @@ Nhiệm vụ cứu hộ
 
 </div>
 
+<p className="md-address">
+📍 {detail.address}
+</p>
+
 </div>
 
-<div className="md-header-actions">
+<div className="md-header-right">
 
 <button
 className="md-call"
@@ -179,13 +242,13 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 </div>
 
-<p className="md-address">📍 {detail.address}</p>
-
 </header>
 
-{/* CONTENT */}
 
-<div className="md-content">
+{/* ================= BODY ================= */}
+
+<div className="md-body">
+
 
 {/* LEFT */}
 
@@ -194,6 +257,8 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 <div className="md-card">
 
 <h4>👤 Người yêu cầu</h4>
+
+<div className="md-row">
 
 <div className="md-info">
 <label>Họ tên</label>
@@ -207,13 +272,6 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 </div>
 
-<div className="md-card">
-
-<h4>🚑 Đội cứu hộ</h4>
-
-<p>👥 {detail.team}</p>
-<p>🚗 {detail.vehicle}</p>
-
 </div>
 
 <div className="md-card md-danger">
@@ -226,27 +284,10 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <div className="md-card">
 
-<h4>📋 Thông tin cứu hộ</h4>
+<h4>🚑 Đội cứu hộ</h4>
 
-<div className="md-info">
-<label>Số nạn nhân</label>
-<b>{detail.victimCount}</b>
-</div>
-
-<div className="md-info">
-<label>Dụng cụ có sẵn</label>
-<b>{detail.availableRescueTool}</b>
-</div>
-
-<div className="md-info">
-<label>Nhu cầu đặc biệt</label>
-<b>{detail.specialNeeds}</b>
-</div>
-
-<div className="md-info">
-<label>Ghi chú đội cứu hộ</label>
-<b>{detail.rescueTeamNote}</b>
-</div>
+<p>👥 {detail.team}</p>
+<p>🚗 {detail.vehicle}</p>
 
 </div>
 
@@ -259,30 +300,6 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 </p>
 
 </div>
-
-</aside>
-
-{/* RIGHT */}
-
-<main className="md-right">
-
-{/* MAP */}
-
-<div className="md-map">
-
-<div className="md-map-label">
-📍 {detail.address}
-</div>
-
-<iframe
-title="rescue-map"
-src={`https://www.google.com/maps?q=${detail.lat},${detail.lng}&z=15&output=embed`}
-loading="lazy"
-/>
-
-</div>
-
-{/* IMAGE FROM API */}
 
 <section className="md-media">
 
@@ -310,11 +327,64 @@ Không có hình ảnh
 
 </section>
 
+</aside>
+
+
+{/* RIGHT */}
+
+<main className="md-right">
+
+<div className="md-card">
+
+<h4>📋 Thông tin cứu hộ</h4>
+
+<div className="md-rescue-info">
+
+<div className="md-info">
+<label>Số nạn nhân</label>
+<b>{detail.victimCount}</b>
+</div>
+
+<div className="md-info">
+<label>Dụng cụ có sẵn</label>
+<b>{detail.availableRescueTool}</b>
+</div>
+
+<div className="md-info">
+<label>Nhu cầu đặc biệt</label>
+<b>{detail.specialNeeds}</b>
+</div>
+
+<div className="md-info">
+<label>Ghi chú đội cứu hộ</label>
+<b>{detail.rescueTeamNote}</b>
+</div>
+
+</div>
+
+</div>
+
+
+<div className="md-map">
+
+<div className="md-map-label">
+📍 {detail.address}
+</div>
+
+<iframe
+title="rescue-map"
+src={`https://www.google.com/maps?q=${detail.lat},${detail.lng}&z=15&output=embed`}
+loading="lazy"
+/>
+
+</div>
+
 </main>
 
 </div>
 
-{/* FOOTER */}
+
+{/* ================= FOOTER ================= */}
 
 <footer className="md-footer">
 
@@ -325,13 +395,25 @@ onClick={()=>navigate(-1)}
 ← Quay lại
 </button>
 
-<button className="md-reject">
-✖ Từ chối
+<div className="md-footer-actions">
+
+<button
+className="md-reject"
+onClick={handleReject}
+disabled={loading}
+>
+{loading ? "Đang xử lý..." : "✖ Từ chối"}
 </button>
 
-<button className="md-accept">
-✓ Chấp nhận nhiệm vụ
+<button
+className="md-accept"
+onClick={handleAccept}
+disabled={loading}
+>
+{loading ? "Đang xử lý..." : "✓ Chấp nhận nhiệm vụ"}
 </button>
+
+</div>
 
 </footer>
 
