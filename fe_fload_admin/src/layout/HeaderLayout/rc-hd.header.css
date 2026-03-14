@@ -1,0 +1,60 @@
+/* ================================================= */
+/* RC-HD HEADER (Scoped - No Conflict)               */
+/* ================================================= */
+
+.rc-hd {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* LEFT | CENTER | RIGHT */
+  align-items: center;
+  height: 64px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #eaeaea;
+}
+
+/* ================= LEFT ================= */
+.rc-hd__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rc-hd__logo-icon {
+  font-size: 32px;
+}
+
+.rc-hd__logo-text h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rc-hd__logo-text span {
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+/* ================= CENTER ================= */
+.rc-hd__search {
+  max-width: 480px;
+  justify-self: center; /* CĂN GIỮA CHUẨN */
+  width: 100%;
+}
+
+/* ================= RIGHT ================= */
+.rc-hd__actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.rc-hd__icon {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.rc-hd__lang {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}

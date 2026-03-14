@@ -1,0 +1,304 @@
+/* ================= ROOT ================= */
+.md-root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+}
+
+/* ================= HEADER ================= */
+.md-header {
+  position: relative;
+  z-index: 10;
+  padding: 20px 28px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* inner layout */
+.md-header-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ================= TITLE ================= */
+.md-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+/* ================= BADGE ================= */
+.md-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ================= STATUS ================= */
+.md-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef9c3;
+  color: #854d0e;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ================= TIME ================= */
+.md-time {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ================= SHADOW DIVIDER ================= */
+.md-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 12px;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 23, 42, 0.08),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ================= CONTENT ================= */
+.md-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+  padding: 0 28px 120px;
+  overflow-y: auto;
+}
+
+/* ================= LEFT ================= */
+.md-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ================= CARD ================= */
+.md-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.md-card h4 {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.md-danger {
+  border-left: 4px solid #ef4444;
+}
+
+/* ================= INFO ================= */
+.md-info label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.md-info b {
+  display: block;
+  margin-top: 4px;
+}
+
+.md-phone {
+  display: inline-block;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.md-call {
+  margin-left: 10px;
+  background: #fee2e2;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: #991b1b;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.md-call:hover {
+  background: #fecaca;
+}
+
+/* ================= SPECIAL ================= */
+.md-special {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.md-special li {
+  font-size: 13px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 8px;
+  color: #334155;
+}
+
+/* ================= RIGHT ================= */
+.md-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ================= MAP ================= */
+.md-map {
+  position: relative;
+  height: 360px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.md-map iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.md-map-label {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  background: #f59e0b;
+  color: #1f2937;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ================= MEDIA ================= */
+.md-media {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.md-media-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.md-download {
+  font-size: 13px;
+  color: #ca8a04;
+  cursor: pointer;
+}
+
+.md-media-list {
+  display: flex;
+  gap: 14px;
+}
+
+.md-thumb {
+  width: 120px;
+  height: 80px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  border: 1px solid #e5e7eb;
+}
+
+.md-thumb.video {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.md-thumb.upload {
+  border: 1px dashed #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  gap: 4px;
+  color: #64748b;
+}
+
+/* ================= FOOTER (FIXED) ================= */
+.md-footer {
+  position: fixed;
+  bottom: 0;
+  left: 260px; /* width sidebar */
+  right: 0;
+  z-index: 50;
+  padding: 18px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ================= BUTTONS ================= */
+.md-back {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 12px 24px;
+  border-radius: 999px;
+  color: #0f172a;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.md-back:hover {
+  background: #f1f5f9;
+}
+
+.md-accept {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: none;
+  padding: 14px 34px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.md-accept:hover {
+  filter: brightness(1.05);
+}
+
+/* chừa chỗ cho footer fixed */
+.md-content {
+  padding-bottom: 120px;
+}

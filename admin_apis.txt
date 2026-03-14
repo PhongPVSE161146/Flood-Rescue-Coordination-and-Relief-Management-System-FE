@@ -1,0 +1,5 @@
+--- ALL TAGS ---
+GeographicAreas, InventoryTransactions, PeriodicAidBeneficiaries, PeriodicAidCampaigns, PeriodicAidDistributionDetails, PeriodicAidDistributions, PeriodicAidSupplyPlans, ReliefItems, ReliefWarehouses, RequestLogs, RequestStatuses, RescueAssignments, RescueRequests, RescueTeamLocation, RescueTeamMembers, RescueTeams, RescueTeamVehicles, SystemConfigurations, UrgencyLevels, User, Vehicles, WarehouseInventories
+
+--- ADMIN Paths ---
+[POST] /api/User/register-admin (Tags: User)

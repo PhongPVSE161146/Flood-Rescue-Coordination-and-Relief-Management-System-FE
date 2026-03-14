@@ -1,0 +1,150 @@
+/* ROOT */
+.rp-root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+}
+
+/* HEADER */
+.rp-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rp-header h2 span {
+  color: #f59e0b;
+  margin-left: 8px;
+}
+
+.rp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.rp-header-right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.rp-badge-danger {
+  background: #fee2e2;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+/* MAIN */
+.rp-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+/* LEFT */
+.rp-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-card {
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.rp-call {
+  margin-top: 8px;
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  border: none;
+  padding: 10px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rp-call:hover {
+  filter: brightness(1.05);
+}
+
+/* MAP */
+.rp-map iframe {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+/* PROGRESS */
+.rp-progress {
+  display: flex;
+  justify-content: space-around;
+  padding: 14px 24px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.rp-progress .done {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.rp-progress .active {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* FOOTER */
+.rp-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.rp-help {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.rp-help:hover {
+  background: #f1f5f9;
+}
+
+.rp-done {
+  background: #16a34a;
+  border: none;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.rp-done:hover {
+  filter: brightness(1.05);
+}

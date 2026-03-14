@@ -1,0 +1,193 @@
+/* ================= ROOT LIST ================= */
+.rm-mission-list {
+  height: 100vh;
+  padding: 24px 24px 40px;
+  overflow-y: auto;
+
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Scrollbar light */
+.rm-mission-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rm-mission-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.rm-mission-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ================= HEADER ================= */
+.rm-list-header {
+  margin-bottom: 20px;
+}
+
+.rm-list-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.rm-list-header h3 span {
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+
+.rm-list-header p {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ================= CARD ================= */
+.rm-mission-card {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 16px;
+
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 18px;
+
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* Active highlight */
+.rm-mission-card.active {
+  outline: 2px solid rgba(245, 158, 11, 0.45);
+}
+
+/* ================= MAP ================= */
+.rm-map-thumb {
+  height: 140px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #e5e7eb;
+}
+
+.rm-map-thumb iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ================= BODY ================= */
+.rm-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Header row */
+.rm-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Badge */
+.rm-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.rm-badge.tai-nạn {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.rm-badge.cứu-hộ-động-vật {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Time */
+.rm-time {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Title */
+.rm-card-body h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 2px 0 0;
+}
+
+/* Address */
+.rm-address {
+  font-size: 13px;
+  color: #334155;
+}
+
+/* Tags */
+.rm-tags {
+  display: flex;
+  gap: 6px;
+}
+
+.rm-tags span {
+  font-size: 11px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* ================= ACTIONS ================= */
+.rm-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Accept button */
+.rm-btn-accept {
+  background: linear-gradient(
+    180deg,
+    #f59e0b,
+    #d97706
+  );
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rm-btn-accept:hover {
+  filter: brightness(1.05);
+}
+
+/* Detail button */
+.rm-btn-detail {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.rm-btn-detail:hover {
+  background: #f1f5f9;
+}

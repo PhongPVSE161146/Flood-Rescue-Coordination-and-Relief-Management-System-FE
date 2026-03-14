@@ -1,0 +1,29 @@
+{
+  "Upsert": {
+    "required": [
+      "levelName",
+      "slaMinutes"
+    ],
+    "type": "object",
+    "properties": {
+      "levelName": {
+        "maxLength": 255,
+        "minLength": 0,
+        "type": "string"
+      },
+      "description": {
+        "maxLength": 2000,
+        "minLength": 0,
+        "type": "string",
+        "nullable": true
+      },
+      "slaMinutes": {
+        "maximum": 43200,
+        "minimum": 1,
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    "additionalProperties": false
+  }
+}

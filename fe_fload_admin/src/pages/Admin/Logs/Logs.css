@@ -1,0 +1,19 @@
+.logs-page {
+    padding: 20px;
+  }
+  
+  .logs-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .logs-page h2 {
+    margin: 0;
+  }
+  
+  .logs-table .ant-table {
+    background: white;
+  }
+  

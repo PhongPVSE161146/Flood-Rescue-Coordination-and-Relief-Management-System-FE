@@ -1,0 +1,255 @@
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  /* ===== STATS ===== */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-grid > div {
+    cursor: pointer;
+  }
+  
+  .stat-card {
+    border-radius: 14px;
+  }
+  
+  .stat-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #64748b;
+  }
+  
+  .stat-icon {
+    font-size: 18px;
+    color: #334155;
+  }
+  
+  .stat-body h2 {
+    margin: 10px 0 4px;
+    font-size: 28px;
+  }
+  
+  .change.green {
+    color: #16a34a;
+  }
+  
+  .change.red {
+    color: #dc2626;
+  }
+  
+  /* ===== CHART ===== */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+  }
+  
+  .chart-card {
+    border-radius: 14px;
+  }
+  
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .chart-header h4 {
+    margin: 0;
+  }
+  
+  .chart-header span {
+    font-size: 12px;
+    color: #64748b;
+  }
+  
+  .fake-chart {
+    margin-top: 20px;
+  }
+  
+  .bar-placeholder {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 60px;
+    color: #64748b;
+  }
+  
+  /* ===== TABLE ===== */
+  .table-card {
+    border-radius: 14px;
+  }
+  
+  .table-tabs {
+    display: flex;
+    gap: 24px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  
+  .table-tabs span {
+    cursor: pointer;
+    color: #64748b;
+  }
+  
+  .table-tabs .active {
+    color: #0f172a;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 6px;
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .data-table th {
+    font-size: 12px;
+    text-align: left;
+    color: #64748b;
+    padding-bottom: 10px;
+  }
+  
+  .data-table td {
+    padding: 14px 0;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .code {
+    font-weight: 600;
+  }
+  
+  .user-dot {
+    width: 10px;
+    height: 10px;
+    background: #fde68a;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+  }
+  
+  .user-dot.dark {
+    background: #475569;
+  }
+  
+  .user-dot.gray {
+    background: #94a3b8;
+  }
+  /* ================= CHART AREA ================= */
+
+/* khung chart */
+.fake-chart {
+    width: 100%;
+    height: 220px;
+    margin-top: 12px;
+    position: relative;
+  }
+  
+  /* svg line chart */
+  .fake-chart svg {
+    width: 100%;
+    height: 180px;
+  }
+  
+  /* label ngày bên dưới line chart */
+  .chart-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 6px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+  }
+  
+  /* ================= BAR CHART ================= */
+  
+  .bar-placeholder {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 180px;
+    margin-top: 40px;
+  }
+  
+  .bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  /* cột */
+  .bar {
+    width: 22px;
+    background: linear-gradient(180deg, #0f766e, #14b8a6);
+    border-radius: 6px;
+    transition: height 0.3s ease;
+  }
+  
+  /* label tuần */
+  .bar-item span {
+    font-size: 12px;
+    color: #64748b;
+  }
+  
+  /* ================= CHART CARD ================= */
+  
+  .chart-card {
+    border-radius: 14px;
+  }
+  
+  /* header chart */
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .chart-header h4 {
+    margin: 0;
+  }
+  
+  .chart-header span {
+    font-size: 12px;
+    color: #64748b;
+  }
+  
+  /* tổng tháng */
+  .total {
+    text-align: right;
+  }
+  
+  .total strong {
+    font-size: 26px;
+    display: block;
+  }
+  
+  .total span {
+    font-size: 11px;
+    color: #64748b;
+  }
+  
+  /* ===== DRAWER CONTENT ===== */
+  .drawer-content {
+    padding: 12px 0;
+  }
+  
+  .drawer-content p {
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .chart-grid {
+      grid-template-columns: 1fr;
+    }
+  }

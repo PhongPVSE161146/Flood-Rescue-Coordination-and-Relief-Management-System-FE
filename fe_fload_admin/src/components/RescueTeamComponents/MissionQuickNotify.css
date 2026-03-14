@@ -1,0 +1,92 @@
+/* ================= ROOT ================= */
+.rm-notify {
+  height: 100vh;
+  padding: 20px 18px 24px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  border-left: 1px solid #e5e7eb;
+  overflow: hidden; /* không cho trang ngoài cuộn */
+}
+
+/* ================= TITLE ================= */
+.rm-notify h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #0f172a;
+}
+
+/* ================= SCROLL AREA ================= */
+.rm-notify-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* scrollbar light */
+.rm-notify-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rm-notify-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.rm-notify-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ================= ITEM ================= */
+.rm-notify-item {
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  font-size: 13px;
+
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+.rm-notify-item p {
+  margin: 0 0 6px;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.rm-notify-item span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ================= TYPES ================= */
+.rm-notify-item.warn {
+  border-left: 4px solid #f59e0b;
+}
+
+.rm-notify-item.info {
+  border-left: 4px solid #38bdf8;
+}
+
+.rm-notify-item.success {
+  border-left: 4px solid #22c55e;
+}
+
+/* ================= FOOTER ================= */
+.rm-notify-more {
+  margin-top: 12px;
+  text-align: right;
+  color: #ca8a04;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rm-notify-more:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,465 @@
+.rc-op-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* HEADER */
+.rc-op-detail__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.rc-op-detail__header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.rc-op-detail__header p {
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.rc-badge {
+  margin-left: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rc-badge--danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ACTIONS */
+.rc-op-detail__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-outline {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+  background: #fff;
+}
+
+.btn-primary {
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #5bb1c4;
+  color: #fff;
+  border: none;
+}
+
+/* CARD */
+.rc-op-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ================= TIMELINE ================= */
+.rc-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+}
+
+.rc-timeline__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.rc-timeline__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 100%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.rc-timeline__content b {
+  display: block;
+  font-size: 12px;
+}
+
+.rc-timeline__content span {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* LINE */
+.rc-timeline__line {
+  flex: 1;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 6px;
+}
+
+/* ===== STATES ===== */
+.rc-timeline__item.done {
+  color: #16a34a;
+}
+
+.rc-timeline__item.done .rc-timeline__icon {
+  background: #16a34a;
+  color: #fff;
+}
+
+.rc-timeline__item.active {
+  color: #0ea5e9;
+  font-weight: 700;
+}
+
+.rc-timeline__item.active .rc-timeline__icon {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+.rc-timeline__item.pending {
+  color: #94a3b8;
+}
+
+.rc-timeline__item.pending .rc-timeline__icon {
+  background: #e5e7eb;
+  color: #64748b;
+}
+
+
+
+/* GRID */
+.rc-op-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+}
+
+.rc-op-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ================= THÔNG TIN NẠN NHÂN ================= */
+
+.rc-op-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ROW CHIA 2 CỘT */
+.rc-info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* MỖI CỘT */
+.rc-info-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* LABEL */
+.rc-info-row label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.4px;
+}
+
+/* TÊN */
+.rc-info-row b {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* SỐ ĐIỆN THOẠI */
+.rc-info-row .link {
+  font-size: 14px;
+  color: #38bdf8;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* NỘI DUNG MÔ TẢ */
+.rc-info-row p {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  margin: 0;
+}
+
+
+/* ================= HÌNH ẢNH HIỆN TRƯỜNG ================= */
+
+/* HEADER */
+.rc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rc-card-header h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  margin: 0;
+}
+
+.rc-card-header .link {
+  font-size: 13px;
+  color: #38bdf8;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* LIST ẢNH */
+.rc-images {
+  display: flex;
+  gap: 12px;
+}
+
+/* ITEM ẢNH */
+.rc-image {
+  width: 120px;
+  height: 72px;
+  border-radius: 14px;
+  background: #e5e7eb;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px;
+  font-size: 11px;
+  color: #1f2937;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ẢNH ĐANG CHỌN */
+.rc-image.active {
+  background: #111827;
+  color: #ffffff;
+}
+
+.rc-image.active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* TEXT LUÔN NỔI TRÊN */
+.rc-image span,
+.rc-image {
+  z-index: 1;
+}
+
+/* UPLOAD */
+.rc-image--upload {
+  background: #f1f5f9;
+  border: 2px dashed #cbd5e1;
+  color: #94a3b8;
+  font-size: 22px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+/* MAP */
+.rc-map-mini {
+  margin-top: 10px;
+  height: 220px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.rc-map-mini iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.rc-online {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #16a34a;
+}
+/* ================= CHAT CARD ================= */
+.rc-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ================= CHAT HEADER ================= */
+.rc-chat .rc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eef2f7;
+  margin-bottom: 12px;
+}
+
+.rc-chat .rc-card-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rc-chat__id {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* ================= MESSAGE LIST ================= */
+.rc-chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 6px;
+}
+
+/* ================= MESSAGE BASE ================= */
+.msg {
+  max-width: 85%;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.msg b {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.msg p {
+  margin: 0;
+}
+
+.msg span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ================= MESSAGE LEFT (TEAM) ================= */
+.msg.left {
+  align-self: flex-start;
+  background: #f1f5f9;
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+
+.msg.left b {
+  color: #0f172a;
+}
+
+/* IMAGE MESSAGE */
+.msg.left img {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 6px;
+}
+
+/* ================= MESSAGE RIGHT (COORDINATOR) ================= */
+.msg.right {
+  align-self: flex-end;
+  background: #5bb1c4;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+
+.msg.right b {
+  color: #e0f2fe;
+}
+
+.msg.right span {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ================= INPUT ================= */
+.rc-chat__input {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rc-chat__input input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  outline: none;
+}
+
+.rc-chat__input input::placeholder {
+  color: #94a3b8;
+}
+
+.rc-chat__input button {
+  width: 44px;
+  border-radius: 14px;
+  border: none;
+  background: #5bb1c4;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.rc-chat__input button:hover {
+  background: #49a0b5;
+}
+
+/* ================= QUICK ACTION ================= */
+.rc-chat__quick {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.rc-chat__quick span {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.rc-chat__quick span:hover {
+  color: #0ea5e9;
+}
+
+
