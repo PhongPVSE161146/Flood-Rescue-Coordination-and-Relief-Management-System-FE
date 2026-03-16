@@ -79,27 +79,36 @@ const convertApiToMission = (data = [], statuses = []) => {
         id: item.rescueRequestId,
         name: item.fullName,
         phone: item.contactPhone,
-
-        location:
-          item.locationText ||
-          `${item.locationLat},${item.locationLng}`,
-
+      
+        address: item.address,
+      
         lat: item.locationLat,
         lng: item.locationLng,
-
+      
+        locationLat: item.locationLat,
+        locationLng: item.locationLng,
+      
         createdAt: new Date(item.createdAt).getTime(),
-
-        status: "pending",
-        statusText: statusObj?.description || "Đang xử lý",
-
+      
         incident:
           MAIN_INCIDENT_OPTIONS.find(
             (o) => o.value === item.requestType
           )?.label || item.requestType,
-
-        address: item.address,
+      
+        status: "pending",
+        statusText: statusObj?.description || "Đang xử lý",
+      
         images: item.imageUrls || [],
-
+      
+        /* 🔥 CÁC FIELD MissionDetail CẦN */
+      
+        urgencyLevelId: item.urgencyLevelId,
+        detailDescription: item.detailDescription,
+        rescueTeamNote: item.rescueTeamNote,
+        victimCount: item.victimCount,
+        availableRescueTool: item.availableRescueTool,
+        specialNeeds: item.specialNeeds,
+      
       };
 
     });
@@ -161,8 +170,10 @@ export default function MissionList({ onSelectMission }) {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if(requestStatuses.length > 0){
+      fetchData();
+    }
+  }, [requestStatuses]);
 
   /* ================= ADDRESS OPTIONS ================= */
 

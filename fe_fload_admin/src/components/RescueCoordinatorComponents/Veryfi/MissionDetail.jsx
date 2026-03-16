@@ -25,9 +25,14 @@ export default function MissionDetail({ mission }) {
   const [urgencyLevels, setUrgencyLevels] = useState([]);
   const [priority, setPriority] = useState(null);
   const [note, setNote] = useState("");
-
+  const [recommendedPriority, setRecommendedPriority] = useState(null);
   const navigate = useNavigate();
 
+
+  useEffect(() => {
+    setPriority(null);
+    setRecommendedPriority(null);
+  }, [mission]);
   /* ================= LOAD URGENCY LEVEL ================= */
 
   useEffect(() => {
@@ -50,6 +55,25 @@ export default function MissionDetail({ mission }) {
     fetchUrgencyLevels();
 
   }, []);
+
+  /* ================= AUTO SET PRIORITY FROM DB ================= */
+  useEffect(() => {
+
+    if (!mission || !mission.urgencyLevelId || urgencyLevels.length === 0) return;
+  
+    const level = urgencyLevels.find(
+      (l) => l.urgencyLevelId === mission.urgencyLevelId
+    );
+  
+    if (!level) return;
+  
+    const index = urgencyLevels.indexOf(level);
+    const code = `P${index + 1}`;
+  
+    setPriority(code);
+    setRecommendedPriority(code);
+  
+  }, [mission, urgencyLevels]);
 
   /* ================= FORMAT SLA ================= */
 
@@ -134,8 +158,6 @@ export default function MissionDetail({ mission }) {
     mission?.images ||
     [];
 
-  /* ================= UI ================= */
-
   return (
 
     <section className="rc-md">
@@ -150,16 +172,16 @@ export default function MissionDetail({ mission }) {
 
             Yêu cầu #{mission.id}
 
-            <span 
-className="status status-pending"
-style={{
-  backgroundColor:"#f59e0b",
-  color:"#fff",
-  padding:"4px 10px",
-  borderRadius:"14px"
-}}>
-ĐANG XỬ LÝ
-</span>
+            <span
+              className="status status-pending"
+              style={{
+                backgroundColor: "#f59e0b",
+                color: "#fff",
+                padding: "4px 10px",
+                borderRadius: "14px"
+              }}>
+              ĐANG XỬ LÝ
+            </span>
 
           </h2>
 
@@ -197,12 +219,12 @@ style={{
 
               <div className="info-item">
                 <label>HỌ VÀ TÊN</label>
-                <strong>{mission.name || mission.fullname}</strong>
+                <strong>{mission.name || mission.fullName}</strong>
               </div>
 
               <div className="info-item">
                 <label>SỐ ĐIỆN THOẠI</label>
-                <strong className="phone">{mission.phone}</strong>
+                <strong className="phone">{mission.phone || mission.contactPhone}</strong>
               </div>
 
             </div>
@@ -212,6 +234,36 @@ style={{
             <p className="address-text">
               {mission.address}
             </p>
+
+          </section>
+
+
+
+          {/* RESOURCES */}
+
+          <section className="card">
+
+            <h4 className="card-title">
+              🧰 NGUỒN LỰC & MÔ TẢ
+            </h4>
+
+            <div className="resource-grid">
+
+              <div className="resource-item">
+                <label>SỐ NGƯỜI GẶP NẠN</label>
+                <p>{mission.victimCount}</p>
+              </div>
+
+              <div className="resource-item">
+                <label>DỤNG CỤ CỨU HỘ</label>
+                <p>{mission.availableRescueTool}</p>
+              </div>
+
+            </div>
+
+            <label>NHU CẦU ĐẶC BIỆT</label>
+
+            <p>{mission.specialNeeds}</p>
 
           </section>
 
@@ -235,33 +287,6 @@ style={{
 
           </section>
 
-          {/* RESOURCES */}
-
-          <section className="card">
-
-            <h4 className="card-title">
-              🧰 NGUỒN LỰC & MÔ TẢ
-            </h4>
-
-            <div className="resource-grid">
-
-              <div className="resource-item">
-                <label>SỐ NGƯỜI GẶP NẠN</label>
-                <p>{mission.victimCount}</p>
-              </div>
-
-              <div className="resource-item">
-                <label>DỤNG CỤ CỨU HỘ</label>
-                <p>{mission.availableRescueTools}</p>
-              </div>
-
-            </div>
-
-            <label>NHU CẦU ĐẶC BIỆT</label>
-
-            <p>{mission.specialNeeds}</p>
-
-          </section>
 
           {/* MAP */}
 
@@ -269,7 +294,7 @@ style={{
 
             <iframe
               title="map"
-              src={`https://www.google.com/maps?q=${mission.lat},${mission.lng}&z=13&output=embed`}
+              src={`https://www.google.com/maps?q=${mission.locationLat},${mission.locationLng}&z=13&output=embed`}
             />
 
           </section>
@@ -332,46 +357,63 @@ style={{
 
           <section className="card rc-priority-card">
 
-            <h4 className="card-title">
-              ⚠️ PHÂN LOẠI ƯU TIÊN
-            </h4>
+<h4 className="card-title">
+  ⚠️ PHÂN LOẠI ƯU TIÊN
+</h4>
 
-            {urgencyLevels.map((level, index) => {
+{/* LÝ DO ĐỀ XUẤT */}
 
-              const priorityCode = `P${index + 1}`;
+{recommendedPriority && (
+  <p className="priority-reason">
+    Lý do đề xuất: Hệ thống phân tích dựa trên nguồn và lực mô tả,
+    tình trạng khẩn cấp của người dân cung cấp
+  </p>
+)}
 
-              return (
+{urgencyLevels.map((level, index) => {
 
-                <div
-                  key={level.urgencyLevelId}
-                  className={`rc-priority-item rc-p${index + 1}
-                  ${priority === priorityCode ? "is-active" : ""}`}
-                  onClick={() => setPriority(priorityCode)}
-                >
+  const priorityCode = `P${index + 1}`;
 
-                  <span className="rc-radio" />
+  return (
 
-                  <div className="rc-priority-content">
+    <div
+      key={level.urgencyLevelId}
+      className={`rc-priority-item rc-p${index + 1}
+      ${priority === priorityCode ? "is-active" : ""}`}
+      onClick={() => setPriority(priorityCode)}
+    >
 
-                    <strong>
-                      {priorityTranslate[level.levelName] || level.levelName}
-                    </strong>
+      <span className="rc-radio" />
 
-                    <p>{level.description}</p>
+      <div className="rc-priority-content">
 
-                    <small className="sla-text">
-                      Thời gian xử lý: {formatSla(level.slaMinutes)}
-                    </small>
+      <div className="priority-title">
+  <span className="priority-name">
+    {priorityTranslate[level.levelName] || level.levelName}
+  </span>
 
-                  </div>
+  {recommendedPriority === priorityCode && (
+    <span className="recommend-badge">
+      Đề xuất
+    </span>
+  )}
+</div>
 
-                </div>
+        <p>{level.description}</p>
 
-              );
+        <small className="sla-text">
+          Thời gian xử lý: {formatSla(level.slaMinutes)}
+        </small>
 
-            })}
+      </div>
 
-          </section>
+    </div>
+
+  );
+
+})}
+
+</section>
 
           {/* NOTE */}
 

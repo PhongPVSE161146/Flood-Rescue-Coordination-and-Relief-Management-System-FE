@@ -19,7 +19,7 @@ import {
     
     const REQUEST_TYPES = [
       "cứu hộ khẩn cấp",
-      "hỗ trợ cứu trợ",
+
       "cứu hộ ngập lụt",
       "cứu hộ lũ quét",
       "cứu hộ sạt lở",

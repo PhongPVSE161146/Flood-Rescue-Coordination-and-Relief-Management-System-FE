@@ -32,9 +32,7 @@ export default function EditTeamModal({
 }) {
 
   const [form] = Form.useForm();
-
   const [loading, setLoading] = useState(false);
-
   const [provinces, setProvinces] = useState([]);
 
   /* ================= LOAD PROVINCES ================= */
@@ -46,6 +44,7 @@ export default function EditTeamModal({
     }
 
   }, [open]);
+
 
   const fetchProvinces = async () => {
 
@@ -73,25 +72,21 @@ export default function EditTeamModal({
 
   };
 
+
   /* ================= LOAD TEAM DATA ================= */
 
   useEffect(() => {
 
     if (!team) return;
 
-    const mappedStatus =
-      team.status === "active"
-        ? "active"
-        : "rest";
-
     form.setFieldsValue({
       rcName: team.name,
       rcPhone: team.phone,
-      areaId: team.areaId,
-      rcStatus: mappedStatus
+      areaId: team.areaId
     });
 
   }, [team]);
+
 
   /* ================= UPDATE TEAM ================= */
 
@@ -103,20 +98,11 @@ export default function EditTeamModal({
 
       setLoading(true);
 
-      const mappedStatus =
-        values.rcStatus === "active"
-          ? "on duty"
-          : "off duty";
-
       await updateRescueTeam(team.id, {
 
         rcName: values.rcName,
-
         rcPhone: values.rcPhone,
-
-        areaId: Number(values.areaId),
-
-        rcStatus: mappedStatus
+        areaId: Number(values.areaId)
 
       });
 
@@ -149,6 +135,7 @@ export default function EditTeamModal({
     }
 
   };
+
 
   /* ================= UI ================= */
 
@@ -190,6 +177,7 @@ export default function EditTeamModal({
 
         </Form.Item>
 
+
         {/* PHONE */}
 
         <Form.Item
@@ -221,6 +209,7 @@ export default function EditTeamModal({
 
         </Form.Item>
 
+
         {/* AREA */}
 
         <Form.Item
@@ -245,9 +234,7 @@ export default function EditTeamModal({
                 key={item.id}
                 value={item.id}
               >
-
                 {item.name}
-
               </Option>
 
             ))}
@@ -256,34 +243,6 @@ export default function EditTeamModal({
 
         </Form.Item>
 
-        {/* STATUS */}
-
-        <Form.Item
-          name="rcStatus"
-          label="Trạng thái"
-          rules={[
-            {
-              required: true,
-              message: "Chọn trạng thái"
-            }
-          ]}
-        >
-
-          <Select
-            size="large"
-          >
-
-            <Option value="active">
-              Sẵn sàng
-            </Option>
-
-            <Option value="rest">
-              Đang nghỉ
-            </Option>
-
-          </Select>
-
-        </Form.Item>
 
         {/* BUTTON */}
 
@@ -293,9 +252,7 @@ export default function EditTeamModal({
             size="large"
             onClick={onClose}
           >
-
             Hủy
-
           </Button>
 
           <Button
@@ -305,9 +262,7 @@ export default function EditTeamModal({
             onClick={handleUpdate}
             className="editTeamModal__submit"
           >
-
             Cập nhật
-
           </Button>
 
         </div>

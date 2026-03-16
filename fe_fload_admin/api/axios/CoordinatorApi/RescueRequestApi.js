@@ -1,13 +1,20 @@
+import axios from "axios";
 import axiosInstance from "../../axiosInstance";
 
-/* ================= GET PENDING REQUEST ================= */
+/* ================= GET ALL RESCUE REQUESTS (NO TOKEN) ================= */
 
-export const getPendingRescueRequests = async () => {
+export const getPendingRescueRequests = async (params = {}) => {
 
   try {
 
-    const response = await axiosInstance.get(
-      "/api/RescueRequests"
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/RescueRequests`,
+      {
+        params,
+        headers: {
+          Accept: "application/json"
+        }
+      }
     );
 
     return response.data;
@@ -15,17 +22,21 @@ export const getPendingRescueRequests = async () => {
   }
   catch (error) {
 
-    console.error("Lỗi lấy danh sách yêu cầu:", error);
+    console.error("Lỗi lấy RescueRequests:", error);
 
     throw new Error(
       error.response?.data?.message ||
       error.message ||
-      "Không thể tải danh sách yêu cầu cứu hộ"
+      "Không thể tải danh sách RescueRequests"
     );
 
   }
 
 };
+
+
+/* ================= GET URGENCY LEVEL ================= */
+
 export const getUrgencyLevels = async () => {
 
   try {
@@ -50,6 +61,10 @@ export const getUrgencyLevels = async () => {
   }
 
 };
+
+
+/* ================= GET DISPATCHING REQUESTS ================= */
+
 export const getDispatchingRescueRequests = async () => {
 
   try {
@@ -74,7 +89,9 @@ export const getDispatchingRescueRequests = async () => {
   }
 
 };
-/* ================= VERIFY & DISPATCH REQUEST ================= */
+
+
+/* ================= VERIFY REQUEST ================= */
 
 export const verifyAndDispatchRescueRequest = async (
   requestId,
@@ -96,17 +113,19 @@ export const verifyAndDispatchRescueRequest = async (
   }
   catch (error) {
 
-    console.error("Lỗi xác nhận và điều phối:", error);
+    console.error("Lỗi xác nhận yêu cầu:", error);
 
     throw new Error(
       error.response?.data?.message ||
       error.message ||
-      "Không thể xác nhận và điều phối yêu cầu cứu hộ"
+      "Không thể xác nhận yêu cầu cứu hộ"
     );
 
   }
 
 };
+
+
 /* ================= CONFIRM DISPATCH ================= */
 
 export const confirmDispatchRescueRequest = async (payload) => {
@@ -137,6 +156,7 @@ export const confirmDispatchRescueRequest = async (payload) => {
 
 };
 
+
 /* ================= GET ALL ASSIGNMENTS ================= */
 
 export const getAllAssignments = async () => {
@@ -152,17 +172,18 @@ export const getAllAssignments = async () => {
   }
   catch (error) {
 
-    console.error("Lỗi lấy danh sách assignments:", error);
+    console.error("Lỗi lấy assignments:", error);
 
     throw new Error(
       error.response?.data?.message ||
       error.message ||
-      "Không thể tải danh sách điều phối cứu hộ"
+      "Không thể tải danh sách điều phối"
     );
 
   }
 
 };
+
 
 /* ================= UPDATE ASSIGNMENT ================= */
 
@@ -180,7 +201,8 @@ export const updateRescueAssignment = async (
 
     return response.data;
 
-  } catch (error) {
+  }
+  catch (error) {
 
     console.error("UPDATE ASSIGNMENT ERROR:", error);
 
@@ -189,6 +211,8 @@ export const updateRescueAssignment = async (
   }
 
 };
+
+
 /* ================= GET ASSIGNMENT BY ID ================= */
 
 export const getRescueAssignmentById = async (assignmentId) => {
@@ -209,7 +233,7 @@ export const getRescueAssignmentById = async (assignmentId) => {
     throw new Error(
       error.response?.data?.message ||
       error.message ||
-      "Không thể tải thông tin điều phối cứu hộ"
+      "Không thể tải thông tin điều phối"
     );
 
   }

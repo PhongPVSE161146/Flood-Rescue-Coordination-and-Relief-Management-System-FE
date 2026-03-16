@@ -146,13 +146,45 @@ export const updateRescueTeamLocation = (
     }
   );
 };
+
+
 /**
- * ✅ NEW: Lấy danh sách ca trực cứu hộ
+ * ✅ NEW: Lấy đội cứu hộ đang AVAILABLE
  */
-export const getRescueShifts = () => {
+export const getAvailableRescueTeams = () => {
 
   return axiosInstance.get(
-    "/api/rescue-shifts"
+    "/api/RescueTeams/available"
+  );
+
+};
+
+
+/**
+ * ✅ NEW: Lấy đội cứu hộ đang BUSY
+ */
+export const getBusyRescueTeams = () => {
+
+  return axiosInstance.get(
+    "/api/RescueTeams/busy"
+  );
+
+};
+/**
+ * Lấy danh sách phương tiện của đội cứu hộ
+ */
+export const getRescueTeamVehicles = (
+  teamId,
+  activeOnly = true
+) => {
+
+  return axiosInstance.get(
+    `/api/rescueteams/${teamId}/vehicles`,
+    {
+      params: {
+        activeOnly: activeOnly
+      }
+    }
   );
 
 };

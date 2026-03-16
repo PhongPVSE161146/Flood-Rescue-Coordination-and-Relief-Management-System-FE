@@ -390,3 +390,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== title + badge ===== */
+
+.priority-title{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.priority-name{
+  font-weight:600;
+  font-size:15px;
+  line-height:1.4;
+}
+
+/* ===== badge đề xuất ===== */
+
+.recommend-badge{
+  display:inline-block;
+  width:max-content;
+  background:#22c55e;
+  color:white;
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:10px;
+  font-weight:500;
+}
+
+/* ===== lý do đề xuất ===== */
+
+.priority-reason{
+  font-size:13px;
+  color:#475569;
+  background:#f1f5f9;
+  padding:10px 12px;
+  border-radius:8px;
+  margin-bottom:12px;
+  line-height:1.6;
+}

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 
 import {
-  Tag,
   Modal,
   Pagination
 } from 'antd';
@@ -123,25 +122,6 @@ export default function TeamManagementList({
 
   };
 
-  /* ================= STATUS COLOR ================= */
-
-  const getStatusColor = (status) => {
-
-    switch (status) {
-
-      case "active":
-        return "green";
-
-      case "rest":
-        return "orange";
-
-      default:
-        return "default";
-
-    }
-
-  };
-
   /* ================= DELETE TEAM ================= */
 
   const handleDeleteTeam = (teamId, teamName) => {
@@ -222,7 +202,6 @@ export default function TeamManagementList({
           <span>TÊN ĐỘI</span>
           <span>SĐT</span>
           <span>KHU VỰC</span>
-          <span>TRẠNG THÁI</span>
           <span>HÀNH ĐỘNG</span>
 
         </div>
@@ -248,25 +227,7 @@ export default function TeamManagementList({
               {/* AREA */}
 
               <div className="team-mgmt-area-cell">
-
                 {provinceMap[team.areaId] || "Không xác định"}
-
-              </div>
-
-              {/* STATUS */}
-
-              <div>
-
-                <Tag color={getStatusColor(team.status)}>
-
-                  {team.status === "active"
-                    ? "Sẵn sàng"
-                    : team.status === "rest"
-                      ? "Đang nghỉ"
-                      : "Không xác định"}
-
-                </Tag>
-
               </div>
 
               {/* ACTION */}
