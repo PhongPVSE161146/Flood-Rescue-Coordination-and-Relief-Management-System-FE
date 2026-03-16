@@ -430,3 +430,13 @@
   margin-bottom:12px;
   line-height:1.6;
 }
+.image-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.image-grid img{
+  height:120px;
+  object-fit:cover;
+}

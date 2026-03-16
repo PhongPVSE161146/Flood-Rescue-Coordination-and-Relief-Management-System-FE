@@ -62,6 +62,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
     fetchUrgencyLevels();
 
   }, []);
+  
 
   /* ================= AUTO SET PRIORITY FROM DB ================= */
   useEffect(() => {
@@ -212,12 +213,13 @@ const [rejectLoading, setRejectLoading] = useState(false);
   }
 
   /* ================= IMAGE FIX ================= */
+  const images = mission?.images ?? [];
 
-  const images =
-    mission?.imageUrls ||
-    mission?.images ||
-    [];
 
+
+
+  console.log("MISSION:", mission);
+  console.log("IMAGES:", mission?.images);
   return (
 
     <section className="rc-md">
@@ -369,49 +371,49 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
           <section className="card">
 
-            <h4 className="card-title">
-              📷 HÌNH ẢNH HIỆN TRƯỜNG
-            </h4>
+<h4 className="card-title">
+  📷 HÌNH ẢNH HIỆN TRƯỜNG
+</h4>
 
-            <Image.PreviewGroup>
+<div className="image-grid">
 
-              <div className="image-grid">
+  {images.length > 0 ? (
 
-                {images.length > 0 ? (
+    images.map((img, i) => {
 
-                  images.map((img, i) => {
+      const imageUrl =
+        img.startsWith("http")
+          ? img
+          : API_BASE + img;
 
-                    const imageUrl =
-                      img.startsWith("http")
-                        ? img
-                        : `${IMAGE_BASE}${img}`;
+      return (
+        <img
+          key={i}
+          src={imageUrl}
+          alt={`rescue-${i}`}
+          width={160}
+          referrerPolicy="no-referrer"
+          style={{
+            borderRadius: 10,
+            objectFit: "cover",
+            border: "1px solid #eee"
+          }}
+        />
+      );
 
-                    return (
+    })
 
-                      <Image
-                        key={i}
-                        width={140}
-                        src={imageUrl}
-                        alt={`rescue-${i}`}
-                      />
+  ) : (
 
-                    );
+    <p style={{ color: "#888" }}>
+      Không có hình ảnh
+    </p>
 
-                  })
+  )}
 
-                ) : (
+</div>
 
-                  <p style={{ color: "#888" }}>
-                    Không có hình ảnh
-                  </p>
-
-                )}
-
-              </div>
-
-            </Image.PreviewGroup>
-
-          </section>
+</section>
 
           {/* PRIORITY */}
 

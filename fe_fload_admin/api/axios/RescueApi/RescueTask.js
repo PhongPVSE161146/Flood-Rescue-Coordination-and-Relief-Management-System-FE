@@ -53,3 +53,28 @@ export const rejectRescueAssignment = async (assignmentId) => {
   }
 
 };
+
+export const getAllAssignments = async () => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/RescueAssignments"
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy danh sách assignments:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách điều phối cứu hộ"
+    );
+
+  }
+
+};

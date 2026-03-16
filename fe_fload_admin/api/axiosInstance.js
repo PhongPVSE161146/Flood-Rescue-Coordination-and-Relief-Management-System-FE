@@ -12,35 +12,23 @@ console.log("API URL:", import.meta.env.VITE_API_URL);
 
 /* ================= REQUEST INTERCEPTOR ================= */
 
-axiosInstance.interceptors.request.use(
+axiosInstance.interceptors.request.use((config) => {
 
-  (config) => {
+  const token =
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken");
 
-    const token =
-      sessionStorage.getItem("accessToken") ||
-      localStorage.getItem("accessToken");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-    /* attach token */
+  console.log("====== API REQUEST ======");
+  console.log("URL:", config.baseURL + config.url);
+  console.log("TOKEN:", token);
 
-    if (token && token !== "undefined") {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  return config;
 
-    console.log(
-      "API REQUEST:",
-      config.method?.toUpperCase(),
-      config.baseURL + config.url
-    );
-
-    console.log("TOKEN:", config.headers.Authorization);
-
-    return config;
-
-  },
-
-  (error) => Promise.reject(error)
-
-);
+});
 
 /* ================= RESPONSE INTERCEPTOR ================= */
 

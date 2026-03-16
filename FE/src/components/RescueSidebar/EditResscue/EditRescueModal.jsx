@@ -12,7 +12,7 @@ import {
   UserOutlined,
   UploadOutlined
 } from "@ant-design/icons";
-
+import { uploadImages } from "../../../api/firebase/uploadanh";
 import { updateRescueRequest } from "../../../api/service/historyApi";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
@@ -166,44 +166,90 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 
   /* ================= IMAGE UPLOAD ================= */
 
-  const handleImageUpload = (file) => {
+  const handleImageUpload = async (file) => {
 
+    const realFile = file.originFileObj || file;
+  
     const allowedTypes = [
       "image/jpeg",
       "image/png",
       "image/webp"
     ];
-
-    if (!allowedTypes.includes(file.type)) {
-
+  
+    if (!allowedTypes.includes(realFile.type)) {
+  
       AuthNotify.error(
         "Sai định dạng",
         "Chỉ chấp nhận JPG PNG WEBP"
       );
-
+  
       return Upload.LIST_IGNORE;
     }
-
-    if (file.size / 1024 / 1024 > 5) {
-
+  
+    if (realFile.size / 1024 / 1024 > 5) {
+  
       AuthNotify.error(
         "Ảnh quá lớn",
         "Ảnh phải nhỏ hơn 5MB"
       );
-
+  
       return Upload.LIST_IGNORE;
     }
-
-    const previewUrl = URL.createObjectURL(file);
-
-    setForm(prev => ({
-      ...prev,
-      locationImageUrl: previewUrl
-    }));
+  
+    try {
+  
+      /* PREVIEW ngay lập tức */
+      const previewUrl = URL.createObjectURL(realFile);
+  
+      setForm(prev => ({
+        ...prev,
+        previewImage: previewUrl
+      }));
+  
+      setLoading(true);
+  
+      /* upload server */
+      const res = await uploadImages([realFile], "citizen");
+  
+      const imagePath = res?.urls?.[0];
+  
+      const API_BASE = import.meta.env.VITE_API_BASE_URL;
+  
+      const imageUrl = imagePath.startsWith("http")
+        ? imagePath
+        : API_BASE + imagePath;
+  
+      setForm(prev => ({
+        ...prev,
+        locationImageUrl: imageUrl
+      }));
+  
+      AuthNotify.success(
+        "Tải ảnh thành công",
+        "Ảnh hiện trường đã được tải lên"
+      );
+  
+      clearError("locationImageUrl");
+  
+    }
+    catch (err) {
+  
+      console.error("UPLOAD ERROR:", err);
+  
+      AuthNotify.error(
+        "Upload thất bại",
+        err?.response?.data?.message || "Không thể tải ảnh"
+      );
+  
+    }
+    finally {
+  
+      setLoading(false);
+  
+    }
   
     return false;
   };
-
   /* ================= UPDATE ================= */
 
   const handleUpdate = async () => {
@@ -237,6 +283,7 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 
       onUpdated?.();
       onClose();
+      // setViewing(null);
 
     }
     catch (err) {
@@ -478,11 +525,13 @@ function EditRescueModal({ data, onClose, onUpdated }) {
           <label>ẢNH HIỆN TRƯỜNG *</label>
 
           <Upload
-           className="emergency-upload"
-            listType="picture"
-            maxCount={1}
-            beforeUpload={handleImageUpload}
-          >
+  className="emergency-upload"
+  listType="picture"
+
+  beforeUpload={handleImageUpload}
+  showUploadList={false}
+  accept="image/*"
+>
 
 <div className="upload-dropzone">
     
@@ -504,20 +553,21 @@ function EditRescueModal({ data, onClose, onUpdated }) {
             <p className="error-message">{errors.locationImageUrl}</p>
           )}
 
-{form.locationImageUrl && (
+{(form.previewImage || form.locationImageUrl) && (
 
 <div style={{marginTop:10}}>
 
-  <img
-    src={form.locationImageUrl}
-    alt="preview"
-    style={{
-      width:"100%",
-      maxHeight:250,
-      objectFit:"cover",
-      borderRadius:8
-    }}
-  />
+<img
+  src={form.previewImage || form.locationImageUrl}
+  alt="preview"
+referrerPolicy="no-referrer"
+  style={{
+    width:"100%",
+    maxHeight:250,
+    objectFit:"cover",
+    borderRadius:8
+  }}
+/>
 
 </div>
 

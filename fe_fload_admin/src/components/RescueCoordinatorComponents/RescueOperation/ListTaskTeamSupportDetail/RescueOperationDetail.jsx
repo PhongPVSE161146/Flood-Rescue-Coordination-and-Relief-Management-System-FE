@@ -11,7 +11,7 @@ import {
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
-
+const API_BASE = "https://api-rescue.purintech.id.vn";
 const priorityTranslate = {
   High: "Mức Độ Cao",
   Medium: "Mức Độ Trung Bình",
@@ -39,20 +39,22 @@ export default function RescueOperationDetail({ assignmentId }) {
     lat:10.8231,
     lng:106.6297
   })
-
+  const [loading,setLoading] = useState(false)
   const [images,setImages] = useState([])
   const [openEdit,setOpenEdit] = useState(false)
   const [messages,setMessages] = useState([])
   const [input,setInput] = useState("")
   const messagesRef = useRef(null)
 
-  const normalizeStatus = (s)=> s?.trim().toLowerCase()
+
 
   /* ================= LOAD DATA ================= */
 
   const fetchData = async()=>{
 
     try{
+  
+      setLoading(true)
   
       const [
         assignment,
@@ -141,17 +143,40 @@ export default function RescueOperationDetail({ assignmentId }) {
   
       }
   
-      if(req?.images){
-        setImages(req.images)
-      }
+     /* ================= IMAGE FIX ================= */
+
+const imgs = [];
+
+if (Array.isArray(req?.imageUrls)) {
+  imgs.push(...req.imageUrls);
+}
+
+if (Array.isArray(req?.images)) {
+  imgs.push(...req.images);
+}
+
+if (req?.locationImageUrl) {
+  imgs.push(req.locationImageUrl);
+}
+
+/* chuẩn hóa URL */
+const normalizedImages = imgs.map((img) =>
+  img.startsWith("http") ? img : API_BASE + img
+);
+
+setImages(normalizedImages);
   
-    }catch(err){
-  
-      console.error("Load detail error:",err)
-  
-    }
-  
-  }
+}catch(err){
+
+  console.error("Load detail error:",err)
+
+}finally{
+
+  setLoading(false)
+
+}
+
+}
 
 
   useEffect(()=>{
@@ -210,6 +235,15 @@ export default function RescueOperationDetail({ assignmentId }) {
     navigate("/coordinator/reports")
   }
 
+  if(loading){
+    return(
+      <div className="rc-loading">
+    
+        Đang tải dữ liệu nhiệm vụ...
+      </div>
+    )
+  }
+  
   if(!detail){
     return (
       <div
