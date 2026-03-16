@@ -6,10 +6,10 @@ import EmergencyFooter from "../../Layout/EmergencyFooter/EmergencyFooter";
 
 import AuthNotify from "../../utils/Common/AuthNotify";
 import { createRescueRequest } from "../../api/service/emergencyApi";
-
+import { verifyFloodImage } from "../../api/firebase/uploadanh";
 import EmergencyRequestForm from "../../components/EmergencyRequestPage/EmergencyRequestForm";
 import EmergencyInfoPanel from "../../components/EmergencyRequestPage/EmergencyInfoPanel";
-
+import { uploadImages } from "../../api/firebase/uploadanh";
 import "./EmergencyRequest.css";
 
 const DEFAULT_AREA_ID = 1;
@@ -333,29 +333,77 @@ const handleGetGPS = () => {
 /* ================= SUBMIT ================= */
 
 const handleSubmit = async () => {
+
   if (submitting) return;
+
   const lat = location.lat ? Number(location.lat) : null;
   const lng = location.lng ? Number(location.lng) : null;
 
-  const payload = {
-    requestType: form.requestType,
-    contactPhone: form.contactPhone,
-    locationLat: lat,
-    locationLng: lng,
-    locationImageUrl: form.images?.[0]?.name || "",
-    areaId: DEFAULT_AREA_ID,
-    fullName: form.fullName,
-    victimCount: Number(form.victimCount),
-    availableRescueTool: form.availableRescueTool,
-    specialNeeds: form.specialNeeds,
-    detailDescription: form.detailDescription,
-    rescueTeamNote: form.rescueTeamNote,
-    address: address || ""
-  };
-
-  if (!validateRescueRequest(payload)) return;
+  if (!validateRescueRequest(form)) return;
 
   try {
+
+    setSubmitting(true);
+
+    /* ================= VERIFY + UPLOAD ================= */
+
+    const files = form.images.map(img => img.originFileObj);
+
+    for (const file of files) {
+
+      const verify = await verifyFloodImage(file);
+
+if (!verify?.isValid) {
+
+  AuthNotify.error(
+    "Ảnh không hợp lệ",
+    verify?.message || "Ảnh không liên quan đến bão lũ"
+  );
+
+  setSubmitting(false);
+  return;
+
+}
+
+    }
+
+    /* ================= UPLOAD ================= */
+
+    const uploadRes = await uploadImages(files, "citizen");
+
+    const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+    const imageUrls = uploadRes.urls.map(path =>
+      path.startsWith("http")
+        ? path
+        : API_BASE + path
+    );
+
+    /* ================= PAYLOAD ================= */
+
+    const payload = {
+
+      requestType: form.requestType,
+      contactPhone: form.contactPhone,
+
+      locationLat: lat,
+      locationLng: lng,
+
+      locationImageUrl: imageUrls[0] || "",
+
+      areaId: DEFAULT_AREA_ID,
+
+      fullName: form.fullName,
+      victimCount: Number(form.victimCount),
+
+      availableRescueTool: form.availableRescueTool,
+      specialNeeds: form.specialNeeds,
+      detailDescription: form.detailDescription,
+      rescueTeamNote: form.rescueTeamNote,
+
+      address: address || ""
+
+    };
 
     await createRescueRequest(payload);
 
@@ -366,50 +414,28 @@ const handleSubmit = async () => {
 
     setTimeout(() => navigate("/map"), 2000);
 
-  } catch (error) {
+  }
+  catch (error) {
 
     const msg =
       error?.response?.data?.message ||
       error?.response?.data?.title ||
       error?.message ||
       "";
-      const lowerMsg = msg.toLowerCase();
 
-      if (
-        lowerMsg.includes("phone") ||
-        lowerMsg.includes("duplicate") ||
-        lowerMsg.includes("exists")
-      ) {
-  
-        setErrors(prev => ({
-          ...prev,
-          contactPhone: true,
-          messages: {
-            ...(prev.messages || {}),
-            contactPhone: "Số điện thoại đã tồn tại. Vui lòng dùng số khác."
-          }
-        }));
-  
-        AuthNotify.error(
-          "Số điện thoại đã tồn tại",
-          "Vui lòng sử dụng số điện thoại khác"
-        );
-  
-        return;
-      }
-  
-      AuthNotify.error(
-        "Gửi yêu cầu thất bại",
-        msg || "Có lỗi xảy ra"
-      );
-  
-    } finally {
-  
-      setSubmitting(false);
-  
-    }
-  
-  };
+    AuthNotify.error(
+      "Gửi yêu cầu thất bại",
+      msg || "Có lỗi xảy ra"
+    );
+
+  }
+  finally {
+
+    setSubmitting(false);
+
+  }
+
+};
 
 /* ================= UI ================= */
 
@@ -435,6 +461,7 @@ return (
   setErrors={setErrors}
   submitting={submitting}
   setAddress={setAddress}
+  
 />
 
 <EmergencyInfoPanel timeAgo={timeAgo} />
