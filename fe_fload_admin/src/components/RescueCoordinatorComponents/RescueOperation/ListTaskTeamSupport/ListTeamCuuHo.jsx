@@ -18,19 +18,28 @@ const priorityTranslate = {
   Medium: "Mức Độ Trung Bình",
   Low: "Mức Độ Thấp"
 };
+const priorityClass = {
+  "Mức Độ Cao": "priority-high",
+  "Mức Độ Trung Bình": "priority-medium",
+  "Mức Độ Thấp": "priority-low"
+};
 
 const assignmentStatusMap = {
-  ASSIGNED:"Đã điều động",
-  ACCEPTED:"Đội đã nhận",
-  COMPLETED:"Hoàn thành",
-  PENDING:"Chờ điều phối"
+  ASSIGNED: "Đã điều động",
+  ACCEPTED: "Đội đã nhận nhiệm vụ",
+  DEPARTED: "Đã xuất phát",
+  ARRIVED: "Đã đến hiện trường",
+  COMPLETED: "Hoàn thành",
+  REJECTED: "Từ chối nhiệm vụ"
 }
 
 const assignmentStatusClass = {
-  ASSIGNED:"status-assigned",
-  ACCEPTED:"status-accepted",
-  COMPLETED:"status-completed",
-  PENDING:"status-pending"
+  ASSIGNED: "status-assigned",
+  ACCEPTED: "status-accepted",
+  DEPARTED: "status-departed",
+  ARRIVED: "status-arrived",
+  COMPLETED: "status-completed",
+  REJECTED: "status-rejected"
 }
 
 export default function ListTeamCuuHo({ onSelectMission }) {
@@ -363,8 +372,10 @@ urgency:v || ""
   Mã : #{item.id}
 </div>
 
-<span className="rc-team-item__priority">
-{item.urgency}
+<span
+  className={`rc-team-item__priority ${priorityClass[item.urgency] || ""}`}
+>
+  {item.urgency}
 </span>
 
 <span

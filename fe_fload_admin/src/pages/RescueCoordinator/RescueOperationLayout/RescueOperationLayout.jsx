@@ -5,23 +5,44 @@ import "./rescue-operation.layout.css";
 
 export default function RescueOperationLayout() {
 
-  const [selectedAssignmentId,setSelectedAssignmentId] = useState(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
+
+  /* khi click mission bên trái */
+  const handleSelectMission = (assignmentId) => {
+    setSelectedAssignmentId(assignmentId);
+  };
 
   return (
     <div className="rc-operation-layout">
 
       {/* LEFT */}
       <aside className="rc-operation-layout__left">
+
         <ListTeamCuuHo
-          onSelectMission={setSelectedAssignmentId}
+          onSelectMission={handleSelectMission}
+          selectedAssignmentId={selectedAssignmentId}
         />
+
       </aside>
 
       {/* RIGHT */}
       <main className="rc-operation-layout__right">
-        <RescueOperationDetail
-          assignmentId={selectedAssignmentId}
-        />
+
+        {selectedAssignmentId ? (
+
+          <RescueOperationDetail
+            key={selectedAssignmentId}
+            assignmentId={selectedAssignmentId}
+          />
+
+        ) : (
+
+          <div className="rc-empty-detail">
+            Chọn nhiệm vụ bên trái để xem chi tiết
+          </div>
+
+        )}
+
       </main>
 
     </div>

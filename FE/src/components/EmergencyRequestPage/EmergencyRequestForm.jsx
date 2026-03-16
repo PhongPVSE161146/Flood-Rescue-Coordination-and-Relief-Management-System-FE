@@ -5,13 +5,13 @@ import {
     Upload,
     InputNumber
     } from "antd";
-    
+    import AuthNotify from "../../utils/Common/AuthNotify";
     import {
     PhoneOutlined,
     UploadOutlined,
     UserOutlined
     } from "@ant-design/icons";
-    
+    import { LoadingOutlined } from "@ant-design/icons";
     import "../../pages/EmergencyRequest/EmergencyRequest.css";
     
     const { TextArea } = Input;
@@ -19,7 +19,7 @@ import {
     
     const REQUEST_TYPES = [
       "cứu hộ khẩn cấp",
-      "hỗ trợ cứu trợ",
+
       "cứu hộ ngập lụt",
       "cứu hộ lũ quét",
       "cứu hộ sạt lở",
@@ -48,9 +48,10 @@ import {
     setLocation,
     errors,
     setErrors,
-    setAddress
+    setAddress,
+    submitting
     }) => {
-    
+   
     return (
     
     <section className="emergency-form">
@@ -556,39 +557,59 @@ allowFullScreen
     <h4>📷 5. HÌNH ẢNH HIỆN TRƯỜNG <span className="required">*</span></h4>
     
     <Upload
-    listType="picture"
-    multiple
-    beforeUpload={()=>false}
-    className="emergency-upload"
-    onChange={({fileList})=>{
-    
-    if(fileList.length>5){
-    
-    setErrors(prev=>({
-    ...prev,
-    images:true,
-    messages:{
-    ...(prev.messages||{}),
-    images:"Chỉ được tải tối đa 5 ảnh"
+  listType="picture"
+  multiple
+  beforeUpload={() => false}
+  className="emergency-upload"
+  fileList={form.images}
+  onChange={({ fileList }) => {
+
+    if (fileList.length > 5) {
+
+      AuthNotify.warning(
+        "Quá số lượng ảnh",
+        "Chỉ được tải tối đa 5 ảnh"
+      );
+
+      setErrors(prev => ({
+        ...prev,
+        images: true,
+        messages: {
+          ...(prev.messages || {}),
+          images: "Chỉ được tải tối đa 5 ảnh"
+        }
+      }));
+
+      return;
     }
+
+    setForm(prev => ({
+      ...prev,
+      images: fileList
     }));
-    
-    return;
-    }
-    
-    setErrors(prev=>({
-    ...prev,
-    images:false,
-    messages:{
-    ...(prev.messages||{}),
-    images:""
-    }
+
+    setErrors(prev => ({
+      ...prev,
+      images: false,
+      messages: {
+        ...(prev.messages || {}),
+        images: ""
+      }
     }));
-    
-    setForm({...form,images:fileList});
-    
-    }}
-    >
+
+    /* thông báo khi thêm ảnh */
+
+    if (fileList.length > 0) {
+
+      AuthNotify.success(
+        "Ảnh đã được thêm",
+        `Đã chọn ${fileList.length} ảnh`
+      );
+
+    }
+
+  }}
+>
     
     <div className="upload-dropzone">
     
@@ -615,14 +636,15 @@ allowFullScreen
     </div>
     
     <Button
-    block
-    className="submit-btn"
-    onClick={handleSubmit}
-    >
-    
-    GỬI YÊU CẦU CỨU HỘ →
-    
-    </Button>
+  block
+  className="submit-btn"
+  onClick={handleSubmit}
+  loading={submitting}
+  disabled={submitting}
+  icon={submitting ? <LoadingOutlined spin /> : null}
+>
+  {submitting ? "ĐANG GỬI YÊU CẦU..." : "GỬI YÊU CẦU CỨU HỘ →"}
+</Button>
     
     </section>
     

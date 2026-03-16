@@ -1,11 +1,12 @@
-import { Button, Input, Image } from "antd";
+import { Button, Input, Image, Modal } from "antd";
 import { useState, useEffect } from "react";
 import { PhoneOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
   getUrgencyLevels,
-  verifyAndDispatchRescueRequest
+  verifyAndDispatchRescueRequest,
+  rejectRescueRequest
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
@@ -25,9 +26,20 @@ export default function MissionDetail({ mission }) {
   const [urgencyLevels, setUrgencyLevels] = useState([]);
   const [priority, setPriority] = useState(null);
   const [note, setNote] = useState("");
-
+  const [recommendedPriority, setRecommendedPriority] = useState(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+const [rejectReason, setRejectReason] = useState("");
+const [rejectLoading, setRejectLoading] = useState(false);
   const navigate = useNavigate();
+  const openRejectPopup = () => {
+    setRejectReason("");
+    setRejectOpen(true);
+  };
 
+  useEffect(() => {
+    setPriority(null);
+    setRecommendedPriority(null);
+  }, [mission]);
   /* ================= LOAD URGENCY LEVEL ================= */
 
   useEffect(() => {
@@ -50,6 +62,26 @@ export default function MissionDetail({ mission }) {
     fetchUrgencyLevels();
 
   }, []);
+  
+
+  /* ================= AUTO SET PRIORITY FROM DB ================= */
+  useEffect(() => {
+
+    if (!mission || !mission.urgencyLevelId || urgencyLevels.length === 0) return;
+  
+    const level = urgencyLevels.find(
+      (l) => l.urgencyLevelId === mission.urgencyLevelId
+    );
+  
+    if (!level) return;
+  
+    const index = urgencyLevels.indexOf(level);
+    const code = `P${index + 1}`;
+  
+    setPriority(code);
+    setRecommendedPriority(code);
+  
+  }, [mission, urgencyLevels]);
 
   /* ================= FORMAT SLA ================= */
 
@@ -105,6 +137,59 @@ export default function MissionDetail({ mission }) {
 
   };
 
+
+
+  const handleRejectConfirm = async () => {
+
+    if (!rejectReason.trim()) {
+  
+      AuthNotify.warning(
+        "Thiếu lý do",
+        "Vui lòng nhập lý do từ chối"
+      );
+  
+      return;
+    }
+  
+    try {
+  
+      setRejectLoading(true);
+  
+      await rejectRescueRequest(
+        mission.id,
+        rejectReason
+      );
+  
+      AuthNotify.success("Đã từ chối yêu cầu");
+  
+      setRejectOpen(false);
+  
+      /* NAVIGATE + RELOAD */
+  
+      navigate("/coordinator"); 
+  
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
+  
+    }
+    catch (err) {
+  
+      console.error(err);
+  
+      AuthNotify.error(
+        "Từ chối yêu cầu thất bại"
+      );
+  
+    }
+    finally {
+  
+      setRejectLoading(false);
+  
+    }
+  
+  };
+
   /* ================= CHECK MISSION ================= */
 
   if (!mission) {
@@ -128,14 +213,13 @@ export default function MissionDetail({ mission }) {
   }
 
   /* ================= IMAGE FIX ================= */
+  const images = mission?.images ?? [];
 
-  const images =
-    mission?.imageUrls ||
-    mission?.images ||
-    [];
 
-  /* ================= UI ================= */
 
+
+  console.log("MISSION:", mission);
+  console.log("IMAGES:", mission?.images);
   return (
 
     <section className="rc-md">
@@ -150,16 +234,16 @@ export default function MissionDetail({ mission }) {
 
             Yêu cầu #{mission.id}
 
-            <span 
-className="status status-pending"
-style={{
-  backgroundColor:"#f59e0b",
-  color:"#fff",
-  padding:"4px 10px",
-  borderRadius:"14px"
-}}>
-ĐANG XỬ LÝ
-</span>
+            <span
+              className="status status-pending"
+              style={{
+                backgroundColor: "#f59e0b",
+                color: "#fff",
+                padding: "4px 10px",
+                borderRadius: "14px"
+              }}>
+              ĐANG XỬ LÝ
+            </span>
 
           </h2>
 
@@ -197,12 +281,12 @@ style={{
 
               <div className="info-item">
                 <label>HỌ VÀ TÊN</label>
-                <strong>{mission.name || mission.fullname}</strong>
+                <strong>{mission.name || mission.fullName}</strong>
               </div>
 
               <div className="info-item">
                 <label>SỐ ĐIỆN THOẠI</label>
-                <strong className="phone">{mission.phone}</strong>
+                <strong className="phone">{mission.phone || mission.contactPhone}</strong>
               </div>
 
             </div>
@@ -212,6 +296,36 @@ style={{
             <p className="address-text">
               {mission.address}
             </p>
+
+          </section>
+
+
+
+          {/* RESOURCES */}
+
+          <section className="card">
+
+            <h4 className="card-title">
+              🧰 NGUỒN LỰC & MÔ TẢ
+            </h4>
+
+            <div className="resource-grid">
+
+              <div className="resource-item">
+                <label>SỐ NGƯỜI GẶP NẠN</label>
+                <p>{mission.victimCount}</p>
+              </div>
+
+              <div className="resource-item">
+                <label>DỤNG CỤ CỨU HỘ</label>
+                <p>{mission.availableRescueTool}</p>
+              </div>
+
+            </div>
+
+            <label>NHU CẦU ĐẶC BIỆT</label>
+
+            <p>{mission.specialNeeds}</p>
 
           </section>
 
@@ -235,33 +349,6 @@ style={{
 
           </section>
 
-          {/* RESOURCES */}
-
-          <section className="card">
-
-            <h4 className="card-title">
-              🧰 NGUỒN LỰC & MÔ TẢ
-            </h4>
-
-            <div className="resource-grid">
-
-              <div className="resource-item">
-                <label>SỐ NGƯỜI GẶP NẠN</label>
-                <p>{mission.victimCount}</p>
-              </div>
-
-              <div className="resource-item">
-                <label>DỤNG CỤ CỨU HỘ</label>
-                <p>{mission.availableRescueTools}</p>
-              </div>
-
-            </div>
-
-            <label>NHU CẦU ĐẶC BIỆT</label>
-
-            <p>{mission.specialNeeds}</p>
-
-          </section>
 
           {/* MAP */}
 
@@ -269,7 +356,7 @@ style={{
 
             <iframe
               title="map"
-              src={`https://www.google.com/maps?q=${mission.lat},${mission.lng}&z=13&output=embed`}
+              src={`https://www.google.com/maps?q=${mission.locationLat},${mission.locationLng}&z=13&output=embed`}
             />
 
           </section>
@@ -284,94 +371,111 @@ style={{
 
           <section className="card">
 
-            <h4 className="card-title">
-              📷 HÌNH ẢNH HIỆN TRƯỜNG
-            </h4>
+<h4 className="card-title">
+  📷 HÌNH ẢNH HIỆN TRƯỜNG
+</h4>
 
-            <Image.PreviewGroup>
+<div className="image-grid">
 
-              <div className="image-grid">
+  {images.length > 0 ? (
 
-                {images.length > 0 ? (
+    images.map((img, i) => {
 
-                  images.map((img, i) => {
+      const imageUrl =
+        img.startsWith("http")
+          ? img
+          : API_BASE + img;
 
-                    const imageUrl =
-                      img.startsWith("http")
-                        ? img
-                        : `${IMAGE_BASE}${img}`;
+      return (
+        <img
+          key={i}
+          src={imageUrl}
+          alt={`rescue-${i}`}
+          width={160}
+          referrerPolicy="no-referrer"
+          style={{
+            borderRadius: 10,
+            objectFit: "cover",
+            border: "1px solid #eee"
+          }}
+        />
+      );
 
-                    return (
+    })
 
-                      <Image
-                        key={i}
-                        width={140}
-                        src={imageUrl}
-                        alt={`rescue-${i}`}
-                      />
+  ) : (
 
-                    );
+    <p style={{ color: "#888" }}>
+      Không có hình ảnh
+    </p>
 
-                  })
+  )}
 
-                ) : (
+</div>
 
-                  <p style={{ color: "#888" }}>
-                    Không có hình ảnh
-                  </p>
-
-                )}
-
-              </div>
-
-            </Image.PreviewGroup>
-
-          </section>
+</section>
 
           {/* PRIORITY */}
 
           <section className="card rc-priority-card">
 
-            <h4 className="card-title">
-              ⚠️ PHÂN LOẠI ƯU TIÊN
-            </h4>
+<h4 className="card-title">
+  ⚠️ PHÂN LOẠI ƯU TIÊN
+</h4>
 
-            {urgencyLevels.map((level, index) => {
+{/* LÝ DO ĐỀ XUẤT */}
 
-              const priorityCode = `P${index + 1}`;
+{recommendedPriority && (
+  <p className="priority-reason">
+    Lý do đề xuất: Hệ thống phân tích dựa trên nguồn và lực mô tả,
+    tình trạng khẩn cấp của người dân cung cấp
+  </p>
+)}
 
-              return (
+{urgencyLevels.map((level, index) => {
 
-                <div
-                  key={level.urgencyLevelId}
-                  className={`rc-priority-item rc-p${index + 1}
-                  ${priority === priorityCode ? "is-active" : ""}`}
-                  onClick={() => setPriority(priorityCode)}
-                >
+  const priorityCode = `P${index + 1}`;
 
-                  <span className="rc-radio" />
+  return (
 
-                  <div className="rc-priority-content">
+    <div
+      key={level.urgencyLevelId}
+      className={`rc-priority-item rc-p${index + 1}
+      ${priority === priorityCode ? "is-active" : ""}`}
+      onClick={() => setPriority(priorityCode)}
+    >
 
-                    <strong>
-                      {priorityTranslate[level.levelName] || level.levelName}
-                    </strong>
+      <span className="rc-radio" />
 
-                    <p>{level.description}</p>
+      <div className="rc-priority-content">
 
-                    <small className="sla-text">
-                      Thời gian xử lý: {formatSla(level.slaMinutes)}
-                    </small>
+      <div className="priority-title">
+  <span className="priority-name">
+    {priorityTranslate[level.levelName] || level.levelName}
+  </span>
 
-                  </div>
+  {recommendedPriority === priorityCode && (
+    <span className="recommend-badge">
+      Đề xuất
+    </span>
+  )}
+</div>
 
-                </div>
+        <p>{level.description}</p>
 
-              );
+        <small className="sla-text">
+          Thời gian xử lý: {formatSla(level.slaMinutes)}
+        </small>
 
-            })}
+      </div>
 
-          </section>
+    </div>
+
+  );
+
+})}
+
+</section>
 
           {/* NOTE */}
 
@@ -388,7 +492,7 @@ style={{
             />
 
           </section>
-
+         
           {/* ACTION */}
 
           <Button
@@ -399,14 +503,37 @@ style={{
             ▶ XÁC NHẬN & CHUYỂN ĐIỀU PHỐI
           </Button>
 
-          <p className="danger-text rc-md__action-flag">
-            Đánh dấu yêu cầu giả mạo / Trùng lặp
-          </p>
+          <Button
+danger
+className="rc-md__action-flag"
+onClick={openRejectPopup}
+>
+Đánh dấu yêu cầu giả mạo / Trùng lặp
+</Button>
 
         </div>
 
       </div>
+      <Modal
+title="🚫 Từ chối yêu cầu cứu hộ"
+open={rejectOpen}
+onCancel={() => setRejectOpen(false)}
+onOk={handleRejectConfirm}
+okText="Xác nhận từ chối"
+cancelText="Hủy"
+confirmLoading={rejectLoading}
+>
 
+<p>Nhập lý do từ chối yêu cầu:</p>
+
+<Input.TextArea
+rows={4}
+placeholder="Ví dụ: Yêu cầu giả mạo / trùng lặp"
+value={rejectReason}
+onChange={(e) => setRejectReason(e.target.value)}
+/>
+
+</Modal>
     </section>
 
   );

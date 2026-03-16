@@ -62,6 +62,8 @@ const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
 /* ================= CONVERT API ================= */
 
 
+const API_BASE = "https://api-rescue.purintech.id.vn";
+
 const convertApiToMission = (data = [], statuses = []) => {
 
   if (!Array.isArray(data)) return [];
@@ -74,32 +76,58 @@ const convertApiToMission = (data = [], statuses = []) => {
         s => s.statusId === item.statusId
       );
 
-      return {
+      const images = [];
 
+      if (Array.isArray(item.imageUrls)) {
+        images.push(...item.imageUrls.map(url =>
+          url.startsWith("http") ? url : API_BASE + url
+        ));
+      }
+
+      if (Array.isArray(item.images)) {
+        images.push(...item.images.map(url =>
+          url.startsWith("http") ? url : API_BASE + url
+        ));
+      }
+
+      if (item.locationImageUrl) {
+        images.push(
+          item.locationImageUrl.startsWith("http")
+            ? item.locationImageUrl
+            : API_BASE + item.locationImageUrl
+        );
+      }
+
+      return {
         id: item.rescueRequestId,
         name: item.fullName,
         phone: item.contactPhone,
-
-        location:
-          item.locationText ||
-          `${item.locationLat},${item.locationLng}`,
+        address: item.address,
 
         lat: item.locationLat,
         lng: item.locationLng,
 
-        createdAt: new Date(item.createdAt).getTime(),
+        locationLat: item.locationLat,
+        locationLng: item.locationLng,
 
-        status: "pending",
-        statusText: statusObj?.description || "Đang xử lý",
+        createdAt: new Date(item.createdAt).getTime(),
 
         incident:
           MAIN_INCIDENT_OPTIONS.find(
             (o) => o.value === item.requestType
           )?.label || item.requestType,
 
-        address: item.address,
-        images: item.imageUrls || [],
+        status: "pending",
+        statusText: statusObj?.description || "Đang xử lý",
 
+        images: images,
+
+        urgencyLevelId: item.urgencyLevelId,
+        detailDescription: item.detailDescription,
+        rescueTeamNote: item.rescueTeamNote,
+        victimCount: item.victimCount,
+        availableRescueTool: item.availableRescueTool,
+        specialNeeds: item.specialNeeds,
       };
 
     });
@@ -161,8 +189,10 @@ export default function MissionList({ onSelectMission }) {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if(requestStatuses.length > 0){
+      fetchData();
+    }
+  }, [requestStatuses]);
 
   /* ================= ADDRESS OPTIONS ================= */
 

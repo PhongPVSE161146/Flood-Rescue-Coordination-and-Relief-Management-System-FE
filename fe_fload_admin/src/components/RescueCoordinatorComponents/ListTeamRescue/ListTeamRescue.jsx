@@ -10,7 +10,8 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-
+import AuthNotify from "../../../utils/Common/AuthNotify";
+import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
 import "./list-team-rescue-queue.css";
 
 const { Option } = Select;
@@ -120,9 +121,14 @@ const URGENCY_OPTIONS = [
 
 /* ================= CONVERT API ================= */
 
-const convertApiToMission = (data = [], urgencyList = []) => {
+const convertApiToMission = (data = [], urgencyList = [], statuses = []) => {
 
   const levelMap = {};
+  const statusMap = {};
+
+statuses.forEach((s) => {
+  statusMap[s.statusId] = s;
+});
 
   urgencyList.forEach((u) => {
     levelMap[u.urgencyLevelId] = u;
@@ -137,6 +143,7 @@ const convertApiToMission = (data = [], urgencyList = []) => {
   return data.map((item) => {
 
     const urgency = levelMap[item.urgencyLevelId];
+    
 
     return {
 
@@ -170,7 +177,7 @@ const convertApiToMission = (data = [], urgencyList = []) => {
         )?.label || item.requestType || "Không rõ",
 
       sla: urgency?.slaMinutes || 0,
-
+      statusText: statusMap[item.statusId]?.description || "",
     };
 
   });
@@ -191,7 +198,7 @@ export default function ListTeamRescue({ onSelectRequest }) {
 
   const [, forceRender] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
-
+  const [statuses, setStatuses] = useState([]);
   const [filters, setFilters] = useState({
     requestType: "",
     address: "",
@@ -206,6 +213,31 @@ export default function ListTeamRescue({ onSelectRequest }) {
   
   };
 
+  useEffect(() => {
+
+    const loadStatuses = async () => {
+  
+      try {
+  
+        const res = await getRequestStatuses();
+  
+        const list = Array.isArray(res)
+          ? res
+          : res?.data || [];
+  
+        setStatuses(list);
+  
+      } catch (err) {
+  
+        console.error("LOAD STATUS ERROR:", err);
+  
+      }
+  
+    };
+  
+    loadStatuses();
+  
+  }, []);
   /* ================= LOAD API ================= */
 
   const fetchData = async () => {
@@ -232,7 +264,7 @@ const list = raw.filter(
       const urgencyList = urgencyRes || [];
 
       setMissions(
-        convertApiToMission(list, urgencyList)
+        convertApiToMission(list, urgencyList, statuses)
       );
 
     }
@@ -329,6 +361,11 @@ const list = raw.filter(
     return () => clearInterval(timer);
 
   }, []);
+  useEffect(() => {
+    if (statuses.length > 0) {
+      fetchData();
+    }
+  }, [statuses]);
 
   /* ================= FILTER ================= */
 
@@ -517,33 +554,38 @@ const list = raw.filter(
             }}
           >
 
-              <div className="ltr-queue__top">
+<div className="ltr-queue__top">
 
-                <div>
+<div className="ltr-queue__meta">
 
-                  <div className="ltr-queue__request-id">
-                    Mã yêu cầu: #{item.id}
-                  </div>
+  <div className="ltr-queue__request-id">
+    Mã yêu cầu: #{item.id}
+  </div>
 
-                  <span className="ltr-queue__time">
-                    {timeAgo(item.verifiedAt)}
-                  </span>
+  <Tag className="ltr-status-tag" color="purple">
+    {item.statusText}
+  </Tag>
 
-                </div>
+  <span className="ltr-queue__time">
+    {timeAgo(item.verifiedAt)}
+  </span>
 
-                <Tag
-                  color={
-                    item.level === "urgent"
-                      ? "red"
-                      : item.level === "medium"
-                      ? "orange"
-                      : "green"
-                  }
-                >
-                  {item.urgency}
-                </Tag>
+</div>
 
-              </div>
+<Tag
+  className="ltr-urgency-tag"
+  color={
+    item.level === "urgent"
+      ? "red"
+      : item.level === "medium"
+      ? "orange"
+      : "green"
+  }
+>
+  {item.urgency}
+</Tag>
+
+</div>
 
               <h4>Họ và tên : {item.fullname}</h4>
 

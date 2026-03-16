@@ -3,7 +3,7 @@ import { PhoneOutlined } from "@ant-design/icons";
 
 import "./RescueDetailModal.css";
 
-const IMAGE_BASE = "https://api-rescue.purintech.id.vn/";
+const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
 const REQUEST_TYPES = [
   "cứu hộ khẩn cấp",
   "hỗ trợ cứu trợ",
@@ -26,9 +26,27 @@ export default function RescueDetailModal({ data, onClose }) {
 
   if (!data) return null;
 
-  const imageUrl = data.locationImageUrl
-    ? `${IMAGE_BASE}${data.locationImageUrl}`
-    : null;
+  const images = [];
+
+  if (Array.isArray(data.imageUrls)) {
+    images.push(...data.imageUrls);
+  }
+  
+  if (Array.isArray(data.images)) {
+    images.push(...data.images);
+  }
+  
+  if (data.locationImageUrl) {
+    images.push(data.locationImageUrl);
+  }
+  
+  const normalizedImages = images
+  .filter(Boolean)
+  .map((img) =>
+    img.startsWith("http")
+      ? img
+      : `${IMAGE_BASE}${img}`
+  );
     const getRequestTypeLabel = (value) => {
       const found = REQUEST_TYPE_OPTIONS.find(
         (item) => item.value === value
@@ -162,14 +180,22 @@ export default function RescueDetailModal({ data, onClose }) {
                 📷 HÌNH ẢNH HIỆN TRƯỜNG
               </h4>
 
-              {imageUrl ? (
+              {normalizedImages.length > 0 ? (
 
-                <Image
-                  src={imageUrl}
-                  width="100%"
-                />
+<Image.PreviewGroup>
 
-              ) : (
+  {normalizedImages.map((img, i) => (
+    <Image
+      referrerPolicy="no-referrer"
+      key={i}
+      src={img}
+      width="100%"
+    />
+  ))}
+
+</Image.PreviewGroup>
+
+) : (
 
                 <p style={{ color:"#888" }}>
                   Không có hình ảnh

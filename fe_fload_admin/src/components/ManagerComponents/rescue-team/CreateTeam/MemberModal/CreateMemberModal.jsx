@@ -52,7 +52,6 @@ export default function CreateMemberModal({
   }, [open, members]);
 
 
-
   const fetchData = async () => {
 
     try {
@@ -63,7 +62,7 @@ export default function CreateMemberModal({
 
       let allUsers = [];
 
-      /* normalize users */
+      /* normalize API */
 
       if (Array.isArray(allUsersRes)) {
         allUsers = allUsersRes;
@@ -75,19 +74,19 @@ export default function CreateMemberModal({
         allUsers = allUsersRes.items;
       }
 
-      /* ===== user đã trong team ===== */
+      /* user đã trong team */
 
       const existingUserIds = new Set(
         (members || []).map(m => String(m.userId))
       );
 
-      /* ===== filter ===== */
+      /* chỉ lấy role RescueTeam */
 
       const filteredUsers = allUsers.filter(user => {
 
         const userId = String(user.userId);
 
-        if (user.roleName === "Admin") return false;
+        if (user.roleName !== "RescueTeam") return false;
 
         if (existingUserIds.has(userId)) return false;
 
@@ -117,7 +116,6 @@ export default function CreateMemberModal({
   };
 
 
-
   /* ================= AUTO FILL ================= */
 
   const handleUserChange = (userId) => {
@@ -131,15 +129,12 @@ export default function CreateMemberModal({
     form.setFieldsValue({
 
       fullName: selectedUser.fullName || selectedUser.name || "",
-
       phone: selectedUser.phone || "",
-
-      roleInTeam: selectedUser.roleName || "Member"
+      roleInTeam: selectedUser.roleName || "RescueTeam"
 
     });
 
   };
-
 
 
   /* ================= CREATE ================= */
@@ -154,13 +149,14 @@ export default function CreateMemberModal({
       );
 
       return;
+
     }
 
     if (users.length === 0) {
 
       AuthNotify.error(
         "Không có user khả dụng",
-        "Tất cả user đã thuộc đội"
+        "Không còn RescueTeam nào chưa thuộc đội"
       );
 
       return;
@@ -176,14 +172,10 @@ export default function CreateMemberModal({
       const payload = {
 
         rescueTeamId: teamId,
-
         userId: Number(values.userId),
-
         fullName: String(values.fullName),
-
         phone: String(values.phone),
-
-        roleInTeam: String(values.roleInTeam || "Member")
+        roleInTeam: String(values.roleInTeam || "RescueTeam")
 
       };
 
@@ -222,7 +214,6 @@ export default function CreateMemberModal({
   };
 
 
-
   /* ================= UI ================= */
 
   return (
@@ -257,8 +248,8 @@ export default function CreateMemberModal({
             size="large"
             placeholder={
               users.length === 0
-                ? "Tất cả user đã thuộc đội"
-                : "Chọn user"
+                ? "Không có RescueTeam khả dụng"
+                : "Chọn RescueTeam"
             }
             loading={loadingUsers}
             showSearch
@@ -282,13 +273,11 @@ export default function CreateMemberModal({
         </Form.Item>
 
 
-
         {/* NAME */}
 
         <Form.Item
           name="fullName"
           label="Họ và tên"
-          // rules={[{ required: true }]}
         >
 
           <Input
@@ -300,13 +289,11 @@ export default function CreateMemberModal({
         </Form.Item>
 
 
-
         {/* PHONE */}
 
         <Form.Item
           name="phone"
           label="Số điện thoại"
-          // rules={[{ required: true }]}
         >
 
           <Input
@@ -318,13 +305,11 @@ export default function CreateMemberModal({
         </Form.Item>
 
 
-
         {/* ROLE */}
 
         <Form.Item
           name="roleInTeam"
           label="Vai trò trong đội"
-          // rules={[{ required: true }]}
         >
 
           <Input
@@ -336,13 +321,11 @@ export default function CreateMemberModal({
         </Form.Item>
 
 
-
         {memberCount >= 5 && (
           <p style={{color:"#ef4444", marginBottom:10}}>
             Đội đã đạt tối đa 5 thành viên
           </p>
         )}
-
 
 
         <Button

@@ -131,22 +131,22 @@ const menuByRole = {
     {
       label: "Đang cứu hộ",
       icon: <GlobalOutlined />,
-      path: "/rescue/dangcuho"
+      path: "/rescueTeam/dangcuho"
     },
     {
       label: "Lịch sử",
       icon: <HistoryOutlined />,
-      path: "/rescue/history"
+      path: "/rescueTeam/history"
     },
     {
       label: "Tin nhắn",
       icon: <MessageOutlined />,
-      path: "/rescue/messages"
+      path: "/rescueTeam/messages"
     },
     {
       label: "Cá nhân",
       icon: <UserOutlined />,
-      path: "/rescue/profile"
+      path: "/rescueTeam/profile"
     }
   ]
 };

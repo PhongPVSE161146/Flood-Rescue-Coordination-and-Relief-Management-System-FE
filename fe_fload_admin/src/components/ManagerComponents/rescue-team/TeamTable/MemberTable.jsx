@@ -18,16 +18,15 @@ import {
   deleteTeamMember
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
 
+import { getAllUser } from '../../../../../api/axios/AdminApi/userApi';
+
 import './MemberTable.css';
 import CreateMemberModal from "../CreateTeam/MemberModal/CreateMemberModal";
 
-/* ✅ Custom Notify */
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
-/* ✅ MUI */
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-
 import DeleteIcon from '@mui/icons-material/Delete';
 
 
@@ -38,6 +37,8 @@ export default function MemberTable({ teamId }) {
   const [createOpen, setCreateOpen] = useState(false);
 
 
+  /* ================= FETCH MEMBERS ================= */
+
   const fetchMembers = async () => {
 
     if (!teamId) return;
@@ -46,22 +47,67 @@ export default function MemberTable({ teamId }) {
 
       setLoading(true);
 
-      const response = await getRescueTeamMembers(teamId);
+      /* gọi 2 API */
 
-      const data = response.data;
+      const [teamRes, userRes] = await Promise.all([
+        getRescueTeamMembers(teamId),
+        getAllUser()
+      ]);
 
-      if (Array.isArray(data)) {
-        setMembers(data);
+      /* ===== normalize team members ===== */
+
+      const rawMembers = teamRes.data;
+
+      let membersList = [];
+
+      if (Array.isArray(rawMembers)) {
+        membersList = rawMembers;
       }
-      else if (Array.isArray(data?.data)) {
-        setMembers(data.data);
+      else if (Array.isArray(rawMembers?.data)) {
+        membersList = rawMembers.data;
       }
-      else if (Array.isArray(data?.items)) {
-        setMembers(data.items);
+      else if (Array.isArray(rawMembers?.items)) {
+        membersList = rawMembers.items;
       }
-      else {
-        setMembers([]);
+
+      /* ===== normalize users ===== */
+
+      const rawUsers = userRes.data ?? userRes;
+
+      let usersList = [];
+
+      if (Array.isArray(rawUsers)) {
+        usersList = rawUsers;
       }
+      else if (Array.isArray(rawUsers?.data)) {
+        usersList = rawUsers.data;
+      }
+      else if (Array.isArray(rawUsers?.items)) {
+        usersList = rawUsers.items;
+      }
+
+      /* ===== merge roleName ===== */
+
+      const normalized = membersList.map(member => {
+
+        const user = usersList.find(
+          u => Number(u.userId) === Number(member.userId)
+        );
+
+        return {
+
+          userId: member.userId,
+          fullName: member.fullName,
+          phone: member.phone,
+          roleName: user?.roleName || member.roleName || "Member",
+          areaId: member.areaId,
+          createdAt: member.createdAt
+
+        };
+
+      });
+
+      setMembers(normalized);
 
     }
     catch (error) {
@@ -88,16 +134,15 @@ export default function MemberTable({ teamId }) {
   }, [teamId]);
 
 
+  /* ================= DELETE ================= */
+
   const handleDeleteMember = (userId, fullName) => {
 
     Modal.confirm({
 
       title: 'Xác nhận xóa',
-
       icon: <ExclamationCircleOutlined />,
-
       content: `Bạn có chắc muốn xóa "${fullName}"?`,
-
       okType: 'danger',
 
       onOk: async () => {
@@ -206,14 +251,15 @@ export default function MemberTable({ teamId }) {
 
       </div>
 
+
       <CreateMemberModal
-  open={createOpen}
-  teamId={teamId}
-  members={members}        // thêm dòng này
-  memberCount={members.length}
-  onClose={() => setCreateOpen(false)}
-  onSuccess={fetchMembers}
-/>
+        open={createOpen}
+        teamId={teamId}
+        members={members}
+        memberCount={members.length}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={fetchMembers}
+      />
 
     </div>
 
@@ -228,9 +274,17 @@ function MemberRow({
   userId,
   fullName,
   phone,
-  roleInTeam,
+  roleName,
   onDelete
 }) {
+
+  const roleColor = {
+    Admin: "volcano",
+    Manager: "red",
+    Leader: "orange",
+    Coordinator: "purple",
+    Rescuer: "blue"
+  };
 
   return (
 
@@ -250,8 +304,8 @@ function MemberRow({
 
       <div className="role-cell">
 
-        <Tag color="blue">
-          {roleInTeam || "Thành viên"}
+        <Tag color={roleColor[roleName] || "blue"}>
+          {roleName}
         </Tag>
 
       </div>

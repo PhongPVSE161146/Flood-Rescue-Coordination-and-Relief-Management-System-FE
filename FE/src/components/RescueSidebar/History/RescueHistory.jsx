@@ -171,7 +171,17 @@ const RescueHistory = () => {
 
         });
 
-      setHistories(formattedData);
+        setHistories(formattedData);
+
+        setViewing((prev) => {
+          if (!prev) return prev;
+        
+          const updated = formattedData.find(
+            (item) => item.id === prev.id
+          );
+        
+          return updated || prev;
+        });
 
     }
     catch (err) {

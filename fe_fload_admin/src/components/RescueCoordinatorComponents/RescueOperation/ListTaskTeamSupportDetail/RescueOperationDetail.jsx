@@ -7,11 +7,11 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
-import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
+// import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
-
+const API_BASE = "https://api-rescue.purintech.id.vn";
 const priorityTranslate = {
   High: "Mức Độ Cao",
   Medium: "Mức Độ Trung Bình",
@@ -21,13 +21,13 @@ const priorityTranslate = {
 
 
 const STATUS_STEPS = [
-  { key:"PENDING", label:"Chờ Điều Phối", icon:"🕒" },
-  { key:"ASSIGNED", label:"Đã Điều Động", icon:"📋" },
-  { key:"ACCEPTED", label:"Đội đã nhận", icon:"🚑" },
-  { key:"RESCUING", label:"Đang cứu hộ", icon:"🛟" },
-  { key:"COMPLETED", label:"Hoàn thành", icon:"✔" },
-  { key:"CANCELLED", label:"Đã hủy", icon:"❌" }
-]
+  { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
+  { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
+  { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
+  { key: "ARRIVED", label: "Đã đến hiện trường", icon: "📍" },
+  { key: "COMPLETED", label: "Hoàn thành", icon: "✔" },
+  // { key: "REJECTED", label: "Từ chối nhiệm vụ", icon: "❌" }
+];
 
 export default function RescueOperationDetail({ assignmentId }) {
 
@@ -39,20 +39,22 @@ export default function RescueOperationDetail({ assignmentId }) {
     lat:10.8231,
     lng:106.6297
   })
-
+  const [loading,setLoading] = useState(false)
   const [images,setImages] = useState([])
   const [openEdit,setOpenEdit] = useState(false)
   const [messages,setMessages] = useState([])
   const [input,setInput] = useState("")
   const messagesRef = useRef(null)
 
-  const normalizeStatus = (s)=> s?.trim().toLowerCase()
+
 
   /* ================= LOAD DATA ================= */
 
   const fetchData = async()=>{
 
     try{
+  
+      setLoading(true)
   
       const [
         assignment,
@@ -141,17 +143,40 @@ export default function RescueOperationDetail({ assignmentId }) {
   
       }
   
-      if(req?.images){
-        setImages(req.images)
-      }
+     /* ================= IMAGE FIX ================= */
+
+const imgs = [];
+
+if (Array.isArray(req?.imageUrls)) {
+  imgs.push(...req.imageUrls);
+}
+
+if (Array.isArray(req?.images)) {
+  imgs.push(...req.images);
+}
+
+if (req?.locationImageUrl) {
+  imgs.push(req.locationImageUrl);
+}
+
+/* chuẩn hóa URL */
+const normalizedImages = imgs.map((img) =>
+  img.startsWith("http") ? img : API_BASE + img
+);
+
+setImages(normalizedImages);
   
-    }catch(err){
-  
-      console.error("Load detail error:",err)
-  
-    }
-  
-  }
+}catch(err){
+
+  console.error("Load detail error:",err)
+
+}finally{
+
+  setLoading(false)
+
+}
+
+}
 
 
   useEffect(()=>{
@@ -210,6 +235,15 @@ export default function RescueOperationDetail({ assignmentId }) {
     navigate("/coordinator/reports")
   }
 
+  if(loading){
+    return(
+      <div className="rc-loading">
+    
+        Đang tải dữ liệu nhiệm vụ...
+      </div>
+    )
+  }
+  
   if(!detail){
     return (
       <div
@@ -355,13 +389,14 @@ ${isDone ? "done":""}`}
   </div>
 
 </div>
+<div className="info-item">
 
 <label>ĐỊA CHỈ HIỆN TẠI</label>
 
 <p className="address-text">
   {detail.address}
 </p>
-
+</div>
 </section>
 
 {/* TEAM */}
@@ -372,13 +407,13 @@ ${isDone ? "done":""}`}
 
     <h4>🚑 ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
 
-    <button
+    {/* <button
   className="rc-op-edit-btn"
   onClick={()=>setOpenEdit(true)}
   disabled={detail?.statusId >= 3}
 >
   ✏️ Chỉnh sửa
-</button>
+</button> */}
 
   </div>
 
@@ -521,7 +556,7 @@ onKeyDown={handleKeyDown}
 
 </div>
 
-<UpdateDetailTeam
+{/* <UpdateDetailTeam
 open={openEdit}
 detail={detail}
 onClose={()=>setOpenEdit(false)}
@@ -530,7 +565,7 @@ onSave={()=>{
   fetchData()
 
 }}
-/>
+/> */}
 
 </section>
 

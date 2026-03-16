@@ -3,14 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import {
-  getAllAssignments,
   getPendingRescueRequests,
-  getUrgencyLevels,
-
+  getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-import {  acceptRescueAssignment} from "../../../../api/axios/RescueApi/RescueTask";
+
+import { acceptRescueAssignment } from "../../../../api/axios/RescueApi/RescueTask";
+
 import { getAllRescueTeams } from "../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
+import { getAllAssignments } from "../../../../api/axios/RescueApi/RescueTask";
 import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
 
 const priorityTranslate = {
@@ -23,11 +24,18 @@ export default function MissionListRescue() {
 
   const navigate = useNavigate();
 
-  const [missions,setMissions] = useState([])
-  const [loading,setLoading] = useState(false)
+  const [missions,setMissions] = useState([]);
+  const [loading,setLoading] = useState(false);
 
-  const [filterLevel,setFilterLevel] = useState("")
-  const [filterAddress,setFilterAddress] = useState("")
+  const [filterLevel,setFilterLevel] = useState("");
+  const [filterAddress,setFilterAddress] = useState("");
+
+  /* ================= LẤY USER LOGIN ================= */
+
+  const user =
+    JSON.parse(sessionStorage.getItem("user")) ||
+    JSON.parse(localStorage.getItem("user")) ||
+    {};
 
   /* ================= LOAD DATA ================= */
 
@@ -35,7 +43,7 @@ export default function MissionListRescue() {
 
     try{
 
-      setLoading(true)
+      setLoading(true);
 
       const [
         assignmentRes,
@@ -51,66 +59,89 @@ export default function MissionListRescue() {
         getAllRescueTeams(),
         getAllVehicles(),
         getRequestStatuses()
-      ])
+      ]);
 
-      const assignments = assignmentRes?.data || assignmentRes || []
-      const requests = requestRes?.data || requestRes || []
-      const urgencies = urgencyRes || []
-      const teams = teamRes?.data?.items || []
-      const vehicles = vehicleRes?.data || []
-      const statuses = statusRes?.data || statusRes || []
+      const assignments = assignmentRes?.data || assignmentRes || [];
+      const requests = requestRes?.data || requestRes || [];
+      const urgencies = urgencyRes || [];
+      const teams = teamRes?.data?.items || [];
+      const vehicles = vehicleRes?.data || [];
+      const statuses = statusRes?.data || statusRes || [];
 
-      const requestMap={}
+      /* ================= TÌM TEAM CỦA USER ================= */
+
+      const myTeam = teams.find(
+        t => t.areaId === user.areaId
+      );
+
+      if(!myTeam){
+        setMissions([]);
+        return;
+      }
+
+      /* ================= LỌC ASSIGNMENT THEO TEAM ================= */
+
+      const myAssignments = assignments.filter(
+        a => a.rescueTeamId === myTeam.rescueTeamId
+      );
+
+      /* ================= MAP LOOKUP ================= */
+
+      const requestMap = {};
       requests.forEach(r=>{
-        requestMap[r.rescueRequestId]=r
-      })
+        requestMap[r.rescueRequestId || r.id] = r;
+      });
 
-      const teamMap={}
+      const teamMap = {};
       teams.forEach(t=>{
-        teamMap[t.rcid]=t.rcName
-      })
+        teamMap[t.rescueTeamId] = t.teamName;
+      });
 
-      const vehicleMap={}
+      const vehicleMap = {};
       vehicles.forEach(v=>{
-        vehicleMap[v.vehicleId]=v.vehicleName
-      })
+        vehicleMap[v.vehicleId] = v.vehicleName;
+      });
 
-      const urgencyMap={}
+      const urgencyMap = {};
       urgencies.forEach(u=>{
-        urgencyMap[u.urgencyLevelId]=u.levelName
-      })
+        urgencyMap[u.urgencyLevelId] = u.levelName;
+      });
 
-      const statusMap={}
+      const statusMap = {};
       statuses.forEach(s=>{
-        statusMap[s.statusId]=s.description
-      })
+        statusMap[s.statusId] = s.description;
+      });
 
-      const mapped = assignments.map(a=>{
+      /* ================= MAP MISSIONS ================= */
 
-        const req = requestMap[a.rescueRequestId]
+      const mapped = myAssignments.map(a=>{
 
-        const urgencyLevel = urgencyMap[req?.urgencyLevelId]
+        const req = requestMap[a.rescueRequestId];
+
+        if(!req) return null;
+
+        const urgencyLevel = urgencyMap[req.urgencyLevelId];
 
         const urgencyText =
-        priorityTranslate[urgencyLevel] ||
-        urgencyLevel ||
-        "Không xác định"
+          priorityTranslate[urgencyLevel] ||
+          urgencyLevel ||
+          "Không xác định";
 
         const statusName =
-        statusMap[req?.requestStatusId] ||
-        "Đang xử lý"
+          statusMap[req.statusId] ||
+          "Đang xử lý";
 
         return{
 
           id:a.assignmentId,
 
-          title:req?.fullName || req?.fullname || "Người gửi yêu cầu",
+          title:req.fullName || req.fullname || "Người gửi yêu cầu",
 
-          phone:req?.contactPhone || "Không có",
+          phone:req.contactPhone || "Không có",
 
           level:urgencyText,
 
-          address:req?.address || "Chưa cập nhật",
+          address:req.address || "Chưa cập nhật",
 
           team:teamMap[a.rescueTeamId] || `Đội ${a.rescueTeamId}`,
 
@@ -119,37 +150,37 @@ export default function MissionListRescue() {
           status:statusName,
 
           time:a.assignedAt
-          ? new Date(a.assignedAt).toLocaleString("vi-VN")
-          :"Chưa phân công",
+            ? new Date(a.assignedAt).toLocaleString("vi-VN")
+            : "Chưa phân công",
 
-          active:a.assignmentStatus==="ASSIGNED",
+          active:a.assignmentStatus === "ASSIGNED",
 
-          lat:req?.latitude || 10.7731,
-          lng:req?.longitude || 106.7031
+          lat:req.locationLat || 10.7731,
+          lng:req.locationLng || 106.7031
 
-        }
+        };
 
-      })
+      }).filter(Boolean);
 
-      setMissions(mapped)
+      setMissions(mapped);
 
     }
     catch(err){
 
-      console.error("Load assignments error:",err)
+      console.error("Load assignments error:",err);
 
     }
     finally{
 
-      setLoading(false)
+      setLoading(false);
 
     }
 
-  }
+  };
 
   useEffect(()=>{
-    fetchAssignments()
-  },[])
+    fetchAssignments();
+  },[]);
 
   /* ================= ACCEPT MISSION ================= */
 
@@ -157,21 +188,19 @@ export default function MissionListRescue() {
 
     try{
 
-      await acceptRescueAssignment(assignmentId)
+      await acceptRescueAssignment(assignmentId);
 
-      alert("Đã nhận nhiệm vụ thành công")
-
-      fetchAssignments()
+      fetchAssignments();
 
     }
     catch(err){
 
-      console.error(err)
-      alert("Nhận nhiệm vụ thất bại")
+      console.error(err);
+      alert("Nhận nhiệm vụ thất bại");
 
     }
 
-  }
+  };
 
   /* ================= FILTER ================= */
 
@@ -179,15 +208,15 @@ export default function MissionListRescue() {
 
     const levelMatch = filterLevel
       ? m.level === filterLevel
-      : true
+      : true;
 
     const addressMatch = filterAddress
       ? m.address.toLowerCase().includes(filterAddress.toLowerCase())
-      : true
+      : true;
 
-    return levelMatch && addressMatch
+    return levelMatch && addressMatch;
 
-  })
+  });
 
   /* ================= UI ================= */
 
@@ -229,11 +258,7 @@ onChange={(e)=>setFilterAddress(e.target.value)}
 
 </div>
 
-{/* LOADING */}
-
 {loading && <p style={{padding:"10px"}}>Đang tải dữ liệu...</p>}
-
-{/* LIST */}
 
 {filteredMissions.map(m=>(
 
@@ -241,8 +266,6 @@ onChange={(e)=>setFilterAddress(e.target.value)}
 key={m.id}
 className={`rm-mission-card ${m.active?"active":""}`}
 >
-
-{/* MAP */}
 
 <div className="rm-map-thumb">
 
@@ -253,8 +276,6 @@ loading="lazy"
 />
 
 </div>
-
-{/* CONTENT */}
 
 <div className="rm-card-body">
 
@@ -302,9 +323,7 @@ disabled={!m.active}
 className="rm-btn-detail"
 onClick={()=>navigate(`/rescueTeam/mission/${m.id}`)}
 >
-
 XEM CHI TIẾT →
-
 </button>
 
 </div>
