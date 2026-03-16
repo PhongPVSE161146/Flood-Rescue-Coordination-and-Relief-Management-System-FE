@@ -159,12 +159,19 @@ export const confirmDispatchRescueRequest = async (payload) => {
 
 /* ================= GET ALL ASSIGNMENTS ================= */
 
-export const getAllAssignments = async () => {
+
+export const getAllAssignments = async (params = {}) => {
 
   try {
 
-    const response = await axiosInstance.get(
-      "/api/RescueAssignments"
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/RescueAssignments`,
+      {
+        params,
+        headers: {
+          Accept: "application/json"
+        }
+      }
     );
 
     return response.data;
@@ -172,12 +179,12 @@ export const getAllAssignments = async () => {
   }
   catch (error) {
 
-    console.error("Lỗi lấy assignments:", error);
+    console.error("Lỗi lấy RescueRequests:", error);
 
     throw new Error(
       error.response?.data?.message ||
       error.message ||
-      "Không thể tải danh sách điều phối"
+      "Không thể tải danh sách RescueRequests"
     );
 
   }
@@ -234,6 +241,33 @@ export const getRescueAssignmentById = async (assignmentId) => {
       error.response?.data?.message ||
       error.message ||
       "Không thể tải thông tin điều phối"
+    );
+
+  }
+
+};
+export const rejectRescueRequest = async (requestId, reason) => {
+
+  try {
+
+    const response = await axiosInstance.put(
+      `/api/RescueRequests/${requestId}/reject`,
+      {
+        reason: reason
+      }
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi từ chối yêu cầu:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể từ chối yêu cầu cứu hộ"
     );
 
   }

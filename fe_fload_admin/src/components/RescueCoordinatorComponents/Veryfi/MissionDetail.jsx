@@ -1,11 +1,12 @@
-import { Button, Input, Image } from "antd";
+import { Button, Input, Image, Modal } from "antd";
 import { useState, useEffect } from "react";
 import { PhoneOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
   getUrgencyLevels,
-  verifyAndDispatchRescueRequest
+  verifyAndDispatchRescueRequest,
+  rejectRescueRequest
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
@@ -26,8 +27,14 @@ export default function MissionDetail({ mission }) {
   const [priority, setPriority] = useState(null);
   const [note, setNote] = useState("");
   const [recommendedPriority, setRecommendedPriority] = useState(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+const [rejectReason, setRejectReason] = useState("");
+const [rejectLoading, setRejectLoading] = useState(false);
   const navigate = useNavigate();
-
+  const openRejectPopup = () => {
+    setRejectReason("");
+    setRejectOpen(true);
+  };
 
   useEffect(() => {
     setPriority(null);
@@ -127,6 +134,59 @@ export default function MissionDetail({ mission }) {
 
     }
 
+  };
+
+
+
+  const handleRejectConfirm = async () => {
+
+    if (!rejectReason.trim()) {
+  
+      AuthNotify.warning(
+        "Thiếu lý do",
+        "Vui lòng nhập lý do từ chối"
+      );
+  
+      return;
+    }
+  
+    try {
+  
+      setRejectLoading(true);
+  
+      await rejectRescueRequest(
+        mission.id,
+        rejectReason
+      );
+  
+      AuthNotify.success("Đã từ chối yêu cầu");
+  
+      setRejectOpen(false);
+  
+      /* NAVIGATE + RELOAD */
+  
+      navigate("/coordinator"); 
+  
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
+  
+    }
+    catch (err) {
+  
+      console.error(err);
+  
+      AuthNotify.error(
+        "Từ chối yêu cầu thất bại"
+      );
+  
+    }
+    finally {
+  
+      setRejectLoading(false);
+  
+    }
+  
   };
 
   /* ================= CHECK MISSION ================= */
@@ -430,7 +490,7 @@ export default function MissionDetail({ mission }) {
             />
 
           </section>
-
+         
           {/* ACTION */}
 
           <Button
@@ -441,14 +501,37 @@ export default function MissionDetail({ mission }) {
             ▶ XÁC NHẬN & CHUYỂN ĐIỀU PHỐI
           </Button>
 
-          <p className="danger-text rc-md__action-flag">
-            Đánh dấu yêu cầu giả mạo / Trùng lặp
-          </p>
+          <Button
+danger
+className="rc-md__action-flag"
+onClick={openRejectPopup}
+>
+Đánh dấu yêu cầu giả mạo / Trùng lặp
+</Button>
 
         </div>
 
       </div>
+      <Modal
+title="🚫 Từ chối yêu cầu cứu hộ"
+open={rejectOpen}
+onCancel={() => setRejectOpen(false)}
+onOk={handleRejectConfirm}
+okText="Xác nhận từ chối"
+cancelText="Hủy"
+confirmLoading={rejectLoading}
+>
 
+<p>Nhập lý do từ chối yêu cầu:</p>
+
+<Input.TextArea
+rows={4}
+placeholder="Ví dụ: Yêu cầu giả mạo / trùng lặp"
+value={rejectReason}
+onChange={(e) => setRejectReason(e.target.value)}
+/>
+
+</Modal>
     </section>
 
   );

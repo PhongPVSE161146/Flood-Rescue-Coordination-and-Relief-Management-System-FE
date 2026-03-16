@@ -7,7 +7,7 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
-import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
+// import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
@@ -21,13 +21,13 @@ const priorityTranslate = {
 
 
 const STATUS_STEPS = [
-  { key:"PENDING", label:"Chờ Điều Phối", icon:"🕒" },
-  { key:"ASSIGNED", label:"Đã Điều Động", icon:"📋" },
-  { key:"ACCEPTED", label:"Đội đã nhận", icon:"🚑" },
-  { key:"RESCUING", label:"Đang cứu hộ", icon:"🛟" },
-  { key:"COMPLETED", label:"Hoàn thành", icon:"✔" },
-  { key:"CANCELLED", label:"Đã hủy", icon:"❌" }
-]
+  { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
+  { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
+  { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
+  { key: "ARRIVED", label: "Đã đến hiện trường", icon: "📍" },
+  { key: "COMPLETED", label: "Hoàn thành", icon: "✔" },
+  // { key: "REJECTED", label: "Từ chối nhiệm vụ", icon: "❌" }
+];
 
 export default function RescueOperationDetail({ assignmentId }) {
 
@@ -355,13 +355,14 @@ ${isDone ? "done":""}`}
   </div>
 
 </div>
+<div className="info-item">
 
 <label>ĐỊA CHỈ HIỆN TẠI</label>
 
 <p className="address-text">
   {detail.address}
 </p>
-
+</div>
 </section>
 
 {/* TEAM */}
@@ -372,13 +373,13 @@ ${isDone ? "done":""}`}
 
     <h4>🚑 ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
 
-    <button
+    {/* <button
   className="rc-op-edit-btn"
   onClick={()=>setOpenEdit(true)}
   disabled={detail?.statusId >= 3}
 >
   ✏️ Chỉnh sửa
-</button>
+</button> */}
 
   </div>
 
@@ -521,7 +522,7 @@ onKeyDown={handleKeyDown}
 
 </div>
 
-<UpdateDetailTeam
+{/* <UpdateDetailTeam
 open={openEdit}
 detail={detail}
 onClose={()=>setOpenEdit(false)}
@@ -530,7 +531,7 @@ onSave={()=>{
   fetchData()
 
 }}
-/>
+/> */}
 
 </section>
 

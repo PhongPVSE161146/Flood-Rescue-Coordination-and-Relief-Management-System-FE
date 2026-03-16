@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 import {
-  getAllRescueTeams
+  getAvailableRescueTeams,
+  getRescueTeamVehicles
 } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 
 import {
@@ -25,6 +26,7 @@ export default function UpdateDetailTeam({
 
   const [teams,setTeams] = useState([])
   const [vehicles,setVehicles] = useState([])
+  const [allVehicles,setAllVehicles] = useState([])
 
   const [teamId,setTeamId] = useState("")
   const [vehicleId,setVehicleId] = useState("")
@@ -53,72 +55,152 @@ export default function UpdateDetailTeam({
 
   }
 
-  /* ================= LOAD DATA ================= */
+  /* ================= LOAD TEAM ================= */
 
   useEffect(()=>{
 
     if(!open) return
 
-    const fetchData = async()=>{
+    const fetchTeams = async()=>{
 
       try{
 
-        const [teamRes,vehicleRes] = await Promise.all([
-          getAllRescueTeams(),
-          getAllVehicles()
-        ])
+        const teamRes = await getAvailableRescueTeams()
 
-        const teamList = teamRes?.data?.items || []
-        const vehicleList = vehicleRes?.data || []
+        const teamList =
+          teamRes?.data ||
+          teamRes ||
+          []
 
-        /* ================= TEAM FILTER ================= */
-
-        const readyTeams = teamList.filter(team =>
-
-          team.rcStatus?.toLowerCase() === "on duty" ||
-
-          team.rcid === detail?.rescueTeamId
-
-        )
-
-        /* ================= VEHICLE FILTER ================= */
-
-        const readyVehicles = vehicleList.filter(vehicle =>
-
-          vehicle.vehicleStatus?.toLowerCase() === "ready" ||
-
-          vehicle.vehicleId === detail?.vehicleId
-
-        )
-
-        setTeams(readyTeams)
-        setVehicles(readyVehicles)
-
-        /* ================= SET CURRENT VALUE ================= */
-
-        if(detail){
-
-          setTeamId(Number(detail.rescueTeamId) || "")
-          setVehicleId(Number(detail.vehicleId) || "")
-
-        }
+        setTeams(teamList)
 
       }catch(err){
 
-        console.error("Load popup data error:",err)
-
-        AuthNotify.error(
-          "Lỗi tải dữ liệu",
-          "Không thể tải danh sách đội cứu hộ"
-        )
+        console.error("Load teams error:",err)
 
       }
 
     }
 
-    fetchData()
+    fetchTeams()
 
-  },[open,detail])
+  },[open])
+
+  /* ================= LOAD ALL VEHICLES ================= */
+
+  useEffect(()=>{
+
+    if(!open) return
+
+    const fetchVehicles = async()=>{
+
+      try{
+
+        const vehicleRes = await getAllVehicles()
+
+        const list =
+          vehicleRes?.data ||
+          vehicleRes ||
+          []
+
+        setAllVehicles(list)
+
+      }catch(err){
+
+        console.error("Load vehicles error:",err)
+
+      }
+
+    }
+
+    fetchVehicles()
+
+  },[open])
+
+  /* ================= SET DEFAULT DATA ================= */
+
+  useEffect(()=>{
+
+    if(detail){
+
+      setTeamId(Number(detail.rescueTeamId) || "")
+      setVehicleId(Number(detail.vehicleId) || "")
+
+    }
+
+  },[detail])
+
+  /* ================= LOAD TEAM VEHICLES ================= */
+
+  useEffect(()=>{
+
+    if(!teamId) {
+
+      setVehicles([])
+      return
+
+    }
+
+    const fetchTeamVehicles = async()=>{
+
+      try{
+
+        const res = await getRescueTeamVehicles(teamId)
+
+        const teamVehicles =
+          res?.data?.items ||
+          []
+
+        const mapped = teamVehicles
+        .filter(v => v.isActive)
+        .map(tv =>{
+
+          const vehicleDetail =
+            allVehicles.find(
+              v => v.vehicleId === tv.vehicleId
+            )
+
+          return{
+
+            vehicleId:tv.vehicleId,
+            vehicleName:
+              vehicleDetail?.vehicleName ||
+              `Xe ${tv.vehicleId}`
+
+          }
+
+        })
+
+        setVehicles(mapped)
+
+        /* reset vehicle nếu team mới không có vehicle */
+
+        if(mapped.length === 0){
+
+          setVehicleId("")
+
+        }
+
+      }catch(err){
+
+        console.error("Load team vehicles error:",err)
+
+      }
+
+    }
+
+    fetchTeamVehicles()
+
+  },[teamId,allVehicles])
+
+  /* ================= CHANGE TEAM ================= */
+
+  const handleChangeTeam = (value)=>{
+
+    setTeamId(Number(value))
+    setVehicleId("") // reset vehicle khi đổi team
+
+  }
 
   /* ================= UPDATE ================= */
 
@@ -147,7 +229,7 @@ export default function UpdateDetailTeam({
       }
 
       await updateRescueAssignment(
-        detail.missionId,
+        detail.assignmentId,
         payload
       )
 
@@ -155,8 +237,6 @@ export default function UpdateDetailTeam({
         "Cập nhật thành công",
         "Đã thay đổi đội cứu hộ và phương tiện"
       )
-
-      /* ================= RELOAD DATA ================= */
 
       if(onSave){
         onSave(payload)
@@ -199,7 +279,7 @@ export default function UpdateDetailTeam({
 <select
 value={teamId}
 disabled={loading}
-onChange={(e)=>setTeamId(Number(e.target.value))}
+onChange={(e)=>handleChangeTeam(e.target.value)}
 >
 
 <option value="">
@@ -209,11 +289,11 @@ Chọn đội cứu hộ
 {teams.map(team=>(
 
 <option
-key={team.rcid}
-value={team.rcid}
+key={team.rescueTeamId}
+value={team.rescueTeamId}
 >
 
-{team.rcName} - {translateTeamStatus(team.rcStatus)}
+{team.teamName} - {translateTeamStatus(team.teamStatus)}
 
 </option>
 
@@ -227,13 +307,19 @@ value={team.rcid}
 
 <select
 value={vehicleId}
-disabled={loading}
+disabled={loading || !teamId}
 onChange={(e)=>setVehicleId(Number(e.target.value))}
 >
 
 <option value="">
 Chọn phương tiện
 </option>
+
+{vehicles.length === 0 && teamId && (
+<option value="">
+Không có phương tiện
+</option>
+)}
 
 {vehicles.map(v=>(
 
@@ -242,7 +328,7 @@ key={v.vehicleId}
 value={v.vehicleId}
 >
 
-{v.vehicleName} (Sẵn sàng)
+{v.vehicleName}
 
 </option>
 
@@ -265,26 +351,12 @@ Hủy
 <button
 className="btn-save"
 onClick={handleSave}
-disabled={loading}
+disabled={loading || !teamId || !vehicleId}
 >
 {loading ? "Đang cập nhật..." : "Lưu"}
 </button>
 
 </div>
-
-{/* LOADING */}
-
-{loading && (
-
-<div className="udt-loading">
-
-<div className="udt-spinner"></div>
-
-<span>Đang cập nhật...</span>
-
-</div>
-
-)}
 
 </div>
 

@@ -134,12 +134,28 @@
 /* ================= PRIORITY ================= */
 
 .rc-team-item__priority {
-  background: #fee2e2;
-  color: #dc2626;
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
+}
+
+/* HIGH */
+.priority-high {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* MEDIUM */
+.priority-medium {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+/* LOW */
+.priority-low {
+  background: #dcfce7;
+  color: #16a34a;
 }
 
 /* ================= STATUS ================= */
@@ -295,3 +311,9 @@
     background:#ecfdf5;
     color:#16a34a;
     }
+    .status-assigned { background:#e6f4ff; color:#1677ff; }
+.status-accepted { background:#e6fffb; color:#13c2c2; }
+.status-departed { background:#fff7e6; color:#fa8c16; }
+.status-arrived { background:#f6ffed; color:#52c41a; }
+.status-completed { background:#f6ffed; color:#389e0d; }
+.status-rejected { background:#fff1f0; color:#cf1322; }

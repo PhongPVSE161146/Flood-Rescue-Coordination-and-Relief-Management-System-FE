@@ -1,9 +1,9 @@
 import axios from "axios";
 
-export const getPendingRescueRequests = async () => {
+export const getAllAssignments = async () => {
 
   const response = await axios.get(
-    "https://api-rescue.purintech.id.vn/api/RescueRequests"
+    "https://api-rescue.purintech.id.vn/api/RescueAssignments"
   );
 
   console.log("API RESPONSE:", response.data);

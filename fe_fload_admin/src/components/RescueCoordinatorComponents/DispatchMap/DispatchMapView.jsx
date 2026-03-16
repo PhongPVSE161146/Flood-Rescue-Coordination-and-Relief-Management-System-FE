@@ -4,17 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "antd";
 
 import {
-  getAllRescueTeams,
-  getRescueTeamLocation
+  getAvailableRescueTeams,
+  getRescueTeamLocation,
+  getRescueTeamVehicles
 } from "../../../../api/axios/ManagerApi/rescueTeamApi";
 
+import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
+import {getProvinces} from "../../../../api/axios/Auth/authApi";
 import {
   confirmDispatchRescueRequest
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-
-import {
-  getAllVehicles
-} from "../../../../api/axios/ManagerApi/vehicleApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
@@ -26,7 +25,7 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState("team");
-
+  const [provinces, setProvinces] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
 
@@ -41,16 +40,12 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
   let user = {};
 
   try {
-  
     user =
       JSON.parse(sessionStorage.getItem("user")) ||
       JSON.parse(localStorage.getItem("user")) ||
       {};
-  
   } catch {
-  
     user = {};
-  
   }
 
   const assignedBy = user?.userId || 0;
@@ -62,7 +57,58 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
   const address = request?.address || "Không rõ địa chỉ";
   const status = request?.statusText || "Đang xử lý";
 
+    /* ================= LOAD PROVINCES ================= */
+
+    useEffect(() => {
+
+      const fetchProvinces = async () => {
+  
+        try {
+  
+          const res = await getProvinces();
+  
+          const list =
+            res?.data ||
+            res?.data?.items ||
+            [];
+  
+          setProvinces(list);
+  
+        } catch (err) {
+  
+          console.error("Load provinces error:", err);
+  
+        }
+  
+      };
+  
+      fetchProvinces();
+  
+    }, []);
+  
+    /* ================= MAP AREA ID -> NAME ================= */
+  
+    const provinceMap = useMemo(() => {
+
+      const map = {};
+    
+      provinces.forEach(p => {
+        map[p.id] = p.name;
+      });
+    
+      return map;
+    
+    }, [provinces]);
+
+
+
+
+  
+  
   /* ================= LOAD TEAMS ================= */
+
+
+
 
   useEffect(() => {
 
@@ -70,14 +116,12 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
       try {
 
-        const teamRes = await getAllRescueTeams();
+        const teamRes = await getAvailableRescueTeams();
 
-        const teams = teamRes?.data?.items || [];
-
-        /* CHỈ LẤY TEAM SẴN SÀNG */
+        const teams = teamRes?.data || [];
 
         const availableTeams =
-          teams.filter(t => t.rcStatus === "on duty");
+          teams.filter(t => t.teamStatus === "on duty");
 
         const mapped = await Promise.all(
 
@@ -89,7 +133,7 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
             try {
 
-              const loc = await getRescueTeamLocation(team.rcid);
+              const loc = await getRescueTeamLocation(team.rescueTeamId);
 
               const location = loc?.data?.location;
 
@@ -108,14 +152,13 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
             return {
 
-              id: team.rcid,
-              name: team.rcName,
-              phone: team.rcPhone,
-              status: team.rcStatus,
-              members: team.memberCount || 6,
+              id: team.rescueTeamId,
+              name: team.teamName,
+              status: team.teamStatus,
               address,
               lat,
-              lng
+              lng,
+              areaId: team.areaId,
 
             };
 
@@ -129,6 +172,7 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
       catch (err) {
 
         console.error("Load teams error:", err);
+      
 
       }
 
@@ -136,7 +180,7 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
     fetchTeams();
 
-  }, [request]);
+  }, [request, provinces]);
 
   /* ================= LOAD VEHICLES ================= */
 
@@ -144,31 +188,42 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
     const fetchVehicles = async () => {
 
+      if (!selectedTeam) {
+        setVehicles([]);
+        return;
+      }
+
       try {
 
-        const res = await getAllVehicles();
+        const [teamVehicleRes, vehicleRes] = await Promise.all([
+          getRescueTeamVehicles(selectedTeam),
+          getAllVehicles()
+        ]);
 
-        const data =
-        res?.data?.items ||
-        res?.data ||
-        [];
+        const teamVehicles =
+          teamVehicleRes?.data?.items || [];
 
-        /* CHỈ LẤY XE READY */
+        const allVehicles =
+          vehicleRes?.data || [];
 
-        const availableVehicles =
-          data.filter(v =>
-            v.vehicleStatus?.toLowerCase() === "ready"
-          );
+        const mapped = teamVehicles
+          .filter(v => v.isActive === true)
+          .map(tv => {
 
-        const mapped = availableVehicles.map(v => ({
+            const vehicleDetail =
+              allVehicles.find(v => v.vehicleId === tv.vehicleId);
 
-          id: v.vehicleId,
-          name: v.vehicleName,
-          type: v.vehicleType,
-          location: v.vehicleLocation,
-          status: v.vehicleStatus
+            return {
 
-        }));
+              id: tv.vehicleId,
+              name: vehicleDetail?.vehicleName || `Xe #${tv.vehicleId}`,
+              type: vehicleDetail?.vehicleType || "Rescue Vehicle",
+              location: vehicleDetail?.vehicleLocation || "Không xác định",
+              status: vehicleDetail?.vehicleStatus || "ready"
+
+            };
+
+          });
 
         setVehicles(mapped);
 
@@ -183,16 +238,14 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
     fetchVehicles();
 
-  }, []);
-
- 
-
+  }, [selectedTeam]);
 
   /* ================= SELECT TEAM ================= */
 
   const toggleTeam = (id) => {
 
     setSelectedTeam(id);
+    setSelectedVehicles([]);
 
   };
 
@@ -230,30 +283,22 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
   const mapUrl = useMemo(() => {
 
     if (!request) {
-
       return "https://www.google.com/maps?q=10.8231,106.6297&z=13&output=embed";
-
     }
 
     if (!selectedTeam) {
-
       return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
-
     }
 
     const team = rescueTeams.find(t => t.id === selectedTeam);
 
     if (!team) {
-
       return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
-
     }
 
     return `https://www.google.com/maps?saddr=${team.lat},${team.lng}&daddr=${request.lat},${request.lng}&z=15&output=embed`;
 
   }, [selectedTeam, rescueTeams, request]);
-
-  
 
   /* ================= CONFIRM ================= */
 
@@ -287,8 +332,6 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
       await confirmDispatchRescueRequest(payload);
 
-      /* REMOVE TEAM + VEHICLE KHỎI LIST */
-
       setRescueTeams(prev =>
         prev.filter(t => t.id !== selectedTeam)
       );
@@ -298,6 +341,9 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
           !selectedVehicles.includes(v.id)
         )
       );
+
+      setSelectedTeam(null);
+      setSelectedVehicles([]);
 
       AuthNotify.success(
         "Điều động thành công",
@@ -353,8 +399,6 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
     );
 
   }
-
-  /* ================= UI ================= */
 
   return (
 
@@ -448,11 +492,12 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
               <h5>{team.name}</h5>
 
-              <p><b>SĐT:</b> {team.phone}</p>
-
               <p><b>Trạng thái:</b> 🟢 Sẵn sàng</p>
 
-              <p><b>Vị trí:</b> {team.address}</p>
+              {/* <p><b>Vị trí:</b> {team.address}</p>
+              <p>
+  <b>Khu Vực:</b> {provinces.find(p => p.id === team.areaId)?.name || "Không xác định"}
+</p> */}
 
             </div>
 
@@ -470,7 +515,7 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
               <p><b>Loại:</b> {v.type}</p>
 
-              <p><b>Trạng thái:</b> 🟢 Sẵn sàng</p>
+              <p><b>Trạng thái:</b> {v.status}</p>
 
               <p><b>Khu vực:</b> {v.location}</p>
 

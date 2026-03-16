@@ -265,3 +265,45 @@
   color:#888;
   margin-top: 200px;
 }
+/* TOP CARD */
+
+.ltr-queue__top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+/* LEFT INFO */
+
+.ltr-queue__meta{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+/* REQUEST ID */
+
+.ltr-queue__request-id{
+  font-weight:600;
+  font-size:14px;
+}
+
+/* STATUS */
+
+.ltr-status-tag{
+  width:fit-content;
+  font-size:12px;
+}
+
+/* TIME */
+
+.ltr-queue__time{
+  font-size:12px;
+  color:#888;
+}
+
+/* URGENCY TAG */
+
+.ltr-urgency-tag{
+  font-weight:600;
+}
