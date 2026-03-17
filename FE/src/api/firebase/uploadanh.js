@@ -1,5 +1,5 @@
 import axiosInstance from "../service/axiosInstance";
-
+import axios from "axios";
 /* ================= UPLOAD IMAGE ================= */
 
 export const uploadImages = async (files, folder = "citizen") => {
@@ -33,18 +33,13 @@ export const verifyFloodImage = async (file) => {
 
   const formData = new FormData();
 
+  // 🔥 BẮT BUỘC key = image
   formData.append("image", file);
 
   const res = await axiosInstance.post(
     "/api/ImageVerification/verify-flood",
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    }
+    formData
   );
 
   return res.data;
-
 };

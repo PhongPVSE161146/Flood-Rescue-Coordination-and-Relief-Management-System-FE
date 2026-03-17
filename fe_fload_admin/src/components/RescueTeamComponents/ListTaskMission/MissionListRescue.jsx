@@ -3,339 +3,318 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import {
-  getPendingRescueRequests,
-  getUrgencyLevels
-} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+  getAllAssignments,
+  acceptRescueAssignment,
+  getRescueTeamMembers,
+  getAllRescueTeams,
+  getAllVehicles
+} from "../../../../api/axios/RescueApi/RescueTask";
+import AuthNotify from "../../../utils/Common/AuthNotify";
 
-import { acceptRescueAssignment } from "../../../../api/axios/RescueApi/RescueTask";
-
-import { getAllRescueTeams } from "../../../../api/axios/ManagerApi/rescueTeamApi";
-import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
-import { getAllAssignments } from "../../../../api/axios/RescueApi/RescueTask";
-import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
-
-const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+const STATUS_MAP = {
+  ASSIGNED: { label: "🟡 Chờ nhận nhiệm vụ" },
+  ACCEPTED: { label: "✔ Đã nhận nhiệm vụ" },
+  DEPARTED: { label: "🚑 Đã xuất phát" },
+  ARRIVED: { label: "📍 Đã đến hiện trường" },
+  COMPLETED: { label: "✅ Hoàn thành nhiệm vụ" },
+  REJECTED: { label: "❌ Đã từ chối" }
 };
+
+
 
 export default function MissionListRescue() {
 
   const navigate = useNavigate();
 
-  const [missions,setMissions] = useState([]);
-  const [loading,setLoading] = useState(false);
-
-  const [filterLevel,setFilterLevel] = useState("");
-  const [filterAddress,setFilterAddress] = useState("");
-
-  /* ================= LẤY USER LOGIN ================= */
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const user =
-    JSON.parse(sessionStorage.getItem("user")) ||
     JSON.parse(localStorage.getItem("user")) ||
+    JSON.parse(sessionStorage.getItem("user")) ||
     {};
+// lấy chữ cái đầu (Nguyễn Văn A -> NA)
+const getInitials = (name = "") => {
+  const words = name.trim().split(" ");
+  if (words.length === 1) return words[0][0]?.toUpperCase();
 
-  /* ================= LOAD DATA ================= */
+  return (
+    words[0][0] + words[words.length - 1][0]
+  ).toUpperCase();
+};
+  /* ================= GET REQUEST BY ID ================= */
 
-  const fetchAssignments = async()=>{
+  const getRequestById = async (id) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/RescueRequests/${id}`
+      );
+      return await res.json();
+    } catch {
+      return null;
+    }
+  };
 
-    try{
+  /* ================= FIND TEAM ================= */
+
+  const findMyTeamId = async (teams, userId) => {
+
+    for (const team of teams) {
+
+      const teamId = team.rcid;
+
+      if (!teamId) continue;
+
+      try {
+
+        const res = await getRescueTeamMembers(teamId);
+        const data = res?.data;
+
+        if (!data) continue;
+
+        const isMember = data.items?.some(
+          m => m.userId === userId
+        );
+
+        if (isMember) return teamId;
+
+      } catch {
+        console.warn("Lỗi team:", teamId);
+      }
+    }
+
+    return null;
+  };
+
+  /* ================= LOAD TASK ================= */
+
+  const fetchAssignments = async () => {
+
+    try {
 
       setLoading(true);
 
-      const [
-        assignmentRes,
-        requestRes,
-        urgencyRes,
-        teamRes,
-        vehicleRes,
-        statusRes
-      ] = await Promise.all([
+      if (!user?.userId) {
+        console.error("Không có userId");
+        return;
+      }
+
+      /* 🔥 core API */
+      const [assignmentsRes, teamRes] = await Promise.all([
         getAllAssignments(),
-        getPendingRescueRequests(),
-        getUrgencyLevels(),
-        getAllRescueTeams(),
-        getAllVehicles(),
-        getRequestStatuses()
+        getAllRescueTeams()
       ]);
 
-      const assignments = assignmentRes?.data || assignmentRes || [];
-      const requests = requestRes?.data || requestRes || [];
-      const urgencies = urgencyRes || [];
-      const teams = teamRes?.data?.items || [];
-      const vehicles = vehicleRes?.data || [];
-      const statuses = statusRes?.data || statusRes || [];
+      const assignments = assignmentsRes || [];
+      const teams = teamRes?.data?.items || teamRes?.data || [];
 
-      /* ================= TÌM TEAM CỦA USER ================= */
+      /* 🔥 vehicle */
+      let vehicles = [];
+      try {
+        const vehicleRes = await getAllVehicles();
+        vehicles = vehicleRes?.data || [];
+      } catch {
+        console.warn("Lỗi vehicles");
+      }
 
-      const myTeam = teams.find(
-        t => t.areaId === user.areaId
-      );
+      /* ================= MAP LOOKUP ================= */
 
-      if(!myTeam){
+      const vehicleMap = {};
+      vehicles.forEach(v => {
+        vehicleMap[v.vehicleId] = v.vehicleName;
+      });
+
+      const teamMap = {};
+      teams.forEach(t => {
+        teamMap[t.rcid] = t.rcName;
+      });
+
+      /* 🔥 find team */
+      const myTeamId = await findMyTeamId(teams, user.userId);
+
+      if (!myTeamId) {
         setMissions([]);
         return;
       }
 
-      /* ================= LỌC ASSIGNMENT THEO TEAM ================= */
-
+      /* 🔥 filter */
       const myAssignments = assignments.filter(
-        a => a.rescueTeamId === myTeam.rescueTeamId
+        a => a.rescueTeamId === myTeamId
       );
 
-      /* ================= MAP LOOKUP ================= */
+      /* 🔥 MAP + CALL REQUEST API */
+      const mapped = await Promise.all(
+        myAssignments.map(async (a) => {
 
-      const requestMap = {};
-      requests.forEach(r=>{
-        requestMap[r.rescueRequestId || r.id] = r;
-      });
+          const req = await getRequestById(a.rescueRequestId);
 
-      const teamMap = {};
-      teams.forEach(t=>{
-        teamMap[t.rescueTeamId] = t.teamName;
-      });
+          return {
+            id: a.assignmentId,
 
-      const vehicleMap = {};
-      vehicles.forEach(v=>{
-        vehicleMap[v.vehicleId] = v.vehicleName;
-      });
+            // 👤 request info
+            name: req?.fullName || "Không rõ",
+            phone: req?.contactPhone || "Không có",
+            address: req?.address || "Chưa có",
 
-      const urgencyMap = {};
-      urgencies.forEach(u=>{
-        urgencyMap[u.urgencyLevelId] = u.levelName;
-      });
+            // 🚑 vehicle
+            vehicle: vehicleMap[a.vehicleId] || a.vehicleId,
 
-      const statusMap = {};
-      statuses.forEach(s=>{
-        statusMap[s.statusId] = s.description;
-      });
+            // 👥 team
+            team: teamMap[a.rescueTeamId] || `Team ${a.rescueTeamId}`,
 
-      /* ================= MAP MISSIONS ================= */
+            status: a.assignmentStatus,
 
-      const mapped = myAssignments.map(a=>{
+            time: a.assignedAt
+              ? new Date(a.assignedAt).toLocaleString("vi-VN")
+              : "Chưa có",
 
-        const req = requestMap[a.rescueRequestId];
+            active: a.assignmentStatus === "ASSIGNED"
+          };
 
-        if(!req) return null;
-
-        const urgencyLevel = urgencyMap[req.urgencyLevelId];
-
-        const urgencyText =
-          priorityTranslate[urgencyLevel] ||
-          urgencyLevel ||
-          "Không xác định";
-
-        const statusName =
-          statusMap[req.statusId] ||
-          "Đang xử lý";
-
-        return{
-
-          id:a.assignmentId,
-
-          title:req.fullName || req.fullname || "Người gửi yêu cầu",
-
-          phone:req.contactPhone || "Không có",
-
-          level:urgencyText,
-
-          address:req.address || "Chưa cập nhật",
-
-          team:teamMap[a.rescueTeamId] || `Đội ${a.rescueTeamId}`,
-
-          vehicle:vehicleMap[a.vehicleId] || "Không có xe",
-
-          status:statusName,
-
-          time:a.assignedAt
-            ? new Date(a.assignedAt).toLocaleString("vi-VN")
-            : "Chưa phân công",
-
-          active:a.assignmentStatus === "ASSIGNED",
-
-          lat:req.locationLat || 10.7731,
-          lng:req.locationLng || 106.7031
-
-        };
-
-      }).filter(Boolean);
+        })
+      );
 
       setMissions(mapped);
 
-    }
-    catch(err){
-
-      console.error("Load assignments error:",err);
-
-    }
-    finally{
-
+    } catch (err) {
+      console.error("Load error:", err);
+    } finally {
       setLoading(false);
-
     }
-
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchAssignments();
-  },[]);
+  }, []);
 
-  /* ================= ACCEPT MISSION ================= */
+  /* ================= ACCEPT ================= */
 
-  const handleAcceptMission = async (assignmentId)=>{
+  const handleAccept = async (id) => {
 
-    try{
-
-      await acceptRescueAssignment(assignmentId);
-
-      fetchAssignments();
-
+    try {
+      await acceptRescueAssignment(id);
+  
+      // ✅ update UI ngay lập tức
+      setMissions(prev =>
+        prev.map(m =>
+          m.id === id
+            ? { ...m, status: "ACCEPTED", active: false }
+            : m
+        )
+      );
+  
+      // ✅ thông báo
+      AuthNotify.success(
+        "Nhận nhiệm vụ thành công",
+        "Đang chuyển sang màn hình cứu hộ..."
+      );
+  
+      // 👉 chuyển trang
+      setTimeout(() => {
+        navigate(`/rescueTeam/dangcuho/${id}`);
+      }, 1000);
+  
+    } catch (err) {
+  
+      AuthNotify.error(
+        "Nhận nhiệm vụ thất bại",
+        err?.message || "Có lỗi xảy ra"
+      );
+  
     }
-    catch(err){
-
-      console.error(err);
-      alert("Nhận nhiệm vụ thất bại");
-
-    }
-
+  
   };
-
-  /* ================= FILTER ================= */
-
-  const filteredMissions = missions.filter(m=>{
-
-    const levelMatch = filterLevel
-      ? m.level === filterLevel
-      : true;
-
-    const addressMatch = filterAddress
-      ? m.address.toLowerCase().includes(filterAddress.toLowerCase())
-      : true;
-
-    return levelMatch && addressMatch;
-
-  });
 
   /* ================= UI ================= */
 
-  return(
+  return (
 
-<section className="rm-mission-list">
+<section className="rm-container">
 
-<header className="rm-list-header">
-
-<h3>
-Nhiệm vụ cứu hộ <span>{filteredMissions.length}</span>
-</h3>
-
-<p>Các yêu cầu cứu hộ đang được điều phối từ trung tâm.</p>
-
-</header>
-
-{/* FILTER */}
-
-<div className="rm-filter">
-
-<select
-value={filterLevel}
-onChange={(e)=>setFilterLevel(e.target.value)}
->
-
-<option value="">Tất cả mức độ</option>
-<option value="Mức Độ Cao">Mức Độ Cao</option>
-<option value="Mức Độ Trung Bình">Mức Độ Trung Bình</option>
-<option value="Mức Độ Thấp">Mức Độ Thấp</option>
-
-</select>
-
-<input
-placeholder="Lọc theo địa chỉ..."
-value={filterAddress}
-onChange={(e)=>setFilterAddress(e.target.value)}
-/>
-
+{/* ===== HEADER FIXED ===== */}
+<div className="rm-header-fixed">
+  <h3>Nhiệm vụ của tôi</h3>
+  <span>{missions.length} nhiệm vụ</span>
 </div>
 
-{loading && <p style={{padding:"10px"}}>Đang tải dữ liệu...</p>}
+{/* ===== LIST SCROLL ===== */}
+<div className="rm-list-scroll">
 
-{filteredMissions.map(m=>(
+  {loading && <p className="rm-loading">Đang tải...</p>}
 
-<div
-key={m.id}
-className={`rm-mission-card ${m.active?"active":""}`}
->
+  {!loading && missions.length === 0 && (
+    <p className="rm-empty">Không có nhiệm vụ</p>
+  )}
 
-<div className="rm-map-thumb">
+  {missions.map(m => (
 
-<iframe
-title={m.id}
-src={`https://www.google.com/maps?q=${m.lat},${m.lng}&z=15&output=embed`}
-loading="lazy"
-/>
+    <div key={m.id} className="rm-card">
 
+      {/* TOP */}
+      <div className="rm-top">
+      <div className="rm-avatar">
+  {getInitials(m.name)}
 </div>
+        <div>
+          <h4> 👤{m.name}</h4>
+          <span className="rm-phone">📞 {m.phone}</span>
+        </div>
+      </div>
 
-<div className="rm-card-body">
+      {/* ADDRESS */}
+      <div className="rm-address">
+        📍 {m.address}
+      </div>
 
-<div className="rm-card-head">
+      {/* INFO */}
+      <div className="rm-info">
+        <div className="rm-tag team">Tên đội cứu hộ: {m.team}</div>
+        <div className="rm-tag vehicle">Tên phương tiện: {m.vehicle}</div>
+      </div>
 
-<span className="rm-badge">
-{m.level}
+      {/* STATUS */}
+      <div className="rm-meta">
+      <span className={`status-badge ${m.status.toLowerCase()}`}>
+      <span className={`status-badge ${m.status?.toLowerCase()}`}>
+  {STATUS_MAP[m.status]?.label || "Không xác định"}
 </span>
-
-<span className="rm-time">
-{m.time}
 </span>
+        <span className="time">⏱Phân công lúc: {m.time}</span>
+      </div>
 
-</div>
-
-<h4>👤 {m.title}</h4>
-
-<p className="rm-address">
-📍 {m.address}
-</p>
-
-<div className="rm-tags">
-
-<span>📞 {m.phone}</span>
-
-<span>👥 {m.team}</span>
-
-<span>🚑 {m.vehicle}</span>
-
-<span>📊 {m.status}</span>
-
-</div>
-
-<div className="rm-actions">
-
-<button
-className="rm-btn-accept"
-onClick={()=>handleAcceptMission(m.id)}
-disabled={!m.active}
+      {/* ACTION */}
+      <div className="rm-actions">
+      <button
+  className={`btn-accept ${
+    m.status === "ASSIGNED" ? "" : "view-mode"
+  }`}
+  onClick={() => {
+    if (m.status === "ASSIGNED") {
+      handleAccept(m.id);
+    } else {
+      navigate(`/rescueTeam/dangcuho/${m.id}`);
+    }
+  }}
 >
-✓ CHẤP NHẬN NHIỆM VỤ
+{m.status === "ASSIGNED" && "🚀 Nhận nhiệm vụ"}
+  {m.status === "ACCEPTED" && "🔍 Xem quá trình"}
+  {m.status === "COMPLETED" && "📋 Xem chi tiết"}
 </button>
 
-<button
-className="rm-btn-detail"
-onClick={()=>navigate(`/rescueTeam/mission/${m.id}`)}
->
-XEM CHI TIẾT →
-</button>
+        <button
+          onClick={() => navigate(`/rescueTeam/mission/${m.id}`)}
+        >
+          Xem Chi Tiết
+        </button>
+      </div>
+
+    </div>
+
+  ))}
 
 </div>
-
-</div>
-
-</div>
-
-))}
 
 </section>
 
-)
-
+  );
 }

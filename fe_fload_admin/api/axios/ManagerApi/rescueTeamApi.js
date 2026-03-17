@@ -170,21 +170,59 @@ export const getBusyRescueTeams = () => {
   );
 
 };
+
+/* ================= TEAM VEHICLES ================= */
+
 /**
- * Lấy danh sách phương tiện của đội cứu hộ
+ * 🔥 Lấy danh sách phương tiện của team (có sẵn nhưng chuẩn lại)
  */
-export const getRescueTeamVehicles = (
-  teamId,
-  activeOnly = true
-) => {
+export const getRescueTeamVehicles = (teamId, activeOnly = true) => {
 
   return axiosInstance.get(
     `/api/rescueteams/${teamId}/vehicles`,
     {
-      params: {
-        activeOnly: activeOnly
-      }
+      params: { activeOnly }
     }
   );
 
+};
+
+
+/**
+ * 🔥 Thêm phương tiện vào team
+ */
+export const addVehicleToTeam = (teamId, vehicleId) => {
+
+  return axiosInstance.post(
+    `/api/rescueteams/${teamId}/vehicles`,
+    {
+      vehicleId: vehicleId
+    }
+  );
+
+};
+
+
+/**
+ * 🔥 Xóa phương tiện khỏi team
+ */
+export const removeVehicleFromTeam = (teamId, vehicleId) => {
+
+  return axiosInstance.delete(
+    `/api/rescueteams/${teamId}/vehicles/${vehicleId}`
+  );
+
+};
+export const getAllVehicles = (params = {}) => {
+  const query = {};
+
+  if (params.q) query.q = params.q;
+  if (params.type) query.type = params.type;
+  if (params.status) query.status = params.status;
+
+  if (params.includeDeleted !== undefined) {
+    query.includeDeleted = params.includeDeleted;
+  }
+
+  return axiosInstance.get("/api/vehicles", { params: query });
 };

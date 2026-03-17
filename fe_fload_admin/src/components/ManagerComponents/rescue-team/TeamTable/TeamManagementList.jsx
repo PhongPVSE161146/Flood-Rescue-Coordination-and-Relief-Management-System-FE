@@ -8,7 +8,7 @@ import {
 } from 'antd';
 
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-
+import VehicleTable from "./VehicleTable";
 import {
   deleteRescueTeam
 } from '../../../../../api/axios/ManagerApi/rescueTeamApi';
@@ -275,8 +275,18 @@ export default function TeamManagementList({
             </div>
 
             {expandedTeamId === team.id && (
-              <MemberTable teamId={team.id} />
-            )}
+
+<div className="team-expand-box">
+
+  {/* MEMBER */}
+  <MemberTable teamId={team.id} />
+
+  {/* VEHICLE */}
+  <VehicleTable teamId={team.id} />
+
+</div>
+
+)}
 
           </div>
 

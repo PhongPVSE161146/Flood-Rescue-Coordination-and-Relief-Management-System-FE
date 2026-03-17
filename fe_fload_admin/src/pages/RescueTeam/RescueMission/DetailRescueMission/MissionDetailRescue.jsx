@@ -22,14 +22,34 @@ High:"Mức Độ Cao",
 Medium:"Mức Độ Trung Bình",
 Low:"Mức Độ Thấp"
 };
+const LOCK_STATUSES = [
+  "ACCEPTED",
+  "DEPARTED",
+  "ARRIVED",
+  "COMPLETED"
+];
 
+const STATUS_STEPS = [
+    { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
+    { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
+    { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
+    { key: "ARRIVED", label: "Đã đến hiện trường", icon: "📍" },
+    { key: "COMPLETED", label: "Hoàn thành", icon: "✔" },
+    { key: "REJECTED", label: "Từ chối", icon: "❌" }
+  ];
 export default function MissionDetailRescue(){
 
 const { id } = useParams()
 const navigate = useNavigate()
 
 const [detail,setDetail] = useState(null)
-const [loading,setLoading] = useState(false)
+const [loadingAccept, setLoadingAccept] = useState(false)
+const [loadingReject, setLoadingReject] = useState(false)
+const [showRejectModal, setShowRejectModal] = useState(false);
+const [rejectReason, setRejectReason] = useState("");
+const getStatusInfo = (status) => {
+    return STATUS_STEPS.find(s => s.key === status) || {};
+  };
 
 useEffect(()=>{
 
@@ -106,7 +126,7 @@ rescueTeamNote:req?.rescueTeamNote || "Không có",
 
 urgency:urgencyText,
 
-status:statusMap[req?.statusId] || "Đang xử lý",
+status: assignment.assignmentStatus,
 
 team:teamMap[assignment.rescueTeamId] || `Đội ${assignment.rescueTeamId}`,
 
@@ -136,61 +156,87 @@ fetchDetail()
 
 /* ================= ACCEPT ================= */
 
-const handleAccept = async ()=>{
+const handleAccept = async () => {
 
-try{
-
-setLoading(true)
-
-await acceptRescueAssignment(id)
-
-navigate(`/rescuer/mission/${id}`)
-
-}catch(err){
-
-console.error("Accept mission error:",err)
-
-}finally{
-
-setLoading(false)
-
-}
-
-}
-
+    try {
+  
+      setLoadingAccept(true);
+  
+      await acceptRescueAssignment(id);
+  
+      AuthNotify.success(
+        "Nhận nhiệm vụ thành công",
+        "Đang chuyển sang màn hình cứu hộ..."
+      );
+  
+      // 👉 chuyển trang đúng mission
+      setTimeout(() => {
+        navigate(`/rescueTeam/dangcuho/${id}`);
+      }, 1000);
+  
+    } catch (err) {
+  
+      AuthNotify.error(
+        "Nhận nhiệm vụ thất bại",
+        err?.message || "Có lỗi xảy ra"
+      );
+  
+    } finally {
+  
+      setLoadingAccept(false);
+  
+    }
+  
+  };
 
 /* ================= REJECT ================= */
 
-const handleReject = async ()=>{
+const handleReject = async () => {
 
-try{
-
-setLoading(true)
-
-await rejectRescueAssignment(id)
-
-navigate(-1)
-
-}catch(err){
-
-console.error("Reject mission error:",err)
-
-}finally{
-
-setLoading(false)
-
-}
-
-}
-
+    try {
+  
+      if (!rejectReason.trim()) {
+        AuthNotify.warning("Vui lòng nhập lý do từ chối");
+        return;
+      }
+  
+      setLoadingReject(true);
+  
+      await rejectRescueAssignment(id, {
+        reason: rejectReason
+      });
+  
+      AuthNotify.warning("Đã từ chối nhiệm vụ");
+  
+      // 👉 đóng modal
+      setShowRejectModal(false);
+      setRejectReason("");
+  
+      // 👉 quay lại
+      navigate(-1);
+  
+    } catch (err) {
+  
+      AuthNotify.error(
+        "Từ chối thất bại",
+        err?.message || "Có lỗi xảy ra"
+      );
+  
+    } finally {
+  
+      setLoadingReject(false);
+  
+    }
+  
+  };
 
 if(!detail){
 
 return <div className="md-loading">Đang tải dữ liệu nhiệm vụ...</div>
 
 }
-
-
+const statusInfo = getStatusInfo(detail.status);
+const isLocked = LOCK_STATUSES.includes(detail?.status);
 return(
 
 <section className="md-root">
@@ -211,7 +257,8 @@ Nhiệm vụ cứu hộ
 </span>
 
 <span className="md-status">
-{detail.status}
+{statusInfo.icon} {statusInfo.label}
+
 </span>
 
 </div>
@@ -398,27 +445,72 @@ onClick={()=>navigate(-1)}
 <div className="md-footer-actions">
 
 <button
-className="md-reject"
-onClick={handleReject}
-disabled={loading}
+  className={`md-reject ${isLocked ? "disabled" : ""}`}
+  onClick={() => {
+    if (!isLocked) {
+      setShowRejectModal(true);
+    }
+  }}
+  disabled={isLocked}
 >
-{loading ? "Đang xử lý..." : "✖ Từ chối"}
+  ❌ Từ chối
 </button>
 
 <button
-className="md-accept"
-onClick={handleAccept}
-disabled={loading}
+  className={`md-accept ${isLocked ? "disabled" : ""}`}
+  onClick={() => {
+    if (!isLocked) {
+      handleAccept();
+    }
+  }}
+  disabled={loadingAccept || isLocked}
 >
-{loading ? "Đang xử lý..." : "✓ Chấp nhận nhiệm vụ"}
+  {loadingAccept
+    ? "⏳ Đang nhận..."
+    : isLocked
+    ? "✔ Đã nhận nhiệm vụ"
+    : "🚀 Chấp nhận nhiệm vụ"}
 </button>
-
 </div>
+{showRejectModal && (
+  <div className="rm-modal-overlay">
+    <div className="rm-modal">
 
+      <h3>❌ Từ chối nhiệm vụ</h3>
+
+      <textarea
+        placeholder="Nhập lý do từ chối..."
+        value={rejectReason}
+        onChange={(e) => setRejectReason(e.target.value)}
+      />
+
+      <div className="rm-modal-actions">
+
+        <button
+          className="btn-cancel"
+          onClick={() => setShowRejectModal(false)}
+        >
+          Hủy
+        </button>
+
+        <button
+          className="btn-confirm"
+          onClick={handleReject}
+          disabled={!rejectReason.trim() || loadingReject}
+        >
+          {loadingReject ? "Đang gửi..." : "Xác nhận từ chối"}
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
 </footer>
 
 </section>
 
 )
+
 
 }

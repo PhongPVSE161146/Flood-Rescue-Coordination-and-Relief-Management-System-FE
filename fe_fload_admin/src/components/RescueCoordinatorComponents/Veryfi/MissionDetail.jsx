@@ -427,7 +427,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
 {recommendedPriority && (
   <p className="priority-reason">
-    Lý do đề xuất: Hệ thống phân tích dựa trên nguồn và lực mô tả,
+    Lý do đề xuất: Hệ thống phân tích dựa trên nguồn lực và mô tả,
     tình trạng khẩn cấp của người dân cung cấp
   </p>
 )}

@@ -178,3 +178,7 @@
   box-shadow: 0 8px 20px rgba(220, 38, 38, 0.35);
   background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
 }
+.process-btn {
+  color: #13c2c2;
+  font-weight: 500;
+}

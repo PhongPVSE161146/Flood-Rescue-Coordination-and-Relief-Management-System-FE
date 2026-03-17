@@ -1,193 +1,186 @@
-/* ================= ROOT LIST ================= */
-.rm-mission-list {
+/* ===== CONTAINER ===== */
+.rm-container {
   height: 100vh;
-  padding: 24px 24px 40px;
-  overflow-y: auto;
-
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-/* Scrollbar light */
-.rm-mission-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.rm-mission-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 6px;
-}
-
-.rm-mission-list::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* ================= HEADER ================= */
-.rm-list-header {
-  margin-bottom: 20px;
-}
-
-.rm-list-header h3 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.rm-list-header h3 span {
-  background: #fee2e2;
-  color: #991b1b;
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  margin-left: 8px;
-}
-
-.rm-list-header p {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #64748b;
-}
-
-/* ================= CARD ================= */
-.rm-mission-card {
-  display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 16px;
-
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 18px;
-
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-}
-
-/* Active highlight */
-.rm-mission-card.active {
-  outline: 2px solid rgba(245, 158, 11, 0.45);
-}
-
-/* ================= MAP ================= */
-.rm-map-thumb {
-  height: 140px;
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-  border: 1px solid #e5e7eb;
-}
-
-.rm-map-thumb iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* ================= BODY ================= */
-.rm-card-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  background: #f5f7fb;
 }
 
-/* Header row */
-.rm-card-head {
+/* ===== HEADER FIX ===== */
+.rm-header-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  background: white;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Badge */
-.rm-badge {
-  font-size: 11px;
-  font-weight: 600;
+.rm-header-fixed h3 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.rm-header-fixed span {
+  background: #2563eb;
+  color: white;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #fee2e2;
-  color: #991b1b;
+  font-size: 12px;
 }
 
-.rm-badge.tai-nạn {
-  background: #ffedd5;
-  color: #9a3412;
-}
-
-.rm-badge.cứu-hộ-động-vật {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-/* Time */
-.rm-time {
-  font-size: 11px;
-  color: #64748b;
-}
-
-/* Title */
-.rm-card-body h4 {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 2px 0 0;
-}
-
-/* Address */
-.rm-address {
-  font-size: 13px;
-  color: #334155;
-}
-
-/* Tags */
-.rm-tags {
+/* ===== SCROLL LIST ===== */
+.rm-list-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.rm-tags span {
-  font-size: 11px;
-  background: #f1f5f9;
-  color: #475569;
-  padding: 3px 10px;
-  border-radius: 999px;
+/* scroll đẹp */
+.rm-list-scroll::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* ================= ACTIONS ================= */
-.rm-actions {
+.rm-list-scroll::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+/* ===== CARD ===== */
+.rm-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  transition: 0.25s;
+}
+
+.rm-card:hover {
+  transform: translateY(-4px);
+}
+
+/* ===== TOP ===== */
+.rm-top {
   display: flex;
   gap: 12px;
-  margin-top: 8px;
+  align-items: center;
 }
 
-/* Accept button */
-.rm-btn-accept {
-  background: linear-gradient(
-    180deg,
-    #f59e0b,
-    #d97706
-  );
-  color: #ffffff;
+.rm-avatar {
+  width: 42px;
+  height: 42px;
+  background: #e0ecff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== ADDRESS ===== */
+.rm-address {
+  margin: 10px 0;
+  background: #f3f4f6;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+/* ===== TAG ===== */
+.rm-info {
+  display: flex;
+  gap: 10px;
+}
+
+.rm-tag {
+  flex: 1;
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.team {
+  background: #eef2ff;
+}
+
+.vehicle {
+  background: #ecfeff;
+}
+
+/* ===== META ===== */
+.rm-meta {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+/* ===== BUTTON ===== */
+.rm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.rm-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
   border: none;
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 12px;
-  font-weight: 700;
   cursor: pointer;
 }
 
-.rm-btn-accept:hover {
-  filter: brightness(1.05);
+.rm-actions button:first-child {
+  background: #22c55e;
+  color: white;
 }
 
-/* Detail button */
-.rm-btn-detail {
-  background: #ffffff;
-  color: #0f172a;
-  border: 1px solid #cbd5e1;
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 12px;
-  cursor: pointer;
+.rm-actions button:last-child {
+  background: #2563eb;
+  color: white;
+}
+/* ===== ACCEPT BUTTON ===== */
+.btn-accept {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-weight: 500;
+  transition: 0.2s;
 }
 
-.rm-btn-detail:hover {
-  background: #f1f5f9;
+/* hover khi active */
+.btn-accept:not(.disabled):hover {
+  transform: scale(1.03);
+}
+
+/* ===== DISABLED STATE ===== */
+.btn-accept.disabled {
+  background: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* optional: hiệu ứng mờ */
+.btn-accept.disabled {
+  opacity: 0.7;
+}
+.rm-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
 }

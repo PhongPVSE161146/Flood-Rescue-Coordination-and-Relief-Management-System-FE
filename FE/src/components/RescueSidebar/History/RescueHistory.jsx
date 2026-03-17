@@ -16,7 +16,7 @@ import {
 } from "@ant-design/icons";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
-
+import RescueProgressModal from "../ProgressModal/RescueProgressModal";
 import {
   getRescueHistoryByPhone,
   deleteRescueRequest
@@ -96,7 +96,13 @@ const RescueHistory = () => {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
-
+  const [openProgress, setOpenProgress] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  
+  const handleViewProcess = (item) => {
+    setSelectedId(item.id);
+    setOpenProgress(true);
+  };
 
   /* ================= SEARCH ================= */
 
@@ -326,12 +332,13 @@ const RescueHistory = () => {
         histories.map((item) => (
 
           <HistoryCard
-            key={item.id}
-            data={item}
-            onEdit={() => setEditing(item)}
-            onDelete={() => handleDelete(item.id)}
-            onView={() => setViewing(item)}
-          />
+          key={item.id}
+          data={item}
+          onEdit={() => setEditing(item)}
+          onDelete={() => handleDelete(item.id)}
+          onView={() => setViewing(item)}
+          onProcess={() => handleViewProcess(item)} // ✅ THÊM
+        />
 
         ))
 
@@ -361,7 +368,11 @@ const RescueHistory = () => {
         data={viewing}
         onClose={() => setViewing(null)}
       />
-
+<RescueProgressModal
+  requestId={selectedId}
+  open={openProgress}
+  onClose={() => setOpenProgress(false)}
+/>
     </div>
 
   );
@@ -373,10 +384,15 @@ export default RescueHistory;
 
 /* ================= CARD ================= */
 
-function HistoryCard({ data, onEdit, onDelete, onView }) {
+function HistoryCard({ data, onEdit, onDelete, onView, onProcess }) {
 
-  const isProcessing =
-    data.status === "Đang xử lý";
+  const isEditable = data.statusId === 1;   // status 1
+  const isTracking =
+  data.statusId === 2 ||
+  data.statusId === 3 ||
+  data.statusId === 4 ||
+  data.statusId === 5 ||
+  data.statusId === 6;
 
   return (
 
@@ -414,11 +430,25 @@ function HistoryCard({ data, onEdit, onDelete, onView }) {
         📞 {data.phone}
       </div>
 
+      {/* ================= ACTION ================= */}
+
       <div className="history-action">
 
-        {isProcessing ? (
-
+        {/* 🔥 STATUS 1: FULL ACTION */}
+        {isEditable && (
           <>
+            <Button
+              size="small"
+              type="text"
+              icon={<EyeOutlined />}
+              onClick={(e)=>{
+                e.stopPropagation();
+                onView();
+              }}
+              className="action-btn view-btn"
+            >
+              Xem chi tiết
+            </Button>
 
             <Button
               size="small"
@@ -445,24 +475,39 @@ function HistoryCard({ data, onEdit, onDelete, onView }) {
             >
               Xóa
             </Button>
-
           </>
+        )}
 
-        ) : (
-
+        {/* 🔥 STATUS 2: CHỈ XEM QUÁ TRÌNH */}
+        {isTracking && (
           <Button
             size="small"
             type="text"
             icon={<EyeOutlined />}
-            className="action-btn view-btn"
+            onClick={(e)=>{
+              e.stopPropagation();
+              onProcess(); // ✅ ĐÚNG
+            }}
+            className="action-btn process-btn"
+          >
+            Xem quá trình
+          </Button>
+        )}
+
+        {/* 🔥 STATUS KHÁC */}
+        {!isEditable && !isTracking && (
+          <Button
+            size="small"
+            type="text"
+            icon={<EyeOutlined />}
             onClick={(e)=>{
               e.stopPropagation();
               onView();
             }}
+            className="action-btn view-btn"
           >
             Xem chi tiết
           </Button>
-
         )}
 
       </div>

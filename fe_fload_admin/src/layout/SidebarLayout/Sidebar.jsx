@@ -131,7 +131,7 @@ const menuByRole = {
     {
       label: "Đang cứu hộ",
       icon: <GlobalOutlined />,
-      path: "/rescueTeam/dangcuho"
+      path: "/rescueTeam/dangcuho/:id"
     },
     {
       label: "Lịch sử",

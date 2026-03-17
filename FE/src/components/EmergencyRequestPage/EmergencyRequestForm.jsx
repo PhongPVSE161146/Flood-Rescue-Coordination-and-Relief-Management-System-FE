@@ -238,7 +238,7 @@ onClick={handleGetGPS}
 
 <>
 
-<label style={{marginTop:20}}>LATITUDE(nếu không lấy được gps mặc định nhập 0)</label>
+<label style={{marginTop:20}}>LATITUDE</label>
 
 <Input
 placeholder="Ví dụ 10.8231"
@@ -255,7 +255,7 @@ lat:value
 }}
 />
 
-<label style={{marginTop:10}}>LONGITUDE(nếu không lấy được gps mặc định nhập 0)</label>
+<label style={{marginTop:10}}>LONGITUDE</label>
 
 <Input
 placeholder="Ví dụ 106.6297"
