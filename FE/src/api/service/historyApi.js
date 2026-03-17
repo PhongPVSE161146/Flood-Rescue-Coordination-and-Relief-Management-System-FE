@@ -136,3 +136,95 @@ export const getRequestStatuses = async () => {
   }
 
 };
+// ================= GET RESCUE PROGRESS =================
+
+export const getRescueProgress = async (id) => {
+
+  if (!id) {
+    throw new Error("Thiếu ID yêu cầu");
+  }
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueRequests/${id}/progress`,
+      {
+        headers: {
+          accept: "*/*"
+        }
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RESCUE PROGRESS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải tiến trình cứu hộ"
+    );
+
+  }
+
+};
+export const getUrgencyLevels = async () => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/urgency-levels"
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy mức độ khẩn cấp:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách mức độ khẩn cấp"
+    );
+
+  }
+
+};
+export const completeRescueRequest = async (id, note = "") => {
+
+  if (!id) throw new Error("Thiếu ID yêu cầu");
+
+  try {
+
+    const response = await axiosInstance.put(
+      `/api/RescueRequests/${id}/complete`,
+      {
+        note: note || ""
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          accept: "*/*"
+        }
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("COMPLETE RESCUE ERROR:", error);
+
+    throw new Error(
+      error?.response?.data?.message ||
+      error?.message ||
+      "Không thể xác nhận hoàn thành"
+    );
+
+  }
+
+};
