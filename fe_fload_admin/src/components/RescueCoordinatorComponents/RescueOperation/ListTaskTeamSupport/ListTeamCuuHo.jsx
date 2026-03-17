@@ -291,12 +291,12 @@ onClick={()=>changeTab("new")}
 MỚI NHẤT
 </button>
 
-<button
+{/* <button
 className={tab==="expired"?"active":""}
 onClick={()=>changeTab("expired")}
 >
 QUÁ HẠN
-</button>
+</button> */}
 
 <button
 className={tab==="merge"?"active":""}

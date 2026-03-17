@@ -113,7 +113,7 @@ export default function AppRoutes() {
         <Route index element={<RescueTask />} />
         <Route path="mission/:id" element={<MissionDetailRescue />} />
         <Route path="history" element={<MissionHistory />} />
-        <Route path="dangcuho" element={<MissionInProgress />} />
+        <Route path="/rescueTeam/dangcuho/:id" element={<MissionInProgress />} />
        
       </Route>
 
