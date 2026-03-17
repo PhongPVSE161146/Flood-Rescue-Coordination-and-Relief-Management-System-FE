@@ -6,7 +6,7 @@ import EmergencyFooter from "../../Layout/EmergencyFooter/EmergencyFooter";
 
 import AuthNotify from "../../utils/Common/AuthNotify";
 import { createRescueRequest } from "../../api/service/emergencyApi";
-import { verifyFloodImage } from "../../api/firebase/uploadanh";
+// import { verifyFloodImage } from "../../api/firebase/uploadanh";
 import EmergencyRequestForm from "../../components/EmergencyRequestPage/EmergencyRequestForm";
 import EmergencyInfoPanel from "../../components/EmergencyRequestPage/EmergencyInfoPanel";
 import { uploadImages } from "../../api/firebase/uploadanh";
@@ -345,39 +345,35 @@ const handleSubmit = async () => {
 
     setSubmitting(true);
 
-    /* ================= VERIFY + UPLOAD ================= */
+    /* ================= LẤY FILE ================= */
 
     const files = form.images.map(img => img.originFileObj);
-
-    for (const file of files) {
-
-      const verify = await verifyFloodImage(file);
-
-if (!verify?.isValid) {
-
-  AuthNotify.error(
-    "Ảnh không hợp lệ",
-    verify?.message || "Ảnh không liên quan đến bão lũ"
-  );
-
-  setSubmitting(false);
-  return;
-
-}
-
-    }
 
     /* ================= UPLOAD ================= */
 
     const uploadRes = await uploadImages(files, "citizen");
 
-    const API_BASE = import.meta.env.VITE_API_BASE_URL;
+    console.log("UPLOAD RES:", uploadRes);
 
-    const imageUrls = uploadRes.urls.map(path =>
-      path.startsWith("http")
-        ? path
-        : API_BASE + path
-    );
+    // 🔥 chống undefined
+    const rawUrls =
+      uploadRes?.urls ||
+      uploadRes?.data ||
+      uploadRes ||
+      [];
+
+    // 🔥 luôn convert về /uploads/...
+    const imageUrls = rawUrls.map(path => {
+      if (!path) return "";
+
+      if (path.startsWith("http")) {
+        return new URL(path).pathname;
+      }
+
+      return path;
+    });
+
+    console.log("IMAGE URLS:", imageUrls);
 
     /* ================= PAYLOAD ================= */
 
@@ -389,7 +385,10 @@ if (!verify?.isValid) {
       locationLat: lat,
       locationLng: lng,
 
-      locationImageUrl: imageUrls[0] || "",
+      // ✅ nhiều ảnh
+      locationImageUrl: imageUrls
+        .filter(Boolean)
+        .join(","),
 
       areaId: DEFAULT_AREA_ID,
 
@@ -405,6 +404,10 @@ if (!verify?.isValid) {
 
     };
 
+    console.log("PAYLOAD:", payload);
+
+    /* ================= CALL API ================= */
+
     await createRescueRequest(payload);
 
     AuthNotify.success(
@@ -416,6 +419,8 @@ if (!verify?.isValid) {
 
   }
   catch (error) {
+
+    console.error("ERROR:", error);
 
     const msg =
       error?.response?.data?.message ||
