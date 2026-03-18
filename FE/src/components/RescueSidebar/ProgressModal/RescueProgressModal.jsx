@@ -144,7 +144,13 @@ const [note, setNote] = useState("");
   
         } catch (err) {
   
-          AuthNotify.error("Thất bại", err.message);
+          if (data?.rescueRequest?.statusId !== 3) {
+            AuthNotify.warning(
+              "Không thể hoàn thành",
+              "Yêu cầu chưa ở trạng thái ACTIVE"
+            );
+            return;
+          }
   
         } finally {
   
@@ -160,6 +166,14 @@ const [note, setNote] = useState("");
 
   const isCompletedAssignment =
   data?.assignment?.assignmentStatus === "COMPLETED";
+
+const isProgressCompleted =
+  data?.currentProgressCode === "COMPLETED";
+
+  const canConfirm =
+  data?.currentProgressCode === "COMPLETED" &&
+  data?.assignment?.assignmentStatus === "COMPLETED" &&
+  data?.rescueRequest?.statusId === 3; // 👈 ACTIVE
   /* ================= STEP ================= */
 
   const currentIndex = STATUS_STEPS.findIndex(
@@ -198,20 +212,16 @@ const [note, setNote] = useState("");
 
     /* 🔥 FOOTER FIX */
     footer={[
-      data?.currentProgressCode !== "COMPLETED" && (
+      data?.currentProgressCode === "COMPLETED" && (
         <Button
           key="complete"
           type="primary"
           danger
           loading={confirmLoading}
-          disabled={!isCompletedAssignment}
+          disabled={!canConfirm}
           onClick={handleConfirmComplete}
-          style={{
-            opacity: isCompletedAssignment ? 1 : 0.5,
-            cursor: isCompletedAssignment ? "pointer" : "not-allowed"
-          }}
         >
-          ✔ Xác nhận đã cứu trợ
+          ✔ Xác nhận hoàn thành (update status)
         </Button>
       ),
     
