@@ -3,10 +3,10 @@ import {
   BellOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
-import adminIcon from "../../../public/admin.png";
-import managerIcon from "../../../public/manager.svg";
-import coordinatorIcon from "../../../public/coordinator.svg";
-import rescueIcon from "../../../public/rescueTeam.svg";
+import adminIcon from "../../assets/admin.png";
+import managerIcon from "../../assets/manager.svg";
+import coordinatorIcon from "../../assets/coordinator.svg";
+import rescueIcon from "../../assets/rescueTeam.svg";
 import "./rc-hd.header.css";
 
 export default function Header() {
