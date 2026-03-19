@@ -1,13 +1,13 @@
 import "./MissionDetailRescue.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect,useState } from "react";
-
+import { Image } from "antd";
 import {
 getRescueAssignmentById,
 getPendingRescueRequests,
 getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
-
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 import {
 acceptRescueAssignment,
 rejectRescueAssignment
@@ -30,6 +30,7 @@ const LOCK_STATUSES = [
 ];
 
 const STATUS_STEPS = [
+  { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
     { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
     { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
     { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
@@ -158,36 +159,42 @@ fetchDetail()
 
 const handleAccept = async () => {
 
-    try {
-  
-      setLoadingAccept(true);
-  
-      await acceptRescueAssignment(id);
-  
-      AuthNotify.success(
-        "Nhận nhiệm vụ thành công",
-        "Đang chuyển sang màn hình cứu hộ..."
-      );
-  
-      // 👉 chuyển trang đúng mission
-      setTimeout(() => {
-        navigate(`/rescueTeam/dangcuho/${id}`);
-      }, 1000);
-  
-    } catch (err) {
-  
-      AuthNotify.error(
-        "Nhận nhiệm vụ thất bại",
-        err?.message || "Có lỗi xảy ra"
-      );
-  
-    } finally {
-  
-      setLoadingAccept(false);
-  
-    }
-  
-  };
+  try {
+
+    setLoadingAccept(true);
+
+    console.log("CALL API ACCEPT ID:", id);
+
+    const res = await acceptRescueAssignment(id);
+
+    console.log("ACCEPT SUCCESS:", res);
+
+    AuthNotify.success(
+      "Nhận nhiệm vụ thành công",
+      "Đang chuyển sang màn hình cứu hộ..."
+    );
+
+    setTimeout(() => {
+      navigate(`/rescueTeam/dangcuho/${id}`);
+    }, 500);
+
+  } catch (err) {
+
+    console.error("ACCEPT ERROR FULL:", err);
+    console.error("RESPONSE:", err?.response);
+
+    AuthNotify.error(
+      "Nhận nhiệm vụ thất bại",
+      err?.response?.data?.message || err.message
+    );
+
+  } finally {
+
+    setLoadingAccept(false);
+
+  }
+
+};
 
 /* ================= REJECT ================= */
 
@@ -202,8 +209,8 @@ const handleReject = async () => {
   
       setLoadingReject(true);
   
-      await rejectRescueAssignment(id, {
-        reason: rejectReason
+      await rejectRescueAssignment(detail.assignmentId, {
+        rejectReason: rejectReason // ✅ đúng key backend cần
       });
   
       AuthNotify.warning("Đã từ chối nhiệm vụ");
@@ -350,27 +357,29 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <section className="md-media">
 
-<h4>📷 Hình ảnh hiện trường</h4>
+  <h4>📷 Hình ảnh hiện trường</h4>
 
-<div className="md-media-list">
+  <div className="md-media-list">
 
-{detail.image ? (
+    {detail.image ? (
 
-<img
-src={detail.image}
-alt="rescue"
-className="md-thumb-img"
-/>
+      <Image.PreviewGroup>
+        <Image
+          src={detail.image}
+          alt="rescue"
+          className="md-thumb-img"
+        />
+      </Image.PreviewGroup>
 
-):(
+    ) : (
 
-<div className="md-thumb-empty">
-Không có hình ảnh
-</div>
+      <div className="md-thumb-empty">
+        Không có hình ảnh
+      </div>
 
-)}
+    )}
 
-</div>
+  </div>
 
 </section>
 

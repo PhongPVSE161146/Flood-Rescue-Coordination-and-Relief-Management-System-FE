@@ -440,3 +440,11 @@
   height:120px;
   object-fit:cover;
 }
+.md-thumb-img {
+  width: 100%;
+  max-width: 200px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer; /* 👈 thêm để nhìn clickable */
+}

@@ -7,6 +7,7 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
+import { Image } from "antd";
 // import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
@@ -21,6 +22,7 @@ const priorityTranslate = {
 
 
 const STATUS_STEPS = [
+  { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
   { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
   { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
   { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
@@ -41,10 +43,8 @@ export default function RescueOperationDetail({ assignmentId }) {
   })
   const [loading,setLoading] = useState(false)
   const [images,setImages] = useState([])
-  const [openEdit,setOpenEdit] = useState(false)
-  const [messages,setMessages] = useState([])
-  const [input,setInput] = useState("")
-  const messagesRef = useRef(null)
+
+
 
 
 
@@ -128,7 +128,15 @@ export default function RescueOperationDetail({ assignmentId }) {
           status:statusMap[req?.requestStatusId],
           statusId:req?.requestStatusId,
         
-          startTime:assignment.assignedAt
+          startTime:assignment.assignedAt,
+          detailDescription:req?.detailDescription || "",
+
+victimCount:req?.victimCount || 0,
+
+availableRescueTool:req?.availableRescueTool || "",
+
+specialNeeds:req?.specialNeeds || "",
+rejectReason: assignment?.rejectReason || "",
         
         }
   
@@ -187,49 +195,6 @@ setImages(normalizedImages);
   
   },[assignmentId])
 
-  /* ===== AUTO SCROLL CHAT ===== */
-
-  useEffect(()=>{
-    if(messagesRef.current){
-      messagesRef.current.scrollTop=
-      messagesRef.current.scrollHeight
-    }
-  },[messages])
-
-
-  /* ===== SEND MESSAGE ===== */
-
-  const sendMessage=()=>{
-
-    if(!input.trim()) return
-
-    const now=new Date()
-
-    const time=now.toLocaleTimeString("vi-VN",{
-      hour:"2-digit",
-      minute:"2-digit"
-    })
-
-    setMessages(prev=>[
-      ...prev,
-      {
-        id:Date.now(),
-        side:"right",
-        author:"Bạn (Coordinator)",
-        text:input,
-        time
-      }
-    ])
-
-    setInput("")
-
-  }
-
-  const handleKeyDown=(e)=>{
-    if(e.key==="Enter"){
-      sendMessage()
-    }
-  }
 
   const handleFinishMission=()=>{
     navigate("/coordinator/reports")
@@ -247,16 +212,17 @@ setImages(normalizedImages);
   if(!detail){
     return (
       <div
-        style={{
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 22,
-          fontWeight: 600,
-          color: "#555"
-        }}
-      >
+      style={{
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 22,
+        fontWeight: 600,
+        color: "#555"
+      }}
+    >
+ 
         Chọn yêu cầu bên trái để xem chi tiết
       </div>
     );
@@ -295,7 +261,7 @@ Nhiệm vụ #{detail.rescueRequestId}
 </h2>
 
 <p>
-⏱ Bắt đầu lúc:
+⏱ Phân công lúc: 
 {detail.startTime &&
 new Date(detail.startTime).toLocaleTimeString("vi-VN")}
 </p>
@@ -374,7 +340,7 @@ ${isDone ? "done":""}`}
 
 <section className="card">
 
-<h4 className="card-title">👤 THÔNG TIN NGƯỜI DÂN</h4>
+<h4 className="card-title">1. THÔNG TIN NGƯỜI DÂN</h4>
 
 <div className="info-row">
 
@@ -405,7 +371,7 @@ ${isDone ? "done":""}`}
 
   <div className="rc-op-card-header">
 
-    <h4>🚑 ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
+    <h4 className="card-title">2. ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
 
     {/* <button
   className="rc-op-edit-btn"
@@ -419,17 +385,17 @@ ${isDone ? "done":""}`}
 
   <div className="rc-op-item">
 
-    <label>Đội Cứu Hộ</label>
+    <label>Tên Đội Cứu Hộ</label>
 
-    <p>👥 {detail.team}</p>
+    <p> {detail.team}</p>
 
   </div>
 
   <div className="rc-op-item">
 
-    <label>Phương Tiện</label>
+    <label>Tên Phương Tiện</label>
 
-    <p>🚑 {detail.vehicle}</p>
+    <p> {detail.vehicle}</p>
 
   </div>
 
@@ -439,8 +405,8 @@ ${isDone ? "done":""}`}
 
 <section className="rc-op-card">
 
-<h4>
-📍 VỊ TRÍ GPS
+<h4 className="card-title">
+3. VỊ TRÍ GPS
 <span className="rc-online">● TRỰC TUYẾN</span>
 </h4>
 
@@ -464,91 +430,89 @@ loading="lazy"
 
 <section className="rc-op-card">
 
-<div className="rc-card-header">
-<h4>📷 HÌNH ẢNH TỪ HIỆN TRƯỜNG</h4>
-</div>
+  <div className="rc-card-header">
+    <h4 className="card-title">4.  HÌNH ẢNH TỪ HIỆN TRƯỜNG</h4>
+  </div>
 
-<div className="rc-images">
+  <div className="rc-images">
 
-{images.length===0 && (
-<div className="rc-image">
-Không có hình ảnh
-</div>
-)}
+    {images.length === 0 && (
+      <div className="rc-image">
+        Không có hình ảnh
+      </div>
+    )}
 
-{images.map((img,i)=>(
+    {images.length > 0 && (
+      <Image.PreviewGroup>
+        {images.map((img, i) => (
+          <Image
+            key={i}
+            src={img}
+            alt="rescue"
+            className="rc-image"
+            style={{
+              width: "100%",
+              height: 150,
+              objectFit: "cover",
+              borderRadius: 10
+            }}
+          />
+        ))}
+      </Image.PreviewGroup>
+    )}
 
-<div
-key={i}
-className="rc-image"
-style={{
-backgroundImage:`url(${img})`,
-backgroundSize:"cover",
-backgroundPosition:"center"
-}}
->
-
-</div>
-
-))}
-
-</div>
+  </div>
 
 </section>
+<section className="card">
 
-<section className="rc-op-card rc-chat">
+<h4 className="card-title">
+  5. TÌNH TRẠNG KHẨN CẤP
+</h4>
 
-<div className="rc-card-header">
-
-<h4>💬 NHẬT KÝ CẬP NHẬT & CHAT</h4>
-
-<span>ID: #{detail.missionId}</span>
-
-</div>
-
-<div
-className="rc-chat__messages"
-ref={messagesRef}
->
-
-{messages.map(msg=>(
-<div key={msg.id} className={`msg ${msg.side}`}>
-
-<div className="msg__bubble">
-
-<span className="msg__author">
-{msg.author}
-</span>
-
-<p className="msg__text">
-{msg.text}
+<p className="quote">
+  {detail.detailDescription}
 </p>
 
-<span className="msg__time">
-{msg.time}
-</span>
+</section>
+<section className="card">
+
+<h4 className="card-title">
+  6. NGUỒN LỰC
+</h4>
+
+<div className="resource-grid">
+
+  <div className="resource-item">
+    <label>SỐ NGƯỜI GẶP NẠN</label>
+    <p>{detail.victimCount}</p>
+  </div>
+
+  <div className="resource-item">
+    <label>DỤNG CỤ CỨU HỘ</label>
+    <p>{detail.availableRescueTool}</p>
+  </div>
 
 </div>
 
-</div>
-))}
+<label>NHU CẦU ĐẶC BIỆT</label>
 
-</div>
+<p>{detail.specialNeeds}</p>
 
-<div className="rc-chat__input">
+<label>GHI CHÚ CHO ĐỘI CỨU HỘ</label>
 
-<input
-placeholder="Nhập tin nhắn..."
-value={input}
-onChange={(e)=>setInput(e.target.value)}
-onKeyDown={handleKeyDown}
-/>
+<p>{detail.rescueTeamNote || "Không có"}</p>
 
-<button onClick={sendMessage}>
-➤
-</button>
+</section>
+<section className="card">
 
-</div>
+<h4 className="card-title">
+  7. LÝ DO TỪ CHỐI
+</h4>
+
+<p className="quote">
+  {detail.rejectReason}
+</p>
 
 </section>
 

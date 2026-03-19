@@ -35,6 +35,8 @@ import { useState, useEffect } from "react";
 import { getUserProfile } from "../../../api/axios/Auth/authApi";
 import UserProfileModal from "../../components/UserComponents/UserProfileModal";
 import "./Sidebar.css";
+import { useLocation } from "react-router-dom";
+
 
 /* ================= MENU BY ROLE ================= */
 
@@ -131,22 +133,23 @@ const menuByRole = {
     {
       label: "Đang cứu hộ",
       icon: <GlobalOutlined />,
-      path: "/rescueTeam/dangcuho/:id"
+      path: "/rescueTeam/dangcuho/:id", 
+      isDynamic: true
     },
     {
       label: "Lịch sử",
       icon: <HistoryOutlined />,
       path: "/rescueTeam/history"
     },
-    {
-      label: "Tin nhắn",
-      icon: <MessageOutlined />,
-      path: "/rescueTeam/messages"
-    },
+    // {
+    //   label: "Tin nhắn",
+    //   icon: <MessageOutlined />,
+    //   path: "/rescueTeam/messages"
+    // },
     {
       label: "Cá nhân",
       icon: <UserOutlined />,
-      path: "/rescueTeam/profile"
+      path: "/rescueTeam/list-member"
     }
   ]
 };
@@ -154,7 +157,7 @@ const menuByRole = {
 export default function Sidebar() {
 
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
 
   /* USER LOCAL STORAGE */
@@ -176,6 +179,8 @@ export default function Sidebar() {
     fullName: "Loading...",
     roleName: ""
   });
+  
+  
 
   /* LOAD PROFILE */
 
@@ -223,10 +228,18 @@ export default function Sidebar() {
             key={index}
             to={item.path}
             end={item.end}
-            className={({ isActive }) =>
-              `menu-item ${isActive ? "active" : ""}`
-            }
+            className={({ isActive }) => {
+
+              const isDangCuuHo =
+                item.isDynamic &&
+                location.pathname.includes("/rescueTeam/dangcuho");
+            
+              return `menu-item ${
+                isActive || isDangCuuHo ? "active" : ""
+              }`;
+            }}
           >
+            
 
             <span className="menu-icon">
               {item.icon}

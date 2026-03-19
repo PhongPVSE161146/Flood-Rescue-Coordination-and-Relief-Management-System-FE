@@ -26,14 +26,14 @@ const MapHeader = () => {
           to="/map"
           className={({ isActive }) => (isActive ? "active" : "")}
         >
-          Bản đồ
+          Bản Đồ
         </NavLink>
 
         <NavLink
-          to="/teams"
+          to="/newpage"
           className={({ isActive }) => (isActive ? "active" : "")}
         >
-          Đội cứu trợ
+         Tin Tức
         </NavLink>
 
      
