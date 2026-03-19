@@ -1,7 +1,7 @@
 import "./MissionDetailRescue.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect,useState } from "react";
-
+import { Image } from "antd";
 import {
 getRescueAssignmentById,
 getPendingRescueRequests,
@@ -350,27 +350,29 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <section className="md-media">
 
-<h4>📷 Hình ảnh hiện trường</h4>
+  <h4>📷 Hình ảnh hiện trường</h4>
 
-<div className="md-media-list">
+  <div className="md-media-list">
 
-{detail.image ? (
+    {detail.image ? (
 
-<img
-src={detail.image}
-alt="rescue"
-className="md-thumb-img"
-/>
+      <Image.PreviewGroup>
+        <Image
+          src={detail.image}
+          alt="rescue"
+          className="md-thumb-img"
+        />
+      </Image.PreviewGroup>
 
-):(
+    ) : (
 
-<div className="md-thumb-empty">
-Không có hình ảnh
-</div>
+      <div className="md-thumb-empty">
+        Không có hình ảnh
+      </div>
 
-)}
+    )}
 
-</div>
+  </div>
 
 </section>
 

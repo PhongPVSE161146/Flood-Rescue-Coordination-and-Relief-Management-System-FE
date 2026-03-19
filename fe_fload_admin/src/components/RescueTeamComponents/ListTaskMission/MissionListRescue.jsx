@@ -298,7 +298,7 @@ const getInitials = (name = "") => {
 >
 {m.status === "ASSIGNED" && "🚀 Nhận nhiệm vụ"}
   {m.status === "ACCEPTED" && "🔍 Xem quá trình"}
-  {m.status === "COMPLETED" && "📋 Xem chi tiết"}
+  {m.status === "COMPLETED" && "📋 Xem lịch sử"}
 </button>
 
         <button

@@ -61,6 +61,7 @@ const STATUS_STEPS = [
   { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
   { key: "ARRIVED", label: "Đã đến hiện trường", icon: "📍" },
   { key: "COMPLETED", label: "Hoàn thành", icon: "✔" },
+  { key:"REQUEST_REJECTED", label: "Từ chối", icon: "x" },
 ];
 
 const RescueProgressModal = ({ requestId, open, onClose }) => {
@@ -71,7 +72,7 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
   const [error, setError] = useState(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const navigate = useNavigate();
-const [note, setNote] = useState("");
+  const [note, setNote] = useState("");
   /* ================= API ================= */
 
   useEffect(() => {
@@ -185,7 +186,10 @@ const [note, setNote] = useState("");
     .map(img =>
       img.startsWith("http") ? img : IMAGE_BASE + img
     );
-
+/* ================= CHECK REJECT ================= */
+const isRejected =
+  data?.currentProgressCode === "REQUEST_REJECTED" ||
+  data?.assignment?.assignmentStatus === "REJECTED";
   return (
 
     <Modal
@@ -270,40 +274,71 @@ const [note, setNote] = useState("");
             {/* ================= TIMELINE ================= */}
             <div className="rescue-progress-timeline">
 
-{STATUS_STEPS.map((step, index) => {
+{isRejected ? (
 
-  const isActive = index === currentIndex;
-  const isDone = index < currentIndex;
+  /* 🔥 CHỈ HIỆN 1 STEP TỪ CHỐI */
+  <div className="rp-step">
 
-  return (
+    <div className="rp-item active rejected">
 
-    <div key={step.key} className="rp-step">
+      <div className="rp-icon">❌</div>
 
-      <div
-        className={`rp-item 
-        ${isActive ? "active" : ""} 
-        ${isDone ? "done" : ""}`}
-      >
-
-        <div className="rp-icon">
-          {step.icon}
-        </div>
-
-        <div className="rp-text">
-          {step.label}
-        </div>
-
+      <div className="rp-text">
+        TỪ CHỐI NHIỆM VỤ
       </div>
-
-      {index < STATUS_STEPS.length - 1 && (
-        <div className={`rp-line ${isDone ? "done" : ""}`} />
-      )}
 
     </div>
 
-  );
+    {/* 👉 Lý do (nếu có) */}
+    {data?.assignment?.rejectReason && (
+      <div style={{ marginTop: 8, color: "#ff4d4f" }}>
+        Lý do: {data.assignment.rejectReason}
+      </div>
+    )}
 
-})}
+  </div>
+
+) : (
+
+  /* 🔥 NORMAL TIMELINE */
+  STATUS_STEPS
+    .filter(step => step.key !== "REQUEST_REJECTED") // ❌ bỏ step reject khỏi timeline thường
+    .map((step, index) => {
+
+      const isActive = index === currentIndex;
+      const isDone = index < currentIndex;
+
+      return (
+
+        <div key={step.key} className="rp-step">
+
+          <div
+            className={`rp-item 
+            ${isActive ? "active" : ""} 
+            ${isDone ? "done" : ""}`}
+          >
+
+            <div className="rp-icon">
+              {step.icon}
+            </div>
+
+            <div className="rp-text">
+              {step.label}
+            </div>
+
+          </div>
+
+          {index < STATUS_STEPS.length - 2 && (
+            <div className={`rp-line ${isDone ? "done" : ""}`} />
+          )}
+
+        </div>
+
+      );
+
+    })
+
+)}
 
 </div>
 

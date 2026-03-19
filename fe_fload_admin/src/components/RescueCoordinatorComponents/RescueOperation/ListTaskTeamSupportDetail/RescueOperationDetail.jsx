@@ -7,6 +7,7 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
+import { Image } from "antd";
 // import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
@@ -464,35 +465,38 @@ loading="lazy"
 
 <section className="rc-op-card">
 
-<div className="rc-card-header">
-<h4>📷 HÌNH ẢNH TỪ HIỆN TRƯỜNG</h4>
-</div>
+  <div className="rc-card-header">
+    <h4>📷 HÌNH ẢNH TỪ HIỆN TRƯỜNG</h4>
+  </div>
 
-<div className="rc-images">
+  <div className="rc-images">
 
-{images.length===0 && (
-<div className="rc-image">
-Không có hình ảnh
-</div>
-)}
+    {images.length === 0 && (
+      <div className="rc-image">
+        Không có hình ảnh
+      </div>
+    )}
 
-{images.map((img,i)=>(
+    {images.length > 0 && (
+      <Image.PreviewGroup>
+        {images.map((img, i) => (
+          <Image
+            key={i}
+            src={img}
+            alt="rescue"
+            className="rc-image"
+            style={{
+              width: "100%",
+              height: 150,
+              objectFit: "cover",
+              borderRadius: 10
+            }}
+          />
+        ))}
+      </Image.PreviewGroup>
+    )}
 
-<div
-key={i}
-className="rc-image"
-style={{
-backgroundImage:`url(${img})`,
-backgroundSize:"cover",
-backgroundPosition:"center"
-}}
->
-
-</div>
-
-))}
-
-</div>
+  </div>
 
 </section>
 

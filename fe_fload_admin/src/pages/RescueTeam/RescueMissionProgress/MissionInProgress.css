@@ -414,3 +414,10 @@
   }
 
 }
+.rc-image {
+  width: 100%;
+  height: 160px;   /* 🔥 QUAN TRỌNG */
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+}

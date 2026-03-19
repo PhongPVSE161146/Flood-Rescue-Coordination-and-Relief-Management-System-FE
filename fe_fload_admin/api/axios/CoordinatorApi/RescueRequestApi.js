@@ -273,3 +273,29 @@ export const rejectRescueRequest = async (requestId, reason) => {
   }
 
 };
+/* ================= GET RESCUE REQUEST BY ID ================= */
+
+export const getRescueRequestById = async (id) => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueRequests/${id}`
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy chi tiết RescueRequest:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải chi tiết yêu cầu cứu hộ"
+    );
+
+  }
+
+};

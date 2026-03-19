@@ -40,6 +40,8 @@ const [rejectLoading, setRejectLoading] = useState(false);
     setPriority(null);
     setRecommendedPriority(null);
   }, [mission]);
+
+  
   /* ================= LOAD URGENCY LEVEL ================= */
 
   useEffect(() => {
@@ -379,35 +381,36 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
   {images.length > 0 ? (
 
-    images.map((img, i) => {
+<Image.PreviewGroup>
+{images.map((img, i) => {
 
-      const imageUrl =
-        img.startsWith("http")
-          ? img
-          : API_BASE + img;
+  const imageUrl =
+    img.startsWith("http")
+      ? img
+      : `${API_BASE}/${img.replace(/^\/+/, "")}`;
 
-      return (
-        <img
-          key={i}
-          src={imageUrl}
-          alt={`rescue-${i}`}
-          width={160}
-          referrerPolicy="no-referrer"
-          style={{
-            borderRadius: 10,
-            objectFit: "cover",
-            border: "1px solid #eee"
-          }}
-        />
-      );
-
-    })
+  return (
+    <Image
+      key={i}
+      src={imageUrl}
+      alt={`rescue-${i}`}
+      width={160}
+      style={{
+        borderRadius: 10,
+        objectFit: "cover",
+        border: "1px solid #eee"
+      }}
+      referrerPolicy="no-referrer"
+    />
+  );
+})}
+</Image.PreviewGroup>
 
   ) : (
 
-    <p style={{ color: "#888" }}>
-      Không có hình ảnh
-    </p>
+    <div className="md-thumb-empty">
+        Không có hình ảnh
+      </div>
 
   )}
 

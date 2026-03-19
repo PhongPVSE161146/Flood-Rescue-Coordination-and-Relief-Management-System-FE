@@ -1,13 +1,12 @@
 import "./MissionInProgress.css";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { Image } from "antd";
 import {
   getRescueAssignmentById,
-  getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-
+import { getRescueRequestById } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 import { getAllRescueTeams } from "../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
 import {
@@ -15,7 +14,8 @@ import {
   arriveRescueAssignment,
   completeRescueAssignment
 } from "../../../../api/axios/RescueApi/RescueTask";
-const API_BASE = "https://api-rescue.purintech.id.vn";
+
+// const API_BASE = "https://api-rescue.purintech.id.vn";
 
 const priorityTranslate = {
   High: "Mức Độ Cao",
@@ -53,19 +53,26 @@ export default function MissionInProgress() {
       setLoading(true);
 
       const [
-        assignment,
+  
         requestRes,
         urgencyRes,
         teamRes,
         vehicleRes
       ] = await Promise.all([
         getRescueAssignmentById(id),
-        getPendingRescueRequests(),
+        // getPendingRescueRequests(),
         getUrgencyLevels(),
         getAllRescueTeams(),
         getAllVehicles()
       ]);
+      const assignment = await getRescueAssignmentById(id);
 
+      if (!assignment) return;
+      
+      // 🔥 gọi đúng API theo id
+      const req = await getRescueRequestById(
+        assignment.rescueRequestId
+      );
       const requests = requestRes?.data || requestRes || [];
       const teams = teamRes?.data?.items || [];
       const vehicles = vehicleRes?.data || [];
@@ -81,9 +88,9 @@ export default function MissionInProgress() {
       const urgencyMap = {};
       urgencies.forEach(u => (urgencyMap[u.urgencyLevelId] = u.levelName));
 
-      const req = requests.find(
-        r => r.rescueRequestId === assignment?.rescueRequestId
-      );
+      // const req = requests.find(
+      //   r => r.rescueRequestId === assignment?.rescueRequestId
+      // );
 
       if (!assignment) return;
 
@@ -132,12 +139,10 @@ export default function MissionInProgress() {
         ...(req?.images || []),
         req?.locationImageUrl
       ].filter(Boolean);
+      
+      setImages(imgs);
 
-      setImages(
-        imgs.map(img =>
-          img.startsWith("http") ? img : API_BASE + img
-        )
-      );
+   
 
     } catch (err) {
 
@@ -207,6 +212,8 @@ export default function MissionInProgress() {
     if (id) fetchData();
   }, [id]);
 
+
+  
   /* ===== TIMELINE ===== */
 
   const currentIndex = STATUS_STEPS.findIndex(
@@ -391,26 +398,25 @@ export default function MissionInProgress() {
             <p>{detail.rescueTeamNote}</p>
           </section>
 
-          <section className="rc-op-card">
-            <h4>📷 HÌNH ẢNH</h4>
+          <section className="card">
+                  <h4>📷 HÌNH ẢNH THỰC TẾ </h4>
 
-            <div className="rc-images">
+                  {images?.length > 0 ? (
+                    <Image.PreviewGroup>
+                      {images.map((img, i) => (
+                        <Image
+                          key={i}
+                          src={img}
+                          width="100%"
+                          referrerPolicy="no-referrer"
+                        />
+                      ))}
+                    </Image.PreviewGroup>
+                  ) : (
+                    <p>Không có ảnh</p>
+                  )}
 
-              {images.length === 0 && <p>Không có hình ảnh</p>}
-
-              {images.map((img, i) => (
-                <div
-                  key={i}
-                  className="rc-image"
-                  style={{
-                    backgroundImage: `url(${img})`
-                  }}
-                />
-              ))}
-
-            </div>
-
-          </section>
+                </section>
 
         </div>
 
