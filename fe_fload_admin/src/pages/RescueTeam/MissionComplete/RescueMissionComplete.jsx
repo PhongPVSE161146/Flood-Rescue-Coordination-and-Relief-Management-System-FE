@@ -1,4 +1,4 @@
-import "./MissionInProgress.css";
+import "./RescueMissionComplete.css";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Image } from "antd";
@@ -14,7 +14,7 @@ import {
   arriveRescueAssignment,
   completeRescueAssignment
 } from "../../../../api/axios/RescueApi/RescueTask";
-import AuthNotify from "../../../utils/Common/AuthNotify";
+
 // const API_BASE = "https://api-rescue.purintech.id.vn";
 
 const priorityTranslate = {
@@ -31,7 +31,7 @@ const STATUS_STEPS = [
   { key: "COMPLETED", label: "Hoàn thành", icon: "✔" }
 ];
 
-export default function MissionInProgress() {
+export default function RescueMissionComplete() {
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -166,58 +166,23 @@ export default function MissionInProgress() {
       const status = detail.assignmentStatus;
   
       if (status === "ACCEPTED") {
-  
         await departRescueAssignment(id);
-  
-        AuthNotify.success(
-          "Xuất phát thành công",
-          "Đội cứu hộ đã bắt đầu di chuyển 🚑"
-        );
-  
       }
   
       else if (status === "DEPARTED") {
-  
         await arriveRescueAssignment(id);
-  
-        AuthNotify.success(
-          "Đã đến hiện trường",
-          "Đội cứu hộ đã tới nơi 📍"
-        );
-  
       }
   
       else if (status === "ARRIVED") {
-  
         await completeRescueAssignment(id);
-  
-        AuthNotify.success(
-          "Hoàn thành nhiệm vụ",
-          "Cứu hộ đã hoàn tất ✅"
-        );
-  
       }
   
-      else {
-  
-        AuthNotify.warning(
-          "Không hợp lệ",
-          "Trạng thái không thể xử lý"
-        );
-  
-      }
-  
-      // reload lại data
+      // reload data sau khi update
       await fetchData();
   
     } catch (err) {
   
       console.error("Action error:", err);
-  
-      AuthNotify.error(
-        "Thất bại",
-        err?.message || "Có lỗi xảy ra"
-      );
   
     } finally {
   
@@ -226,6 +191,7 @@ export default function MissionInProgress() {
     }
   
   };
+
   const getActionText = () => {
 
     switch (detail?.assignmentStatus) {

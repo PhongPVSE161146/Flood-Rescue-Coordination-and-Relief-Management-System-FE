@@ -20,7 +20,7 @@ const EmergencyHeader = () => {
       <nav className="nav">
         <NavLink to="/">Trang chủ</NavLink>
         <NavLink to="/map">Bản đồ cứu hộ</NavLink>
-        <NavLink to="/guide">Hướng dẫn</NavLink>
+        <NavLink to="/map">Tra Cứu Yêu Cầu</NavLink>
       </nav>
 
       {/* HOTLINE */}

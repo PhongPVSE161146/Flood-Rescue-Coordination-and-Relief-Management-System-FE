@@ -467,12 +467,11 @@
   background:#cbd5e1;
   
   }
-  .rc-timeline__item.active .rc-timeline__icon{
-
-    background:#0ea5e9;
-    color:white;
-    
-    }
+  .rc-timeline__item.active .rc-timeline__icon {
+    background: #16a34a;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
+  }
     
     .rc-timeline__item.active{
     

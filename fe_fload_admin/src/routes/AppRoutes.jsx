@@ -30,7 +30,8 @@ import RescueTask from "../pages/RescueTeam/RescueMission/RescueMission";
 import MissionDetailRescue from "../pages/RescueTeam/RescueMission/DetailRescueMission/MissionDetailRescue";
 import MissionHistory from "../pages/RescueTeam/RescueMissionHistory/MissionHistory";
 import MissionInProgress from "../pages/RescueTeam/RescueMissionProgress/MissionInProgress";
-// import RescueHistory from "../pages/Rescue/History";
+import RescueMissionComplete from "../pages/RescueTeam/MissionComplete/RescueMissionComplete";
+import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/TeamMembersMisionList";
 // import RescueMessages from "../pages/Rescue/Messages";
 // import RescueProfile from "../pages/Rescue/Profile";
 
@@ -113,7 +114,9 @@ export default function AppRoutes() {
         <Route index element={<RescueTask />} />
         <Route path="mission/:id" element={<MissionDetailRescue />} />
         <Route path="history" element={<MissionHistory />} />
+        <Route path="history/:id" element={<RescueMissionComplete />} />
         <Route path="/rescueTeam/dangcuho/:id" element={<MissionInProgress />} />
+        <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />
        
       </Route>
 

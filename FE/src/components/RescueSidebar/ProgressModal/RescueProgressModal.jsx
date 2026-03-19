@@ -426,6 +426,7 @@ const isRejected =
                   <p><b>Xác minh:</b> {data.isVerified ? "✔️" : "❌"}</p>
                   <p><b>Đã phân công:</b> {data.isAssigned ? "✔️" : "❌"}</p>
                   <p><b>Trạng thái:</b> {data.assignment?.assignmentStatusLabel}</p>
+                  <p><b>Lý do từ chối:</b> {data.assignment?.assignmentStatusLabel}</p>
                 </section>
 
               </div>
