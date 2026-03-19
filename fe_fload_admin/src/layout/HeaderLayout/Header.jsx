@@ -3,7 +3,10 @@ import {
   BellOutlined,
   QuestionCircleOutlined,
 } from "@ant-design/icons";
-
+import adminIcon from "../../../public/admin.png";
+import managerIcon from "../../../public/manager.svg";
+import coordinatorIcon from "../../../public/coordinator.svg";
+import rescueIcon from "../../../public/rescueTeam.svg";
 import "./rc-hd.header.css";
 
 export default function Header() {
@@ -11,61 +14,62 @@ export default function Header() {
 
   const roleInfo = {
     admin: {
-      title: " Admin",
-      subtitle: "System Management",
-      icon: "🛡️",
+      title: "Admin",
+      subtitle: "Quản lý hệ thống cấp cao",
+      icon: <img src={adminIcon} alt="admin" className="role-icon" />,
     },
+  
     manager: {
       title: "Rescue Manager",
-      subtitle: "Operation Management",
-      icon: "📊",
+      subtitle: "Quản lý đội, phương tiện và kho hàng",
+      icon: <img src={managerIcon} alt="manager" className="role-icon" />,
     },
+  
     coordinator: {
       title: "Rescue Coordinator",
-      subtitle: "Dispatch & Monitoring",
-      icon: "🗺️",
+      subtitle: "Xác minh và điều phối cứu hộ",
+      icon: <img src={coordinatorIcon} alt="coordinator" className="role-icon" />,
     },
+  
     rescueteam: {
       title: "Rescue Team",
-      subtitle: "Field Operations",
-      icon: "🚑",
+      subtitle: "Nhận nhiệm vụ và cứu hộ",
+      icon: <img src={rescueIcon} alt="team" className="role-icon" />,
     },
   };
 
   const currentRole = roleInfo[role] || roleInfo.admin;
 
   return (
-    <header className="rc-hd">
-      {/* ===== LEFT ===== */}
-      <div className="rc-hd__left">
-        <div className="rc-hd__logo-icon">
-          {currentRole.icon}
-        </div>
+<header className="rc-hd">
 
-        <div className="rc-hd__logo-text">
-          <h3>{currentRole.title}</h3>
-          <span>{currentRole.subtitle}</span>
-        </div>
-      </div>
+{/* LEFT */}
+<div className="rc-hd__left">
+  <div className="rc-hd__logo-icon">
+    {currentRole.icon}
+  </div>
 
-      {/* ===== CENTER ===== */}
-      <Input.Search
-        placeholder="Tìm kiếm người dùng theo tên, email, ID..."
-        className="rc-hd__search"
-      />
+  <div className="rc-hd__logo-text">
+    <h3>{currentRole.title}</h3>
+    <span>{currentRole.subtitle}</span>
+  </div>
+</div>
 
-      {/* ===== RIGHT ===== */}
-      <div className="rc-hd__actions">
-        <Badge dot>
-          <BellOutlined className="rc-hd__icon" />
-        </Badge>
+{/* RIGHT */}
+<div className="rc-hd__actions">
 
-        <QuestionCircleOutlined className="rc-hd__icon" />
+  {/* <Badge dot>
+    <BellOutlined className="rc-hd__icon" />
+  </Badge>
 
-        <span className="rc-hd__lang">
-          LANGUAGE: VN
+  <QuestionCircleOutlined className="rc-hd__icon" /> */}
+
+  <span className="rc-hd__lang">
+          Ngôn Ngữ: VN
         </span>
-      </div>
-    </header>
+
+</div>
+
+</header>
   );
 }

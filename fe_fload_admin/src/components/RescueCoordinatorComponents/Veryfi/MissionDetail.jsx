@@ -277,7 +277,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
           <section className="card">
 
-            <h4 className="card-title">👤 THÔNG TIN NGƯỜI DÂN</h4>
+            <h4 className="card-title">1. THÔNG TIN NGƯỜI DÂN</h4>
 
             <div className="info-row">
 
@@ -308,7 +308,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card">
 
             <h4 className="card-title">
-              🧰 NGUỒN LỰC & MÔ TẢ
+              2. NGUỒN LỰC & MÔ TẢ
             </h4>
 
             <div className="resource-grid">
@@ -336,7 +336,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card">
 
             <h4 className="card-title">
-              📋 TÌNH TRẠNG KHẨN CẤP
+              3. TÌNH TRẠNG KHẨN CẤP
             </h4>
 
             <label>GHI CHÚ</label>
@@ -354,14 +354,23 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
           {/* MAP */}
 
-          <section className="map-card">
+    <section className="rc-op-card">
 
-            <iframe
+<h4 className="card-title">
+4. VỊ TRÍ GPS
+<span className="rc-online">● TRỰC TUYẾN</span>
+</h4>
+
+<div className="rc-map-mini">
+
+<iframe
               title="map"
               src={`https://www.google.com/maps?q=${mission.locationLat},${mission.locationLng}&z=13&output=embed`}
             />
 
-          </section>
+</div>
+
+</section>
 
         </div>
 
@@ -374,7 +383,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card">
 
 <h4 className="card-title">
-  📷 HÌNH ẢNH HIỆN TRƯỜNG
+  5. HÌNH ẢNH HIỆN TRƯỜNG
 </h4>
 
 <div className="image-grid">
@@ -423,7 +432,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card rc-priority-card">
 
 <h4 className="card-title">
-  ⚠️ PHÂN LOẠI ƯU TIÊN
+  6. PHÂN LOẠI ƯU TIÊN
 </h4>
 
 {/* LÝ DO ĐỀ XUẤT */}
@@ -485,7 +494,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card">
 
             <h4 className="card-title">
-              📝 GHI CHÚ XÁC MINH
+              7. GHI CHÚ XÁC MINH
             </h4>
 
             <Input.TextArea

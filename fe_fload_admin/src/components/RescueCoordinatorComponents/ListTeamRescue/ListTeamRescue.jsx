@@ -10,7 +10,7 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-import AuthNotify from "../../../utils/Common/AuthNotify";
+// import AuthNotify from "../../../utils/Common/AuthNotify";
 import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
 import "./list-team-rescue-queue.css";
 

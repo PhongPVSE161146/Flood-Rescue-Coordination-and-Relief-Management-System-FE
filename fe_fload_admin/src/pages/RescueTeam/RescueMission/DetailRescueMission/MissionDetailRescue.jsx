@@ -30,6 +30,7 @@ const LOCK_STATUSES = [
 ];
 
 const STATUS_STEPS = [
+  { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
     { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
     { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
     { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },

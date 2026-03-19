@@ -25,6 +25,7 @@ const priorityClass = {
 };
 
 const assignmentStatusMap = {
+  PENDING:"Chờ điều phối",
   ASSIGNED: "Đã điều động",
   ACCEPTED: "Đội đã nhận nhiệm vụ",
   DEPARTED: "Đã xuất phát",
@@ -34,6 +35,7 @@ const assignmentStatusMap = {
 }
 
 const assignmentStatusClass = {
+  PENDING:  "status-pending",
   ASSIGNED: "status-assigned",
   ACCEPTED: "status-accepted",
   DEPARTED: "status-departed",
@@ -291,12 +293,6 @@ onClick={()=>changeTab("new")}
 MỚI NHẤT
 </button>
 
-{/* <button
-className={tab==="expired"?"active":""}
-onClick={()=>changeTab("expired")}
->
-QUÁ HẠN
-</button> */}
 
 <button
 className={tab==="merge"?"active":""}
@@ -385,18 +381,86 @@ className={`status-badge ${assignmentStatusClass[item.assignmentStatus]}`}
 </span>
 </div>
 
-<strong>{item.fullname}</strong>
+<div
+  className="info-box-minato"
+  style={{
+    background: "#fff",
+    borderRadius: 12,
+    padding: "14px 16px",
+    border: "1px solid #eee",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8
+  }}
+>
 
-<div>👥 {item.team}</div>
+  <strong
+    style={{
+      fontSize: 15,
+      fontWeight: 700,
+      color: "#1677ff"
+    }}
+  >
+     Họ và tên: {item.fullname}
+  </strong>
 
-<div>🚑 {item.vehicle}</div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Tên đội: {item.team}
+  </div>
 
-<div>📍 {item.address}</div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Tên phương tiện: {item.vehicle}
+  </div>
 
-<div>📞 {item.phone}</div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Vị trí: {item.address}
+  </div>
 
+  <div
+    style={{
+      fontSize: 14,
+      fontWeight: 600,
+      color: "#52c41a",
+      padding: "6px 10px",
+      background: "#f6ffed",
+      borderRadius: 8,
+      border: "1px solid #b7eb8f"
+    }}
+  >
+    Số điện thoại: {item.phone}
+  </div>
+
+</div>
 <div className="rc-team-item__footer">
-⏱ {item.time}
+⏱Phân công lúc:  {item.time}
 </div>
 
 </div>
