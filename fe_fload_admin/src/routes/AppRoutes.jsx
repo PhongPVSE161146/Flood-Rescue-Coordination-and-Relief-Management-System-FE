@@ -18,6 +18,7 @@ import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
 import Approve from "../pages/Manager/Approval/ApprovalManagement";
 import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
+import PeriodicAid from "../pages/Manager/PeriodicAid/PeriodicAidManagement";
 
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
@@ -80,6 +81,7 @@ export default function AppRoutes() {
         <Route path="inventory" element={<Inventory />} />
         <Route path="approve" element={<Approve />} />
         <Route path="rescue-team" element={<ManagerRescueTeam />} />
+        <Route path="periodic-aid" element={<PeriodicAid />} />
         {/* <Route path="info" element={<ManagerInfo />} />
         <Route path="warehouse" element={<Warehouse />} />
      

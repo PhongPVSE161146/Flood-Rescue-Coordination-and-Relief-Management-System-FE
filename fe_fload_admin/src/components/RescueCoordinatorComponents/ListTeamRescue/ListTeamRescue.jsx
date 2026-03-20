@@ -9,7 +9,7 @@ import {
 import {
   getPendingRescueRequests,
   getUrgencyLevels
-} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
 import "./list-team-rescue-queue.css";

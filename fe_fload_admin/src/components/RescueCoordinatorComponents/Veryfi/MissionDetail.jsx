@@ -4,13 +4,14 @@ import { PhoneOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
-  getUrgencyLevels,
-  verifyAndDispatchRescueRequest,
-  rejectRescueRequest
-} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+  verifyRescueRequest as verifyAndDispatchRescueRequest,
+  rejectRescueRequest,
+  getUrgencyLevels
+} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
+import MissionHistory from "../../Common/MissionHistory/MissionHistory";
 import "./MissionDetail.css";
 
 const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
@@ -360,6 +361,8 @@ const [rejectLoading, setRejectLoading] = useState(false);
             />
 
           </section>
+          
+          <MissionHistory rescueRequestId={mission.id} />
 
         </div>
 

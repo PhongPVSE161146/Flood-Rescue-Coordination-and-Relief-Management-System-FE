@@ -1,12 +1,13 @@
 import "./MissionDetailRescue.css";
+import MissionHistory from "../../../../components/Common/MissionHistory/MissionHistory";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect,useState } from "react";
 
 import {
-getRescueAssignmentById,
-getPendingRescueRequests,
-getUrgencyLevels
-} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
+  getRescueAssignmentById,
+  getDispatchQueue as getPendingRescueRequests
+} from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
+import { getAllUrgencyLevels as getUrgencyLevels } from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
 
 import {
 acceptRescueAssignment,
@@ -373,6 +374,8 @@ Không có hình ảnh
 </div>
 
 </section>
+
+<MissionHistory rescueRequestId={detail.requestId} />
 
 </aside>
 

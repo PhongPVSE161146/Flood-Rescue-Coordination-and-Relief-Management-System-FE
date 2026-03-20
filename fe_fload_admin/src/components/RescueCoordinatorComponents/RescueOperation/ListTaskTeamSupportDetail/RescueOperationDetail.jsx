@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 
 import {
   getRescueAssignmentById,
-  getPendingRescueRequests,
+  getDispatchQueue as getPendingRescueRequests,
   getUrgencyLevels
-} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
+} from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
 // import UpdateDetailTeam from "../UpdateTeamSupportDetail/UpdateDetailTeam";
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";

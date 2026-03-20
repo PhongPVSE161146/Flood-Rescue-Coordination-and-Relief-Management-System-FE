@@ -16,6 +16,7 @@ import {
   CheckSquareOutlined,
   UsergroupAddOutlined,
   CarOutlined,
+  GiftOutlined,
 
   /* RESCUE */
   CarryOutOutlined,
@@ -89,6 +90,11 @@ const menuByRole = {
       label: "Đội cứu hộ",
       icon: <UsergroupAddOutlined />,
       path: "/manager/rescue-team"
+    },
+    {
+      label: "Cứu trợ định kỳ",
+      icon: <GiftOutlined />,
+      path: "/manager/periodic-aid"
     }
   ],
 

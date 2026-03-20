@@ -53,13 +53,9 @@ export default function InventoryManagement() {
   const [itemForm] = Form.useForm();
   const [transactionForm] = Form.useForm();
 
-  useEffect(() => {
-    loadAll();
-  }, []);
-
   /* ================= LOAD DATA ================= */
 
-  const loadAll = async () => {
+  async function loadAll() {
     try {
 
       const [w, i, t] = await Promise.all([
@@ -100,6 +96,10 @@ export default function InventoryManagement() {
       message.error("Load dữ liệu thất bại");
     }
   };
+
+  useEffect(() => {
+    loadAll();
+  }, []);
 
   /* ================= INVENTORY ================= */
 
@@ -340,6 +340,34 @@ export default function InventoryManagement() {
     },
   ];
 
+  const inventoryColumns = [
+    {
+      title: "#",
+      key: "index",
+      render: (_, __, index) => index + 1,
+      width: 80,
+    },
+    {
+      title: "Item Name",
+      dataIndex: "itemName",
+      key: "itemName",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: () => (
+        <span className="inventory-label" style={{ backgroundColor: "#e6f7ff", color: "#1890ff", padding: "4px 8px", borderRadius: "4px" }}>
+          Available
+        </span>
+      ),
+    },
+  ];
+
   /* ================= WAREHOUSE INVENTORY TABS ================= */
 
   const warehouseTabs = warehouses.map((w) => ({
@@ -347,27 +375,12 @@ export default function InventoryManagement() {
     label: w.warehouseName,
     children: (
       <div className="inventory-card">
-
-        <Row gutter={[16, 16]}>
-  {inventory.map((item) => (
-    <Col xs={24} sm={12} md={8} lg={6} key={item.key}>
-      <Card className="inventory-item-card" hoverable>
-
-        <h3>{item.itemName}</h3>
-
-        <p className="inventory-quantity">
-          {item.quantity}
-        </p>
-
-        <span className="inventory-label">
-          Available
-        </span>
-
-      </Card>
-    </Col>
-  ))}
-</Row>
-
+        <Table
+          columns={inventoryColumns}
+          dataSource={inventory}
+          rowKey="key"
+          pagination={false}
+        />
       </div>
     ),
   }));
@@ -380,8 +393,8 @@ export default function InventoryManagement() {
       <div className="inventory-header">
 
         <div className="inventory-title">
-          <h2>📦 Inventory Management</h2>
-          <p>Quản lý kho cứu trợ</p>
+          <h2>📦 Quản lý kho cứu trợ</h2>
+          <p>Quản lý và theo dõi kho cứu trợ</p>
         </div>
 
         <Space>
@@ -409,11 +422,11 @@ export default function InventoryManagement() {
           </Button>
 
           <Button onClick={() => setActiveTab("warehouses")}>
-            Warehouses
+            Quản lý kho
           </Button>
 
           <Button onClick={() => setActiveTab("items")}>
-            Relief Items
+            Quản lí item của kho
           </Button>
 
           <Button

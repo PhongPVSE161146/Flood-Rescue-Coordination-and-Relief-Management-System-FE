@@ -1,454 +1,417 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Input, Switch, message, Tabs, Select } from "antd";
-import { SaveOutlined } from "@ant-design/icons";
+import { Button, Input, Switch, message, Tabs, Table, Modal, Form, Popconfirm, Space, Card, Spin } from "antd";
+import { SaveOutlined, ReloadOutlined, PlusOutlined, SettingOutlined, WarningOutlined } from "@ant-design/icons";
+import {
+  getAllSystemConfigurations,
+  updateSystemConfiguration,
+  seedSystemConfigurations
+} from "../../../../api/axios/SystemConfigurations/systemConfigurationsApi";
+import {
+  getAllUrgencyLevels,
+  createUrgencyLevel,
+  updateUrgencyLevel,
+  deleteUrgencyLevel,
+  getAllRequestLogs
+} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
 import "./SystemSetting.css";
 
-const GROUPS = [
-  { id: "rescue", title: "Tham số vận hành", label: "Tham số vận hành" },
-  { id: "emergency_levels", title: "Mức độ Khẩn Cấp", label: "Mức độ Khẩn Cấp" },
-  { id: "emergency", title: "Cảnh báo & SLA", label: "Thông báo & SLA" },
-  { id: "request", title: "Tham số cứu trợ", label: "Tham số cứu trợ" },
-  { id: "stock", title: "Kho & Cứu trợ", label: "Kho & Cứu trợ" },
-  { id: "donation", title: "Tiền & Quyên góp", label: "Tiền & Quyên góp" },
-  { id: "media", title: "Media & Dữ liệu", label: "Media & Dữ liệu" },
-  { id: "map", title: "Bản đồ & Hiển thị", label: "Bản đồ & Hiển thị" },
-  { id: "security", title: "Bảo mật & Hệ thống", label: "Bảo mật & Hệ thống" },
-  { id: "permission", title: "Phân quyền", label: "Phân quyền" },
-];
-
-const DEFAULT_CONFIGS = [
-  /* 1. Điều phối & Đội cứu hộ */
-  { key: "AUTO_ASSIGN", name: "AUTO_ASSIGN – Tự động phân đội", type: "boolean", value: true, group: "rescue" },
-  { key: "MAX_TASK", name: "MAX_TASK – Số nhiệm vụ tối đa / đội", type: "number", value: 5, group: "rescue" },
-  { key: "MAX_TEAM_PER_REQUEST", name: "MAX_TEAM_PER_REQUEST – Số đội tối đa / yêu cầu", type: "number", value: 3, group: "rescue" },
-  { key: "ASSIGN_TIMEOUT", name: "ASSIGN_TIMEOUT – Thời gian đội xác nhận nhiệm vụ (s)", type: "number", value: 300, group: "rescue" },
-  { key: "REASSIGN_ENABLE", name: "REASSIGN_ENABLE – Cho phép tái phân công", type: "boolean", value: true, group: "rescue" },
-  { key: "RESCUE_RADIUS_KM", name: "RESCUE_RADIUS_KM – Bán kính cứu hộ tối đa (km)", type: "number", value: 10, group: "rescue" },
-
-  /* 1.5. Mức độ Khẩn Cấp */
-  { key: "EMERGENCY_LEVEL_1_NAME", name: "EMERGENCY_LEVEL_1_NAME – Tên Cấp độ 1", type: "string", value: "Cấp độ 1 - Thấp (Low Risk)", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_COLOR", name: "EMERGENCY_LEVEL_1_COLOR – Màu Cấp độ 1", type: "string", value: "#4CAF50", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_DEFINITION", name: "EMERGENCY_LEVEL_1_DEFINITION – Định nghĩa Cấp độ 1", type: "string", value: "Tình huống nhẹ, chưa đe dọa trực tiếp đến tính mạng, chủ yếu là hỗ trợ sớm hoặc cảnh báo", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_PEOPLE_COUNT", name: "EMERGENCY_LEVEL_1_PEOPLE_COUNT – Số người cần cứu Cấp độ 1", type: "string", value: "1–2 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_FLOOD_CRITERIA", name: "EMERGENCY_LEVEL_1_FLOOD_CRITERIA – Tiêu chí lũ lụt Cấp độ 1", type: "string", value: "Ngập < 20 cm; Chưa vào nhà hoặc chỉ ngập sân", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_INJURED_COUNT", name: "EMERGENCY_LEVEL_1_INJURED_COUNT – Số người bị thương Cấp độ 1", type: "string", value: "0 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_INJURY_SEVERITY", name: "EMERGENCY_LEVEL_1_INJURY_SEVERITY – Mức độ thương tích Cấp độ 1", type: "string", value: "Không có thương tích hoặc trầy xước nhẹ", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_EXAMPLES", name: "EMERGENCY_LEVEL_1_EXAMPLES – Ví dụ Cấp độ 1", type: "string", value: "Người bị mắc kẹt do nước dâng nhẹ; Cần hỗ trợ di chuyển người già/trẻ em; Cây đổ nhẹ chưa gây nguy hiểm", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_1_SLA", name: "EMERGENCY_LEVEL_1_SLA – Thời gian phản hồi Cấp độ 1 (phút)", type: "number", value: 120, group: "emergency_levels" },
-
-  { key: "EMERGENCY_LEVEL_2_NAME", name: "EMERGENCY_LEVEL_2_NAME – Tên Cấp độ 2", type: "string", value: "Cấp độ 2 - Trung bình (Moderate Risk)", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_COLOR", name: "EMERGENCY_LEVEL_2_COLOR – Màu Cấp độ 2", type: "string", value: "#FFC107", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_DEFINITION", name: "EMERGENCY_LEVEL_2_DEFINITION – Định nghĩa Cấp độ 2", type: "string", value: "Có nguy cơ ảnh hưởng đến an toàn, cần theo dõi và xử lý sớm để tránh leo thang", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_PEOPLE_COUNT", name: "EMERGENCY_LEVEL_2_PEOPLE_COUNT – Số người cần cứu Cấp độ 2", type: "string", value: "3–10 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_FLOOD_CRITERIA", name: "EMERGENCY_LEVEL_2_FLOOD_CRITERIA – Tiêu chí lũ lụt Cấp độ 2", type: "string", value: "Ngập 20–50 cm; Nước đã vào nhà tầng trệt", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_INJURED_COUNT", name: "EMERGENCY_LEVEL_2_INJURED_COUNT – Số người bị thương Cấp độ 2", type: "string", value: "1–2 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_INJURY_SEVERITY", name: "EMERGENCY_LEVEL_2_INJURY_SEVERITY – Mức độ thương tích Cấp độ 2", type: "string", value: "Trầy xước, bong gân, choáng nhẹ, mất sức", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_EXAMPLES", name: "EMERGENCY_LEVEL_2_EXAMPLES – Ví dụ Cấp độ 2", type: "string", value: "Gia đình bị cô lập do nước dâng; Có người bị té ngã khi di chuyển; Nhà bị ngập tầng trệt chưa sập", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_2_SLA", name: "EMERGENCY_LEVEL_2_SLA – Thời gian phản hồi Cấp độ 2 (phút)", type: "number", value: 60, group: "emergency_levels" },
-
-  { key: "EMERGENCY_LEVEL_3_NAME", name: "EMERGENCY_LEVEL_3_NAME – Tên Cấp độ 3", type: "string", value: "Cấp độ 3 - Cao (High Risk)", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_COLOR", name: "EMERGENCY_LEVEL_3_COLOR – Màu Cấp độ 3", type: "string", value: "#FF9800", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_DEFINITION", name: "EMERGENCY_LEVEL_3_DEFINITION – Định nghĩa Cấp độ 3", type: "string", value: "Tình huống nguy hiểm rõ ràng, nếu chậm xử lý có thể dẫn đến thương vong", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_PEOPLE_COUNT", name: "EMERGENCY_LEVEL_3_PEOPLE_COUNT – Số người cần cứu Cấp độ 3", type: "string", value: "11–50 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_FLOOD_CRITERIA", name: "EMERGENCY_LEVEL_3_FLOOD_CRITERIA – Tiêu chí lũ lụt Cấp độ 3", type: "string", value: "Ngập 50–100 cm; Nước chảy xiết", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_INJURED_COUNT", name: "EMERGENCY_LEVEL_3_INJURED_COUNT – Số người bị thương Cấp độ 3", type: "string", value: "3–10 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_INJURY_SEVERITY", name: "EMERGENCY_LEVEL_3_INJURY_SEVERITY – Mức độ thương tích Cấp độ 3", type: "string", value: "Gãy tay/chân, chảy máu nhiều, bất tỉnh ngắn hạn", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_EXAMPLES", name: "EMERGENCY_LEVEL_3_EXAMPLES – Ví dụ Cấp độ 3", type: "string", value: "Khu dân cư bị ngập sâu; Có người bị cuốn trôi nhẹ; Nhiều người cần sơ tán khẩn cấp", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_3_SLA", name: "EMERGENCY_LEVEL_3_SLA – Thời gian phản hồi Cấp độ 3 (phút)", type: "number", value: 30, group: "emergency_levels" },
-
-  { key: "EMERGENCY_LEVEL_4_NAME", name: "EMERGENCY_LEVEL_4_NAME – Tên Cấp độ 4", type: "string", value: "Cấp độ 4 - Rất cao (Very High Risk)", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_COLOR", name: "EMERGENCY_LEVEL_4_COLOR – Màu Cấp độ 4", type: "string", value: "#F44336", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_DEFINITION", name: "EMERGENCY_LEVEL_4_DEFINITION – Định nghĩa Cấp độ 4", type: "string", value: "Đe dọa trực tiếp đến tính mạng, cần cứu hộ khẩn cấp ngay lập tức", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_PEOPLE_COUNT", name: "EMERGENCY_LEVEL_4_PEOPLE_COUNT – Số người cần cứu Cấp độ 4", type: "string", value: "51–200 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_FLOOD_CRITERIA", name: "EMERGENCY_LEVEL_4_FLOOD_CRITERIA – Tiêu chí lũ lụt Cấp độ 4", type: "string", value: "Ngập > 100 cm; Dòng nước mạnh, nguy hiểm", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_INJURED_COUNT", name: "EMERGENCY_LEVEL_4_INJURED_COUNT – Số người bị thương Cấp độ 4", type: "string", value: "11–50 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_INJURY_SEVERITY", name: "EMERGENCY_LEVEL_4_INJURY_SEVERITY – Mức độ thương tích Cấp độ 4", type: "string", value: "Đa chấn thương, gãy xương hở, bất tỉnh kéo dài, nghi ngờ chấn thương nội tạng", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_EXAMPLES", name: "EMERGENCY_LEVEL_4_EXAMPLES – Ví dụ Cấp độ 4", type: "string", value: "Cả khu dân cư bị cô lập; Nhà có nguy cơ sập; Người bị thương nặng cần sơ cứu khẩn", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_4_SLA", name: "EMERGENCY_LEVEL_4_SLA – Thời gian phản hồi Cấp độ 4 (phút)", type: "number", value: 15, group: "emergency_levels" },
-
-  { key: "EMERGENCY_LEVEL_5_NAME", name: "EMERGENCY_LEVEL_5_NAME – Tên Cấp độ 5", type: "string", value: "Cấp độ 5 - Thảm họa (Disaster)", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_COLOR", name: "EMERGENCY_LEVEL_5_COLOR – Màu Cấp độ 5", type: "string", value: "#9C27B0", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_DEFINITION", name: "EMERGENCY_LEVEL_5_DEFINITION – Định nghĩa Cấp độ 5", type: "string", value: "Tình huống đặc biệt nghiêm trọng, ảnh hưởng diện rộng, vượt quá khả năng xử lý thông thường", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_PEOPLE_COUNT", name: "EMERGENCY_LEVEL_5_PEOPLE_COUNT – Số người cần cứu Cấp độ 5", type: "string", value: "> 200 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_FLOOD_CRITERIA", name: "EMERGENCY_LEVEL_5_FLOOD_CRITERIA – Tiêu chí lũ lụt Cấp độ 5", type: "string", value: "Ngập sâu > 150 cm; Lũ quét/vỡ đê", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_INJURED_COUNT", name: "EMERGENCY_LEVEL_5_INJURED_COUNT – Số người bị thương Cấp độ 5", type: "string", value: "> 50 người", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_INJURY_SEVERITY", name: "EMERGENCY_LEVEL_5_INJURY_SEVERITY – Mức độ thương tích Cấp độ 5", type: "string", value: "Nhiều ca nguy kịch, nguy cơ tử vong cao, cần hỗ trợ y tế quy mô lớn", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_EXAMPLES", name: "EMERGENCY_LEVEL_5_EXAMPLES – Ví dụ Cấp độ 5", type: "string", value: "Xã/huyện bị ngập diện rộng; Nhiều người mất tích; Cần huy động liên tỉnh/trung ương", group: "emergency_levels" },
-  { key: "EMERGENCY_LEVEL_5_SLA", name: "EMERGENCY_LEVEL_5_SLA – Thời gian phản hồi Cấp độ 5 (phút)", type: "number", value: 5, group: "emergency_levels" },
-
-  { key: "ALLOW_COORD_CHANGE_LEVEL", name: "ALLOW_COORD_CHANGE_LEVEL – Cho phép Coordinator thay đổi cấp độ", type: "boolean", value: true, group: "emergency_levels" },
-  { key: "ALLOW_COORD_DOWNGRADE_LEVEL", name: "ALLOW_COORD_DOWNGRADE_LEVEL – Cho phép hạ cấp độ (phải có lý do)", type: "boolean", value: true, group: "emergency_levels" },
-  { key: "NOTIFY_ON_LEVEL_CHANGE", name: "NOTIFY_ON_LEVEL_CHANGE – Thông báo khi thay đổi cấp độ", type: "boolean", value: true, group: "emergency_levels" },
-
-  /* 2. Mức độ khẩn cấp & Ưu tiên */
-  { key: "EMERGENCY_LEVELS", name: "EMERGENCY_LEVELS – Số cấp độ khẩn cấp", type: "number", value: 5, group: "emergency" },
-  { key: "PRIORITY_CHILD", name: "PRIORITY_CHILD – Trọng số trẻ em", type: "number", value: 2, group: "emergency" },
-  { key: "PRIORITY_ELDERLY", name: "PRIORITY_ELDERLY – Trọng số người già", type: "number", value: 2, group: "emergency" },
-  { key: "PRIORITY_DISABLED", name: "PRIORITY_DISABLED – Trọng số người khuyết tật", type: "number", value: 2, group: "emergency" },
-  { key: "SLA_RESPONSE_TIMES", name: "SLA_LEVELS – Thời gian phản hồi theo cấp (phút)", type: "list", value: [120, 60, 30, 15, 5], group: "emergency" },
-
-  /* 3. Yêu cầu cứu hộ / cứu trợ */
-  { key: "MAX_REQUEST_PER_USER", name: "MAX_REQUEST_PER_USER – Số yêu cầu/người/ngày", type: "number", value: 3, group: "request" },
-  { key: "REQUEST_EXPIRE_TIME", name: "REQUEST_EXPIRE_TIME – Thời gian hết hiệu lực yêu cầu (phút)", type: "number", value: 1440, group: "request" },
-  { key: "ALLOW_CANCEL_STATUS", name: "ALLOW_CANCEL_STATUS – Trạng thái cho phép hủy", type: "list", value: ["pending", "verified"], group: "request" },
-  { key: "AUTO_CLOSE_TIME", name: "AUTO_CLOSE_TIME – Tự động đóng yêu cầu (ngày)", type: "number", value: 7, group: "request" },
-  { key: "REQUIRE_LOCATION", name: "REQUIRE_LOCATION – Bắt buộc GPS", type: "boolean", value: true, group: "request" },
-  { key: "MAX_CONCURRENT_REQUESTS", name: "MAX_CONCURRENT_REQUESTS – Số yêu cầu tối đa đồng thời/người dùng", type: "number", value: 1, group: "request" },
-
-  /* 4. Kho & Cứu trợ */
-  { key: "STOCK_DEDUCT_MODE", name: "STOCK_DEDUCT_MODE – Thời điểm trừ kho", type: "string", value: "on_dispatch", group: "stock" },
-  { key: "LOW_STOCK_THRESHOLD", name: "LOW_STOCK_THRESHOLD – Ngưỡng cảnh báo thiếu hàng", type: "number", value: 10, group: "stock" },
-  { key: "MAX_GOODS_PER_TRIP", name: "MAX_GOODS_PER_TRIP – Hạn mức hàng/chuyến", type: "number", value: 100, group: "stock" },
-  { key: "FIFO_ENABLE", name: "FIFO_ENABLE – Áp dụng FIFO", type: "boolean", value: true, group: "stock" },
-  { key: "ESSENTIAL_GOODS_LIST", name: "ESSENTIAL_GOODS_LIST – Danh mục hàng thiết yếu", type: "list", value: ["water", "food", "medicine"], group: "stock" },
-
-  /* 5. Tiền & Quyên góp */
-  { key: "MAX_DONATION_AMOUNT", name: "MAX_DONATION_AMOUNT – Hạn mức quyên góp", type: "number", value: 100000000, group: "donation" },
-  { key: "REQUIRE_MANAGER_APPROVAL", name: "REQUIRE_MANAGER_APPROVAL – Duyệt chi tiền", type: "boolean", value: true, group: "donation" },
-  { key: "CURRENCY", name: "CURRENCY – Đơn vị tiền tệ", type: "string", value: "VND", group: "donation" },
-  { key: "PAYMENT_METHODS", name: "PAYMENT_METHODS – Phương thức thanh toán", type: "list", value: ["cash", "bank_transfer"], group: "donation" },
-  { key: "DONATION_CLOSE_TIME", name: "DONATION_CLOSE_TIME – Thời gian đóng nhận quyên góp (ngày)", type: "number", value: 30, group: "donation" },
-
-  /* 6. Media & Dữ liệu */
-  { key: "MAX_IMAGE_SIZE_MB", name: "MAX_IMAGE_SIZE_MB – Dung lượng ảnh (MB)", type: "number", value: 5, group: "media" },
-  { key: "MAX_VIDEO_SIZE_MB", name: "MAX_VIDEO_SIZE_MB – Dung lượng video (MB)", type: "number", value: 50, group: "media" },
-  { key: "MAX_FILES_PER_REQUEST", name: "MAX_FILES_PER_REQUEST – Số file tối đa", type: "number", value: 10, group: "media" },
-  { key: "ALLOWED_FILE_TYPES", name: "ALLOWED_FILE_TYPES – Định dạng cho phép", type: "list", value: ["jpg", "png", "mp4", "pdf"], group: "media" },
-  { key: "GPS_UPDATE_INTERVAL", name: "GPS_UPDATE_INTERVAL – Chu kỳ cập nhật vị trí (s)", type: "number", value: 30, group: "media" },
-
-  /* 7. Bản đồ & Hiển thị */
-  { key: "MAP_DEFAULT_ZOOM", name: "MAP_DEFAULT_ZOOM – Zoom mặc định", type: "number", value: 12, group: "map" },
-  { key: "MAP_REFRESH_INTERVAL", name: "MAP_REFRESH_INTERVAL – Thời gian refresh (s)", type: "number", value: 60, group: "map" },
-  { key: "SHOW_ALL_REQUESTS", name: "SHOW_ALL_REQUESTS – Hiển thị tất cả yêu cầu", type: "boolean", value: false, group: "map" },
-  { key: "CLUSTER_MARKERS", name: "CLUSTER_MARKERS – Gộp marker", type: "boolean", value: true, group: "map" },
-  { key: "HEATMAP_ENABLE", name: "HEATMAP_ENABLE – Bật heatmap", type: "boolean", value: false, group: "map" },
-
-  /* 8. Bảo mật & Hệ thống */
-  { key: "SYSTEM_MODE", name: "SYSTEM_MODE – Chế độ hệ thống", type: "string", value: "Normal", group: "security" },
-  { key: "DATA_RETENTION_DAYS", name: "DATA_RETENTION_DAYS – Thời gian lưu dữ liệu (ngày)", type: "number", value: 365, group: "security" },
-  { key: "AUDIT_LOG_ENABLE", name: "AUDIT_LOG_ENABLE – Bật log hệ thống", type: "boolean", value: true, group: "security" },
-  { key: "MAX_LOGIN_FAIL", name: "MAX_LOGIN_FAIL – Số lần đăng nhập sai", type: "number", value: 5, group: "security" },
-  { key: "FORCE_LOGOUT_ON_ROLE_CHANGE", name: "FORCE_LOGOUT_ON_ROLE_CHANGE – Đăng xuất khi đổi quyền", type: "boolean", value: true, group: "security" },
-
-  /* 9. Phân quyền */
-  { key: "ROLE_PERMISSION_MATRIX", name: "ROLE_PERMISSION_MATRIX – Ma trận quyền (JSON)", type: "json", value: { admin: ["*"], manager: ["view","edit"], coordinator: ["view"], rescue: ["view"] }, group: "permission" },
-  { key: "ALLOW_COORD_OVERRIDE", name: "ALLOW_COORD_OVERRIDE – Quyền override điều phối", type: "boolean", value: false, group: "permission" },
-  { key: "VIEW_LIMIT_BY_ROLE", name: "VIEW_LIMIT_BY_ROLE – Giới hạn dữ liệu theo role (JSON)", type: "json", value: { admin: null, manager: 100, coordinator: 50, rescue: 10 }, group: "permission" },
-];
-
 export default function SystemSetting() {
-  const [configs, setConfigs] = useState(() => {
-    try {
-      const raw = localStorage.getItem("system_configs");
-      const parsed = raw ? JSON.parse(raw) : null;
-      if (parsed && Array.isArray(parsed)) return parsed;
-    } catch (e) {
-      // ignore
-    }
-    return DEFAULT_CONFIGS.map((c) => ({ ...c }));
-  });
+  const [configs, setConfigs] = useState([]);
+  const [urgencyLevels, setUrgencyLevels] = useState([]);
+  const [requestLogs, setRequestLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [activeMainTab, setActiveMainTab] = useState("system");
+  const [activeConfigTab, setActiveConfigTab] = useState("");
+  
+  // Request Log Filter State
+  const [logRequestId, setLogRequestId] = useState("");
 
-  const [activeTab, setActiveTab] = useState("rescue");
+  // Urgency Level Modal State
+  const [isUrgencyModalVisible, setIsUrgencyModalVisible] = useState(false);
+  const [editingUrgency, setEditingUrgency] = useState(null);
+  const [form] = Form.useForm();
+
+  const fetchConfigs = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllSystemConfigurations();
+      setConfigs(data || []);
+      if (data && data.length > 0 && !activeConfigTab) {
+        setActiveConfigTab(data[0].configGroup);
+      }
+    } catch (error) {
+      console.error("Fetch configs failed:", error);
+      message.error("Không thể tải cấu hình hệ thống");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUrgencyLevels = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllUrgencyLevels();
+      setUrgencyLevels(data || []);
+    } catch (error) {
+      console.error("Fetch urgency levels failed:", error);
+      message.error("Không thể tải danh sách cấp độ khẩn cấp");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRequestLogs = async (id = "") => {
+    try {
+      setLoading(true);
+      const data = await getAllRequestLogs(id || null);
+      setRequestLogs(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Fetch request logs failed:", error);
+      message.error("Không thể tải nhật ký yêu cầu");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // nothing else on mount for now
+    fetchConfigs();
+    fetchUrgencyLevels();
+    fetchRequestLogs();
   }, []);
 
-  const handleToggle = (key, checked) => {
-    setConfigs((prev) => prev.map((c) => (c.key === key ? { ...c, value: checked } : c)));
-  };
-
-  const handleChange = (key, val) => {
-    setConfigs((prev) => prev.map((c) => (c.key === key ? { ...c, value: val } : c)));
-  };
-
-  const handleSaveGroup = (groupId) => {
+  const handleUpdateConfig = async (configKey, configValue, configGroup, description) => {
     try {
-      localStorage.setItem("system_configs", JSON.stringify(configs));
-      message.success("Lưu cấu hình thành công");
-    } catch (e) {
-      message.error("Lưu cấu hình thất bại");
+      setLoading(true);
+      await updateSystemConfiguration(configKey, {
+        configKey,
+        configValue,
+        configGroup,
+        description,
+      });
+      message.success(`Đã cập nhật: ${configKey}`);
+      fetchConfigs();
+    } catch (error) {
+      message.error(`Cập nhật thất bại: ${configKey}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const grouped = useMemo(() => {
-    const map = {};
-    GROUPS.forEach((g) => (map[g.id] = []));
-    (configs || []).forEach((c) => {
-      (map[c.group] || []).push(c);
-    });
-    return map;
+  const handleSeed = async () => {
+    try {
+      setLoading(true);
+      await seedSystemConfigurations();
+      message.success("Đã nạp cấu hình mặc định");
+      fetchConfigs();
+    } catch (e) {
+      message.error("Nạp cấu hình mặc định thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUrgencySubmit = async (values) => {
+    try {
+      setLoading(true);
+      if (editingUrgency) {
+        await updateUrgencyLevel(editingUrgency.urgencyLevelId, values);
+        message.success("Cập nhật cấp độ khẩn cấp thành công");
+      } else {
+        await createUrgencyLevel(values);
+        message.success("Tạo mới cấp độ khẩn cấp thành công");
+      }
+      setIsUrgencyModalVisible(false);
+      setEditingUrgency(null);
+      fetchUrgencyLevels();
+    } catch (error) {
+      message.error("Thao tác thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUrgency = async (id) => {
+    try {
+      setLoading(true);
+      await deleteUrgencyLevel(id);
+      message.success("Xóa cấp độ khẩn cấp thành công");
+      fetchUrgencyLevels();
+    } catch (error) {
+      message.error("Xóa thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const configGroups = useMemo(() => {
+    const groups = [...new Set(configs.map((c) => c.configGroup))];
+    return groups.sort();
   }, [configs]);
 
-  const renderConfigInput = (config) => {
-    const { key, type, value } = config;
+  const urgencyColumns = [
+    { title: "Tên cấp độ", dataIndex: "levelName", key: "levelName", width: "25%" },
+    { title: "Mô tả", dataIndex: "description", key: "description", width: "45%" },
+    { title: "SLA (Phút)", dataIndex: "slaMinutes", key: "slaMinutes", width: "15%" },
+    {
+      title: "Thao tác",
+      key: "action",
+      width: "15%",
+      render: (_, record) => (
+        <Space size="middle">
+          <Button 
+            type="link" 
+            onClick={() => {
+              setEditingUrgency(record);
+              setIsUrgencyModalVisible(true);
+               form.setFieldsValue(record); 
+            }}
+          >
+            Sửa
+          </Button>
+          <Popconfirm
+            title="Xóa cấp độ này?"
+            description="Bạn có chắc chắn muốn xóa cấp độ khẩn cấp này không?"
+            onConfirm={() => handleDeleteUrgency(record.urgencyLevelId)}
+            okText="Xóa"
+            cancelText="Hủy"
+          >
+            <Button type="link" danger>Xóa</Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
 
-    switch (type) {
-      case "boolean":
-        return (
-          <div className="config-input-wrapper">
-            <Switch checked={!!value} onChange={(v) => handleToggle(key, v)} />
-          </div>
-        );
-
-      case "number":
-        return (
-          <div className="config-input-wrapper">
-            <Input
-              type="number"
-              value={value}
-              onChange={(e) => handleChange(key, Number(e.target.value || 0))}
-              placeholder="Nhập số"
-            />
-          </div>
-        );
-
-      case "string":
-        return (
-          <div className="config-input-wrapper">
-            <Input
-              value={value}
-              onChange={(e) => handleChange(key, e.target.value)}
-              placeholder="Nhập giá trị"
-            />
-          </div>
-        );
-
-      case "list":
-        return (
-          <div className="config-input-wrapper">
-            <Input
-              value={Array.isArray(value) ? value.join(", ") : (value || "")}
-              onChange={(e) => handleChange(key, e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
-              placeholder="Nhập các giá trị cách nhau bằng dấu phẩy"
-            />
-          </div>
-        );
-
-      case "json":
-        return (
-          <div className="config-input-wrapper">
-            <Input.TextArea
-              rows={4}
-              value={typeof value === "string" ? value : JSON.stringify(value, null, 2)}
-              onChange={(e) => {
-                const v = e.target.value;
-                try {
-                  const parsed = JSON.parse(v);
-                  handleChange(key, parsed);
-                } catch (err) {
-                  handleChange(key, v);
-                }
-              }}
-              placeholder="Nhập JSON"
-            />
-          </div>
-        );
-
-      default:
-        return null;
+  const renderConfigField = (config) => {
+    const val = config.configValue;
+    const isBoolean = val === "true" || val === "false";
+    
+    if (isBoolean) {
+      return (
+        <Switch 
+          checked={val === "true"} 
+          onChange={(checked) => handleUpdateConfig(config.configKey, String(checked), config.configGroup, config.description)}
+          loading={loading}
+        />
+      );
     }
-  };
-
-  const renderEmergencyLevelsSection = () => {
-    const levelItems = (grouped["emergency_levels"] || []);
-    const levels = {};
-    const generalSettings = [];
-
-    // Group settings by level
-    levelItems.forEach((item) => {
-      const match = item.key.match(/EMERGENCY_LEVEL_(\d)_/);
-      if (match) {
-        const levelNum = match[1];
-        if (!levels[levelNum]) levels[levelNum] = [];
-        levels[levelNum].push(item);
-      } else {
-        generalSettings.push(item);
-      }
-    });
-
-    // Sort each level's settings by type
-    const fieldOrder = ["NAME", "COLOR", "DEFINITION", "PEOPLE_COUNT", "FLOOD_CRITERIA", "INJURED_COUNT", "INJURY_SEVERITY", "EXAMPLES", "SLA"];
-    Object.keys(levels).forEach((levelNum) => {
-      levels[levelNum].sort((a, b) => {
-        const aIndex = fieldOrder.findIndex((f) => a.key.includes(`_${f}`));
-        const bIndex = fieldOrder.findIndex((f) => b.key.includes(`_${f}`));
-        return aIndex - bIndex;
-      });
-    });
-
+    
     return (
-      <div className="tab-content">
-        <div className="emergency-levels-container">
-          {/* Render each level */}
-          {[1, 2, 3, 4, 5].map((levelNum) => (
-            <div key={`level-${levelNum}`} className="level-section">
-              {/* Level Name Header */}
-              <div className="level-header">
-                {levels[levelNum] && levels[levelNum][0] && (
-                  <h3>{levels[levelNum][0].value || `Cấp độ ${levelNum}`}</h3>
-                )}
-              </div>
-
-              <div className="level-settings">
-                {(levels[levelNum] || []).map((config) => {
-                  // Determine field type
-                  let fieldLabel = "Cài đặt";
-                  let fieldType = "normal";
-                  if (config.key.includes("_NAME")) {
-                    fieldLabel = "Tên cấp độ";
-                    fieldType = "name";
-                  } else if (config.key.includes("_COLOR")) {
-                    fieldLabel = "Màu hiển thị";
-                    fieldType = "color";
-                  } else if (config.key.includes("_DEFINITION")) {
-                    fieldLabel = "Định nghĩa";
-                    fieldType = "definition";
-                  } else if (config.key.includes("_PEOPLE_COUNT")) {
-                    fieldLabel = "Số người cần cứu";
-                    fieldType = "people_count";
-                  } else if (config.key.includes("_FLOOD_CRITERIA")) {
-                    fieldLabel = "Tiêu chí lũ lụt";
-                    fieldType = "flood_criteria";
-                  } else if (config.key.includes("_INJURED_COUNT")) {
-                    fieldLabel = "Số người bị thương";
-                    fieldType = "injured_count";
-                  } else if (config.key.includes("_INJURY_SEVERITY")) {
-                    fieldLabel = "Mức độ thương tích";
-                    fieldType = "injury_severity";
-                  } else if (config.key.includes("_EXAMPLES")) {
-                    fieldLabel = "Ví dụ thực tế";
-                    fieldType = "examples";
-                  } else if (config.key.includes("_SLA")) {
-                    fieldLabel = "Thời gian phản hồi (phút)";
-                    fieldType = "sla";
-                  }
-
-                  // Don't show the name field in the list (it's in the header)
-                  if (fieldType === "name") return null;
-
-                  return (
-                    <div key={config.key} className={`setting-item field-type-${fieldType}`}>
-                      <div className="setting-header">
-                        <div className="setting-label">
-                          <h4>{fieldLabel}</h4>
-                        </div>
-                      </div>
-                      <div className="setting-value">{renderConfigInput(config)}</div>
-                      <div className="setting-action">
-                        <Button
-                          type="text"
-                          size="small"
-                          onClick={() => handleSaveGroup("emergency_levels")}
-                          className="save-btn"
-                        >
-                          Lưu
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
-          {/* Render general settings */}
-          {generalSettings.length > 0 && (
-            <div className="level-section general-settings-section">
-              <div className="level-header">
-                <h3>Quy tắc và Cài đặt chung</h3>
-              </div>
-              <div className="level-settings">
-                {generalSettings.map((config) => (
-                  <div key={config.key} className="setting-item">
-                    <div className="setting-header">
-                      <div className="setting-label">
-                        <h4>{config.name.replace(/^.*?–\s*/, "")}</h4>
-                        <p className="setting-key">{config.key}</p>
-                      </div>
-                    </div>
-                    <div className="setting-value">{renderConfigInput(config)}</div>
-                    <div className="setting-action">
-                      <Button
-                        type="text"
-                        size="small"
-                        onClick={() => handleSaveGroup("emergency_levels")}
-                        className="save-btn"
-                      >
-                        Lưu
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <Input.Search
+        defaultValue={val}
+        enterButton={<SaveOutlined />}
+        onSearch={(value) => handleUpdateConfig(config.configKey, value, config.configGroup, config.description)}
+        loading={loading}
+      />
     );
   };
 
-  const tabItems = GROUPS.map((g) => {
-    // Special rendering for emergency_levels
-    if (g.id === "emergency_levels") {
-      return {
-        key: g.id,
-        label: g.label,
-        children: renderEmergencyLevelsSection(),
-      };
-    }
-
-    // Default rendering for other tabs
-    return {
-      key: g.id,
-      label: g.label,
+  const mainTabs = [
+    {
+      key: "system",
+      label: (
+        <span>
+          <SettingOutlined /> Cấu hình Hệ thống
+        </span>
+      ),
       children: (
-        <div className="tab-content">
-          <div className="settings-list">
-            {(grouped[g.id] || []).map((config) => (
-              <div key={config.key} className="setting-item">
-                <div className="setting-header">
-                  <div className="setting-label">
-                    <h4>{config.name.replace(/^.*?–\s*/, "")}</h4>
-                    <p className="setting-key">{config.key}</p>
+        <div className="system-config-container">
+          {configGroups.length > 0 ? (
+            <Tabs
+              tabPosition="left"
+              activeKey={activeConfigTab}
+              onChange={setActiveConfigTab}
+              className="config-sub-tabs"
+              items={configGroups.map((group) => ({
+                key: group,
+                label: group.toUpperCase(),
+                children: (
+                  <div className="config-group-content">
+                    <Card title={`Nhóm: ${group.toUpperCase()}`} variant="borderless">
+                      {configs
+                        .filter((c) => c.configGroup === group)
+                        .map((config) => (
+                          <div key={config.configKey} className="config-item">
+                            <div className="config-info">
+                              <h4>{config.description || config.configKey}</h4>
+                              <code>{config.configKey}</code>
+                            </div>
+                            <div className="config-input">
+                              {renderConfigField(config)}
+                            </div>
+                          </div>
+                        ))}
+                    </Card>
                   </div>
-                </div>
-                <div className="setting-value">{renderConfigInput(config)}</div>
-                <div className="setting-action">
-                  <Button
-                    type="text"
-                    size="small"
-                    onClick={() => handleSaveGroup(g.id)}
-                    className="save-btn"
-                  >
-                    Lưu
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+                ),
+              }))}
+            />
+          ) : (
+            <div className="empty-state" style={{ textAlign: "center", padding: "40px" }}>
+              <Spin spinning={loading}>
+                {!loading && (
+                  <>
+                    <p>Không có dữ liệu cấu hình. Vui lòng nạp mặc định hoặc kiểm tra kết nối.</p>
+                    <Button type="primary" onClick={handleSeed}>Nạp Cấu hình Mặc định</Button>
+                  </>
+                )}
+              </Spin>
+            </div>
+          )}
         </div>
       ),
-    };
-  });
+    },
+    {
+      key: "urgency",
+      label: (
+        <span>
+          <WarningOutlined /> Cấp độ Khẩn cấp
+        </span>
+      ),
+      children: (
+        <div className="urgency-management">
+          <Card 
+            title="Danh sách Cấp độ Khẩn cấp" 
+            extra={
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                 setEditingUrgency(null);
+                  setIsUrgencyModalVisible(true); }}>
+                     THÊM CẤP ĐỘ
+               
+              </Button>
+            }
+          >
+            <Table 
+              dataSource={urgencyLevels} 
+              columns={urgencyColumns} 
+              rowKey="urgencyLevelId"
+              loading={loading}
+              pagination={false}
+            />
+          </Card>
+        </div>
+      ),
+    },
+    {
+      key: "logs",
+      label: (
+        <span>
+          <ReloadOutlined /> Nhật ký Yêu cầu
+        </span>
+      ),
+      children: (
+        <div className="request-logs-container">
+          <Card 
+            title="Lịch sử Hoạt động Yêu cứu Cứu hộ" 
+            extra={
+              <Space>
+                <Input 
+                  placeholder="Mã yêu cầu (ID)" 
+                  value={logRequestId} 
+                  onChange={(e) => setLogRequestId(e.target.value)}
+                  onPressEnter={() => fetchRequestLogs(logRequestId)}
+                  size="small"
+                  style={{ width: 150 }}
+                />
+                <Button 
+                  icon={<ReloadOutlined />} 
+                  onClick={() => fetchRequestLogs(logRequestId)}
+                  loading={loading}
+                  size="small"
+                >
+                  Làm mới
+                </Button>
+              </Space>
+            }
+          >
+            <Table 
+              dataSource={requestLogs} 
+              columns={[
+                { title: "ID", dataIndex: "id", key: "id", width: 80 },
+                { 
+                  title: "REQ ID", 
+                  dataIndex: "rescueRequestId", 
+                  key: "rescueRequestId", 
+                  width: 100,
+                  render: (id) => <Tag color="blue">REQ-{id}</Tag>
+                },
+                { title: "Hành động", dataIndex: "action", key: "action" },
+                { title: "Người thực hiện", dataIndex: "performedBy", key: "performedBy", render: (u) => `User ${u}` },
+                { title: "Thời gian", dataIndex: "createdAt", key: "createdAt", render: (t) => t ? new Date(t).toLocaleString() : "N/A" },
+              ]} 
+              rowKey="id" 
+              loading={loading}
+              pagination={{ pageSize: 8 }}
+            />
+          </Card>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="system-setting-page">
       <div className="page-header">
         <div>
-          <h2>Cấu hình Tham số Hệ thống</h2>
-          <p>Điều chỉnh các thông số vận hành, thông báo và ngưỡng SLA toàn hệ thống</p>
+          <h2>Quản trị Hệ thống</h2>
+          <p>Quản lý các thông số vận hành và cấp độ khẩn cấp toàn hệ thống</p>
+        </div>
+        <div className="header-actions">
+          <Button icon={<ReloadOutlined />} onClick={() => { fetchConfigs(); fetchUrgencyLevels(); }} loading={loading}>
+            Làm mới
+          </Button>
+          <Popconfirm
+            title="Nạp lại cấu hình mặc định?"
+            description="Tất cả thay đổi hiện tại sẽ bị xóa và ghi đè bằng giá trị mặc định."
+            onConfirm={handleSeed}
+            okText="Xác nhận"
+            cancelText="Hủy"
+          >
+            <Button danger icon={<ReloadOutlined />}>Nạp Mặc định</Button>
+          </Popconfirm>
         </div>
       </div>
 
-      <div className="settings-container">
+      <div className="main-tabs-container">
         <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={tabItems}
-          className="settings-tabs"
+          activeKey={activeMainTab}
+          onChange={setActiveMainTab}
+          items={mainTabs}
+          type="card"
+          className="premium-tabs"
         />
       </div>
+
+      <Modal
+        title={editingUrgency ? "Chỉnh sửa Cấp độ" : "Thêm Cấp độ Mới"}
+        open={isUrgencyModalVisible}
+        onCancel={() => { setIsUrgencyModalVisible(false); setEditingUrgency(null); }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+  form={form}
+  initialValues={{ levelName: "", description: "", slaMinutes: 30 }}
+  onFinish={handleUrgencySubmit}
+  layout="vertical"
+>
+          <Form.Item name="levelName" label="Tên cấp độ" rules={[{ required: true }]}>
+            <Input placeholder="Ví dụ: Cấp độ 1" />
+          </Form.Item>
+          <Form.Item name="description" label="Mô tả" rules={[{ required: true }]}>
+            <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item name="slaMinutes" label="SLA (Phút)" rules={[{ required: true }]}>
+            <Input type="number" min={1} />
+          </Form.Item>
+          <div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "20px" }}>
+            <Button onClick={() => setIsUrgencyModalVisible(false)}>Hủy</Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Lưu thay đổi
+            </Button>
+          </div>
+        </Form>
+      </Modal>
     </div>
   );
 }

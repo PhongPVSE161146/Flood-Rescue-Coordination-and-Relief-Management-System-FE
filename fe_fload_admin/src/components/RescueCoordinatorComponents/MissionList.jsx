@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Tag, Select } from "antd";
 import { EnvironmentOutlined } from "@ant-design/icons";
 
-import { getPendingRescueRequests } from "../../../api/axios/CoordinatorApi/RescueRequestApi";
+import { getDispatchQueue as getPendingRescueRequests } from "../../../api/axios/RescueRequests/rescueRequestsApi";
 import AuthNotify from "../../utils/Common/AuthNotify";
 import { getRequestStatuses } from "../../../api/axios/Auth/authApi";
 import "./MissionList.css";
