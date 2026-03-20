@@ -67,15 +67,7 @@ export default function TeamManagementList({
       startIndex + pageSize
     );
 
-  /* ================= LOAD PROVINCES ================= */
-
-  useEffect(() => {
-
-    fetchProvinces();
-
-  }, []);
-
-  const fetchProvinces = async () => {
+  async function fetchProvinces() {
 
     try {
 
@@ -101,6 +93,14 @@ export default function TeamManagementList({
     }
 
   };
+
+  /* ================= LOAD PROVINCES ================= */
+
+  useEffect(() => {
+
+    fetchProvinces();
+
+  }, []);
 
   /* ================= EXPAND MEMBERS ================= */
 

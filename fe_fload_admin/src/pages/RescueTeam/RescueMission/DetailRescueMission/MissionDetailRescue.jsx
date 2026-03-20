@@ -1,4 +1,5 @@
 import "./MissionDetailRescue.css";
+import MissionHistory from "../../../../components/Common/MissionHistory/MissionHistory";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Image } from "antd";

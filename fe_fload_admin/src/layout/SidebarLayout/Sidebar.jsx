@@ -16,6 +16,7 @@ import {
   CheckSquareOutlined,
   UsergroupAddOutlined,
   CarOutlined,
+  GiftOutlined,
 
   /* RESCUE */
   CarryOutOutlined,

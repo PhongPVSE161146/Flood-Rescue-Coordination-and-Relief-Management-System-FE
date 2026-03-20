@@ -1,59 +1,106 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Tag, Space, message } from "antd";
+import { Button, Table, Tag, Space, message, Spin, Input } from "antd";
+import { getAllRequestLogs } from "../../../../api/axios/RequestLogs/requestLogsApi";
+import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import "./Logs.css";
 
-const sampleLogs = [
-  { id: 1, time: new Date().toISOString(), level: "INFO", user: "system", message: "Hệ thống khởi động" },
-  { id: 2, time: new Date().toISOString(), level: "WARN", user: "admin", message: "Cấu hình gần đầy" },
-  { id: 3, time: new Date().toISOString(), level: "ERROR", user: "manager", message: "Lỗi khi phân công nhiệm vụ" },
-];
-
-export default function 
-Logs() {
+export default function Logs() {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [requestId, setRequestId] = useState("");
 
-  useEffect(() => {
+  const fetchLogs = async (id = "") => {
     try {
-      const raw = localStorage.getItem("system_logs");
-      const parsed = raw ? JSON.parse(raw) : null;
-      setLogs(parsed && Array.isArray(parsed) ? parsed : sampleLogs);
-    } catch (e) {
-      setLogs(sampleLogs);
+      setLoading(true);
+      // Fetch logs. If id is empty, it depends on API if it returns all or nothing.
+      const data = await getAllRequestLogs(id || null);
+      setLogs(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Fetch logs failed:", error);
+      message.error("Không thể tải nhật ký hệ thống");
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const clearLogs = () => {
-    localStorage.removeItem("system_logs");
-    setLogs([]);
-    message.success("Đã xóa logs");
   };
 
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
   const columns = [
-    { title: "Thời gian", dataIndex: "time", key: "time", render: (t) => new Date(t).toLocaleString() },
-    { title: "Mức", dataIndex: "level", key: "level", render: (l) => <Tag>{l}</Tag> },
-    { title: "Người", dataIndex: "user", key: "user" },
-    { title: "Nội dung", dataIndex: "message", key: "message" },
+    { 
+      title: "ID", 
+      dataIndex: "id", 
+      key: "id", 
+      width: 80 
+    },
+    { 
+      title: "Yêu cầu ID", 
+      dataIndex: "rescueRequestId", 
+      key: "rescueRequestId", 
+      width: 120,
+      render: (id) => <Tag color="blue">REQ-{id}</Tag>
+    },
+    { 
+      title: "Hành động", 
+      dataIndex: "action", 
+      key: "action",
+      render: (text) => <strong>{text}</strong>
+    },
+    { 
+      title: "Người thực hiện", 
+      dataIndex: "performedBy", 
+      key: "performedBy",
+      render: (user) => <span>User ID: {user}</span>
+    },
+    { 
+      title: "Thời gian", 
+      dataIndex: "createdAt", 
+      key: "createdAt", 
+      render: (t) => t ? new Date(t).toLocaleString() : "N/A" 
+    },
   ];
 
   return (
     <div className="logs-page">
-      <div className="page-header">
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", background: "#fff", padding: "20px", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
         <div>
-          <h2>Logs hệ thống</h2>
-          <p>Danh sách log ghi lại hoạt động và lỗi hệ thống</p>
+          <h2 style={{ margin: 0, fontSize: "24px", fontWeight: 700 }}>Nhật ký yêu cầu cứu hộ</h2>
+          <p style={{ margin: "4px 0 0 0", color: "#64748b" }}>Lịch sử hoạt động và log audit cho các yêu cầu cứu hộ trong hệ thống</p>
         </div>
 
         <div className="page-actions">
-          <Space>
-            <Button danger onClick={clearLogs}>
-              Xóa logs
+          <Space size="middle">
+            <Input 
+              placeholder="Nhập Rescue Request ID" 
+              value={requestId} 
+              onChange={(e) => setRequestId(e.target.value)}
+              prefix={<SearchOutlined />}
+              style={{ width: 250 }}
+              onPressEnter={() => fetchLogs(requestId)}
+            />
+            <Button 
+              type="primary" 
+              icon={<ReloadOutlined />} 
+              onClick={() => fetchLogs(requestId)}
+              loading={loading}
+              size="large"
+            >
+              Làm mới
             </Button>
           </Space>
         </div>
       </div>
 
-      <div className="logs-table">
-        <Table rowKey={(r) => r.id || r.time} dataSource={logs} columns={columns} pagination={{ pageSize: 10 }} />
+      <div className="logs-table" style={{ background: "#fff", borderRadius: "12px", padding: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+        <Table 
+          rowKey="id" 
+          dataSource={logs} 
+          columns={columns} 
+          loading={loading}
+          pagination={{ pageSize: 10, showSizeChanger: true }} 
+          bordered
+        />
       </div>
     </div>
   );

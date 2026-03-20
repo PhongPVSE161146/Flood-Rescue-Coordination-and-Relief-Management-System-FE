@@ -1,0 +1,43 @@
+.periodic-aid-page {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.periodic-aid-header {
+  margin-bottom: 24px;
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.periodic-aid-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #1f1f1f;
+}
+
+.periodic-aid-header p {
+  margin: 8px 0 0;
+  color: #8c8c8c;
+}
+
+.periodic-aid-card {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-height: 400px;
+}
+
+/* Tab customizations */
+.ant-tabs-nav {
+  margin-bottom: 24px !important;
+}
+
+/* Table header customizations */
+.ant-table-thead > tr > th {
+  background-color: #fafafa !important;
+  font-weight: 600 !important;
+}

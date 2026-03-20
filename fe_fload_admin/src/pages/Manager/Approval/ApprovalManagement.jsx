@@ -12,11 +12,7 @@ export default function ApprovalDispatch() {
   const [transactions, setTransactions] = useState([]);
   const [filter, setFilter] = useState("pending");
 
-  useEffect(() => {
-    loadTransactions();
-  }, []);
-
-  const loadTransactions = async () => {
+  async function loadTransactions() {
     try {
       const res = await getInventoryTransactions();
 
@@ -32,6 +28,10 @@ export default function ApprovalDispatch() {
       message.error("Load transactions thất bại");
     }
   };
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
 
   /* ================= FILTER ================= */
 
