@@ -373,7 +373,7 @@ export default function MissionInProgress() {
           {/* Sự cố */}
           <section className="rc-op-card">
 
-<h4>📋 THÔNG TIN SỰ CỐ</h4>
+          <h4 className="card-title"> THÔNG TIN SỰ CỐ</h4>
 
 <div className="rc-incident-grid">
 
@@ -464,7 +464,7 @@ export default function MissionInProgress() {
 <div className="rp-actions">
 
   <button className="rp-help">
-    🆘 Yêu cầu hỗ trợ
+     Yêu cầu hỗ trợ
   </button>
 
   <button

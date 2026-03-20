@@ -11,8 +11,8 @@ export default function TeamMembersMisionList() {
 
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const [currentPage, setCurrentPage] = useState(1);
+
   const pageSize = 5;
 
   const user =
@@ -20,86 +20,108 @@ export default function TeamMembersMisionList() {
     JSON.parse(sessionStorage.getItem("user")) ||
     {};
 
-  /* ================= AVATAR ================= */
+  /* ================= HELPER ================= */
 
-  const getInitials = (name = "") => {
-    const words = name.trim().split(" ");
-    if (words.length === 1) return words[0][0]?.toUpperCase();
+  const normalizeStatus = (status) =>
+    status?.toLowerCase().replace("_", " ").trim();
 
-    return (
-      words[0][0] + words[words.length - 1][0]
-    ).toUpperCase();
+  const getStatusColor = (status) => {
+    const s = normalizeStatus(status);
+
+    switch (s) {
+      case "on duty":
+        return "green";
+      case "off duty":
+        return "default";
+      default:
+        return "blue";
+    }
+  };
+
+  const translateStatus = (status) => {
+    const s = normalizeStatus(status);
+
+    switch (s) {
+      case "on duty":
+        return "Đang trực";
+      case "off duty":
+        return "Nghỉ";
+      default:
+        return "Không xác định";
+    }
   };
 
   /* ================= FIND TEAM ================= */
 
   const findMyTeamId = async (teams, userId) => {
-
     for (const team of teams) {
-
       try {
         const res = await getRescueTeamMembers(team.rcid);
         const data = res?.data;
 
         const isMember = data?.items?.some(
-          m => m.userId === userId
+          (m) => m.userId === userId
         );
 
         if (isMember) return team.rcid;
 
       } catch {}
     }
-
     return null;
   };
 
   /* ================= LOAD ================= */
 
   const fetchMembers = async () => {
-
     try {
-  
       setLoading(true);
-  
+
       const [teamRes, userRes] = await Promise.all([
         getAllRescueTeams(),
         getAllUser()
       ]);
-  
+
       const teams = teamRes?.data?.items || [];
       const users = userRes || [];
-  
+
       const userMap = {};
-      users.forEach(u => {
+      users.forEach((u) => {
         userMap[u.userId] = u;
       });
-  
+
       const myTeamId = await findMyTeamId(teams, user.userId);
-  
+
       if (!myTeamId) {
         setMembers([]);
         return;
       }
-  
+
+      // 🔥 LẤY TEAM ĐÚNG
+      const myTeam = teams.find(t => t.rcid === myTeamId);
+
+      // 🔥 FIX QUAN TRỌNG: dùng rcStatus
+      const teamStatus = normalizeStatus(myTeam?.rcStatus) || "off duty";
+
+      // 🔥 LẤY MEMBER
       const res = await getRescueTeamMembers(myTeamId);
       const data = res?.data?.items || [];
-  
-      const mapped = data.map(m => {
-  
+
+      const mapped = data.map((m) => {
         const userInfo = userMap[m.userId];
-  
+
         return {
           id: m.userId,
           name: m.fullName,
           phone: m.phone,
           role: userInfo?.roleName || "Không rõ",
-          status: m.status || "on duty"
+
+          // 🔥 KEY FIX: status từ TEAM
+    
         };
-  
       });
-  
+
       setMembers(mapped);
-  
+
     } catch (err) {
       console.error("Load members error:", err);
     } finally {
@@ -115,38 +137,16 @@ export default function TeamMembersMisionList() {
     setCurrentPage(1);
   }, [members]);
 
+  /* ================= PAGINATION ================= */
+
   const paginatedMembers = members.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  /* ================= STATUS COLOR ================= */
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "on duty":
-        return "green";
-      case "off duty":
-        return "default";
-      default:
-        return "blue";
-    }
-  };
-  const translateStatus = (status) => {
-    switch (status?.toLowerCase()) {
-      case "on duty":
-        return " Đang trực";
-      case "off duty":
-        return " Nghỉ";
-      default:
-        return "Không xác định";
-    }
-  };
-
   /* ================= UI ================= */
 
   return (
-
     <div className="tm-table">
 
       <div className="tm-header">
@@ -159,22 +159,19 @@ export default function TeamMembersMisionList() {
           <Spin size="large" />
         </div>
       ) : (
-
         <>
           <table>
-
             <thead>
               <tr>
                 <th style={{ width: 60 }}>STT</th>
                 <th>Thành viên</th>
-                <th>Số điện thoại</th>
+                <th>SĐT</th>
                 <th>Vai trò</th>
-                <th>Trạng thái</th>
+     
               </tr>
             </thead>
 
             <tbody>
-
               {paginatedMembers.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="tm-empty">
@@ -182,9 +179,7 @@ export default function TeamMembersMisionList() {
                   </td>
                 </tr>
               ) : (
-
                 paginatedMembers.map((m, index) => (
-
                   <tr key={m.id}>
 
                     <td>
@@ -193,9 +188,6 @@ export default function TeamMembersMisionList() {
 
                     <td>
                       <div className="tm-user">
-                        {/* <div className="tm-avatar">
-                          {getInitials(m.name)}
-                        </div> */}
                         <span>{m.name}</span>
                       </div>
                     </td>
@@ -203,24 +195,16 @@ export default function TeamMembersMisionList() {
                     <td>{m.phone}</td>
 
                     <td>
-                    <Tag color="purple">
-  {m.role}
-</Tag>
+                      <Tag color="purple">
+                        {m.role}
+                      </Tag>
                     </td>
 
-                    <td>
-  <Tag className="status-tag" color="green">
-    <span className="status-dot" />
-    {translateStatus(m.status)}
-  </Tag>
-</td>
+                  
 
                   </tr>
-
                 ))
-
               )}
-
             </tbody>
 
           </table>
@@ -236,11 +220,9 @@ export default function TeamMembersMisionList() {
               />
             </div>
           )}
-
         </>
       )}
 
     </div>
-
   );
 }
