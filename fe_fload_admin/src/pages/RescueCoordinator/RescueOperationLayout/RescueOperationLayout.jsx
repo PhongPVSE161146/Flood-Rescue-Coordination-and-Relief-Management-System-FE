@@ -37,7 +37,18 @@ export default function RescueOperationLayout() {
 
         ) : (
 
-          <div className="rc-empty-detail">
+          <div
+          style={{
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 22,
+            fontWeight: 600,
+            color: "#555"
+          }}
+        >
+      
             Chọn nhiệm vụ bên trái để xem chi tiết
           </div>
 

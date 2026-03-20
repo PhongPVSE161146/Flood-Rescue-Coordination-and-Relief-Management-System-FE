@@ -21,7 +21,7 @@ const { Option } = Select;
 
 const normalizeStatus = (status) => {
   if (!status) return "rest";
-  return status.toLowerCase().includes("on") ? "ready" : "rest";
+  return status.toLowerCase().includes("on") ? "ready" : "duty";
 };
 
 /* ================= REMOVE ACCENT ================= */
@@ -250,7 +250,7 @@ function TeamCard({
       <div className="team-header-modern">
         <h4>{name}</h4>
         <Tag color={isReady ? "green" : "orange"}>
-          {isReady ? "Sẵn sàng" : "Đang nghỉ"}
+          {isReady ? "Sẵn sàng" : "Đang trực"}
         </Tag>
       </div>
 
@@ -262,7 +262,7 @@ function TeamCard({
         </div>
       )}
 
-      {/* 🔥 ĐỊA CHỈ TỪ TỌA ĐỘ */}
+      {/* 🔥 ĐỊA CHỈ TỪ TỌA ĐỘ
       <div className="team-info">
         <EnvironmentOutlined />
         <span>
@@ -272,7 +272,7 @@ function TeamCard({
                 ? `${lat}, ${lng}`
                 : "Chưa có vị trí")}
         </span>
-      </div>
+      </div> */}
 
       <div className="team-info">
         <PhoneOutlined />

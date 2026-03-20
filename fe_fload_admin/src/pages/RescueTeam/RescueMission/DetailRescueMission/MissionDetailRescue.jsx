@@ -2,12 +2,12 @@ import "./MissionDetailRescue.css";
 import MissionHistory from "../../../../components/Common/MissionHistory/MissionHistory";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect,useState } from "react";
-
+import { Image } from "antd";
 import {
-  getRescueAssignmentById,
-  getDispatchQueue as getPendingRescueRequests
-} from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
-import { getAllUrgencyLevels as getUrgencyLevels } from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
+getRescueAssignmentById,
+getPendingRescueRequests,
+getUrgencyLevels
+} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import {
 acceptRescueAssignment,
@@ -19,9 +19,14 @@ import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 
 const priorityTranslate = {
-High:"Mức Độ Cao",
-Medium:"Mức Độ Trung Bình",
-Low:"Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
+};
+const priorityClass = {
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
 const LOCK_STATUSES = [
   "ACCEPTED",
@@ -31,6 +36,7 @@ const LOCK_STATUSES = [
 ];
 
 const STATUS_STEPS = [
+  { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
     { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
     { key: "ACCEPTED", label: "Đội đã nhận", icon: "👍" },
     { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
@@ -159,36 +165,42 @@ fetchDetail()
 
 const handleAccept = async () => {
 
-    try {
-  
-      setLoadingAccept(true);
-  
-      await acceptRescueAssignment(id);
-  
-      AuthNotify.success(
-        "Nhận nhiệm vụ thành công",
-        "Đang chuyển sang màn hình cứu hộ..."
-      );
-  
-      // 👉 chuyển trang đúng mission
-      setTimeout(() => {
-        navigate(`/rescueTeam/dangcuho/${id}`);
-      }, 1000);
-  
-    } catch (err) {
-  
-      AuthNotify.error(
-        "Nhận nhiệm vụ thất bại",
-        err?.message || "Có lỗi xảy ra"
-      );
-  
-    } finally {
-  
-      setLoadingAccept(false);
-  
-    }
-  
-  };
+  try {
+
+    setLoadingAccept(true);
+
+    console.log("CALL API ACCEPT ID:", id);
+
+    const res = await acceptRescueAssignment(id);
+
+    console.log("ACCEPT SUCCESS:", res);
+
+    AuthNotify.success(
+      "Nhận nhiệm vụ thành công",
+      "Đang chuyển sang màn hình cứu hộ..."
+    );
+
+    setTimeout(() => {
+      navigate(`/rescueTeam/dangcuho/${id}`);
+    }, 500);
+
+  } catch (err) {
+
+    console.error("ACCEPT ERROR FULL:", err);
+    console.error("RESPONSE:", err?.response);
+
+    AuthNotify.error(
+      "Nhận nhiệm vụ thất bại",
+      err?.response?.data?.message || err.message
+    );
+
+  } finally {
+
+    setLoadingAccept(false);
+
+  }
+
+};
 
 /* ================= REJECT ================= */
 
@@ -203,8 +215,8 @@ const handleReject = async () => {
   
       setLoadingReject(true);
   
-      await rejectRescueAssignment(id, {
-        reason: rejectReason
+      await rejectRescueAssignment(detail.assignmentId, {
+        rejectReason: rejectReason // ✅ đúng key backend cần
       });
   
       AuthNotify.warning("Đã từ chối nhiệm vụ");
@@ -254,7 +266,7 @@ return(
 Nhiệm vụ cứu hộ
 
 <span className="md-badge">
-#{detail.requestId}
+Mã yêu cầu: #{detail.requestId}
 </span>
 
 <span className="md-status">
@@ -351,27 +363,29 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <section className="md-media">
 
-<h4>📷 Hình ảnh hiện trường</h4>
+  <h4>📷 Hình ảnh hiện trường</h4>
 
-<div className="md-media-list">
+  <div className="md-media-list">
 
-{detail.image ? (
+    {detail.image ? (
 
-<img
-src={detail.image}
-alt="rescue"
-className="md-thumb-img"
-/>
+      <Image.PreviewGroup>
+        <Image
+          src={detail.image}
+          alt="rescue"
+          className="md-thumb-img"
+        />
+      </Image.PreviewGroup>
 
-):(
+    ) : (
 
-<div className="md-thumb-empty">
-Không có hình ảnh
-</div>
+      <div className="md-thumb-empty">
+        Không có hình ảnh
+      </div>
 
-)}
+    )}
 
-</div>
+  </div>
 
 </section>
 
