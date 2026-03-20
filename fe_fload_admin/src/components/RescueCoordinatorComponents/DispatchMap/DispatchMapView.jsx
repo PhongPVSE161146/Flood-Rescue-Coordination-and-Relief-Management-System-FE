@@ -13,7 +13,7 @@ import { getAllVehicles } from "../../../../api/axios/ManagerApi/vehicleApi";
 import {getProvinces} from "../../../../api/axios/Auth/authApi";
 import {
   confirmDispatchRescueRequest
-} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
+} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
 

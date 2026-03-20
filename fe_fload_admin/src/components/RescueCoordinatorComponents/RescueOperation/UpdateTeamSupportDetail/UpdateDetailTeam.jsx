@@ -11,7 +11,7 @@ import {
 
 import {
   updateRescueAssignment
-} from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
+} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import "./update-detail-team.css";
 

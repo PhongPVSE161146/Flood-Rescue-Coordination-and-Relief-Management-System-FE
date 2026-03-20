@@ -4,10 +4,10 @@ import { PhoneOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
-  verifyRescueRequest as verifyAndDispatchRescueRequest,
+  verifyAndDispatchRescueRequest,
   rejectRescueRequest,
   getUrgencyLevels
-} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
+} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
 

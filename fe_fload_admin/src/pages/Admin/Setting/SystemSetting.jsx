@@ -5,14 +5,14 @@ import {
   getAllSystemConfigurations,
   updateSystemConfiguration,
   seedSystemConfigurations
-} from "../../../../api/axios/SystemConfigurations/systemConfigurationsApi";
+} from "../../../../api/axios/AdminApi/SystemConfigurations/systemConfigurationsApi";
 import {
   getAllUrgencyLevels,
   createUrgencyLevel,
   updateUrgencyLevel,
   deleteUrgencyLevel,
   getAllRequestLogs
-} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
+} from "../../../../api/axios/AdminApi/RescueRequests/rescueRequestsApi";
 import "./SystemSetting.css";
 
 export default function SystemSetting() {
