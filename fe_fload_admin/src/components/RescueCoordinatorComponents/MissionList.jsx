@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Tag, Select } from "antd";
-import { EnvironmentOutlined } from "@ant-design/icons";
-
 import { getPendingRescueRequests } from "../../../api/axios/CoordinatorApi/RescueRequestApi";
 import AuthNotify from "../../utils/Common/AuthNotify";
 import { getRequestStatuses } from "../../../api/axios/Auth/authApi";
@@ -489,7 +487,7 @@ export default function MissionList({ onSelectMission }) {
               <div className="rc-queue__top">
 
                 <span className="rc-queue__id">
-                  Mã : #{m.id}
+                  Mã yêu cầu: #{m.id}
                   
                 </span>
 

@@ -1,198 +1,638 @@
+import { useEffect, useState } from "react";
+import { Image, Tag } from "antd";
+
+import {
+  getRescueProgress,
+  getUrgencyLevels,
+  getRescueTeamMembers
+} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+import verifyIcon from "../../../assets/verifire.svg";
 import "./RescueReportDetail.css";
-import { useRef, useState } from "react";
 
-export default function RescueReportDetail() {
+const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
 
-    const fileRef = useRef(null);
-    const [images, setImages] = useState([
-        {
-            id: "map",
-            type: "map",
-            src: "https://www.google.com/maps?q=10.7436,106.7017&z=13&output=embed",
-          },
-          {
-            id: "avatar",
-            type: "avatar",
-            src: "https://i.pravatar.cc/300?img=12",
-          },
-      ]);
+const getUrgencyColor = (id) => {
+  switch (id) {
+    case 1: return "red";     // Khẩn cấp
+    case 2: return "orange";  // ưu tiên
+    case 3: return "blue";    // cần hỗ trợ
+    default: return "default";
+  }
+};
+const thStyle = {
+  padding: "8px",
+  border: "1px solid #eee",
+  textAlign: "left",
+  fontWeight: 600,
+  fontSize: 14,
+  background: "#fafafa"
+};
 
-  const handleUploadClick = () => {
-    fileRef.current?.click();
-  };
+const tdStyle = {
+  padding: "8px",
+  border: "1px solid #eee",
+  fontSize: 14
+};
+export default function RescueReportDetail({ mission }) {
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [data, setData] = useState(null);
+  const [urgencyLevels, setUrgencyLevels] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
 
-    const previewUrl = URL.createObjectURL(file);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    setImages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        type: "upload",
-        src: previewUrl,
-      },
-    ]);
+  const requestId = mission?.id;
 
-    e.target.value = "";
-  };
+  /* ================= LOAD PROGRESS ================= */
 
-  return (
-    <section className="rc-report-detail">
-      {/* ================= HEADER ================= */}
-      <header className="rc-report-header">
-        <div className="rc-report-title">
-          <div className="rc-report-icon">✔</div>
+  useEffect(() => {
 
-          <div>
-            <h2>
-              BÁO CÁO CỨU HỘ <span>#RSC-9921</span>
-            </h2>
-            <p>
-              Kết thúc lúc 16:45, ngày 24/10/2023 · Phụ trách
-              bởi: <b>Rescue Team Alpha</b>
-            </p>
-          </div>
+    if (!requestId) return;
 
-          <span className="rc-status">HOÀN THÀNH</span>
-        </div>
+    const fetchData = async () => {
 
-        <div className="rc-report-actions">
-          <button className="btn-outline">
-            ⬇ Xuất báo cáo ca cứu hộ
-          </button>
-          <button className="btn-primary">
-            💾 Lưu hồ sơ
-          </button>
-        </div>
-      </header>
+      try {
+        setLoading(true);
+        setError(null);
 
-      {/* ================= STATS ================= */}
-      <div className="rc-report-stats">
-        <div className="stat">
-          <label>THỜI GIAN BẮT ĐẦU</label>
-          <b>15:10</b>
-          <span>24/10/2023</span>
-        </div>
+        const [progressRes, urgencyRes] = await Promise.all([
+          getRescueProgress(requestId),
+          getUrgencyLevels()
+        ]);
 
-        <div className="stat">
-          <label>THỜI GIAN KẾT THÚC</label>
-          <b>16:45</b>
-          <span>24/10/2023</span>
-        </div>
+        console.log("PROGRESS:", progressRes);
 
-        <div className="stat">
-          <label>SỐ NGƯỜI ĐƯỢC CỨU</label>
-          <b className="highlight">04</b>
-          <span>thành viên</span>
-        </div>
+        setData(progressRes);
 
-        <div className="stat">
-          <label>TỔNG THỜI LƯỢNG</label>
-          <b>01:35:20</b>
-          <span className="success">ĐÚNG TIẾN ĐỘ</span>
-        </div>
-      </div>
+        const urgencyList =
+          Array.isArray(urgencyRes) ? urgencyRes :
+          Array.isArray(urgencyRes?.data) ? urgencyRes.data :
+          [];
 
-      {/* ================= GRID ================= */}
-      <div className="rc-report-grid">
-        {/* LEFT */}
-        <div className="rc-left">
-          {/* MATERIALS */}
-          <section className="rc-card">
-            <h4>🧰 VẬT TƯ ĐÃ SỬ DỤNG</h4>
+        setUrgencyLevels(urgencyList);
 
-            <div className="rc-materials">
-              <div className="material">
-                🚤 Ca nô cứu hộ <b>01</b> chiếc
-              </div>
-              <div className="material">
-                🦺 Áo phao cứu sinh <b>06</b> bộ
-              </div>
-              <div className="material">
-                🩹 Túi sơ cứu loại A <b>01</b> túi
-              </div>
-              <div className="material">
-                🍞 Gói lương thực khô <b>12</b> phần
-              </div>
-            </div>
-          </section>
-
-          {/* IMAGES */}
-          <section className="rc-card">
-  <h4>🖼 HÌNH ẢNH KẾT QUẢ CỨU TRỢ</h4>
-
-  <div className="rc-images">
-    {images.map((img) => {
-      if (img.type === "map") {
-        return (
-          <div key={img.id} className="img map">
-            <iframe
-              title="map-result"
-              src={img.src}
-              loading="lazy"
-            />
-          </div>
-        );
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
 
-      return (
-        <div
-          key={img.id}
-          className="img avatar"
-          style={{
-            backgroundImage: `url(${img.src})`,
-          }}
-        />
-      );
-    })}
+    };
 
-    {/* UPLOAD */}
-    <div className="img upload">+ Thêm ảnh</div>
+    fetchData();
+
+  }, [requestId]);
+
+  /* ================= LOAD TEAM MEMBERS ================= */
+
+  useEffect(() => {
+
+    const teamId = data?.assignment?.rescueTeam?.rescueTeamId;
+
+    if (!teamId) return;
+
+    const fetchMembers = async () => {
+
+      try {
+
+        const res = await getRescueTeamMembers(teamId);
+
+        console.log("TEAM API:", res);
+
+        const list =
+          Array.isArray(res) ? res :
+          Array.isArray(res?.data) ? res.data :
+          Array.isArray(res?.data?.items) ? res.data.items :
+          [];
+
+        setTeamMembers(list);
+
+      } catch (err) {
+        console.error("LOAD TEAM MEMBERS ERROR:", err);
+      }
+
+    };
+
+    fetchMembers();
+
+  }, [data]);
+
+  /* ================= GUARD ================= */
+
+  if (!mission) {
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22,
+          fontWeight: 600,
+          color: "#555"
+        }}
+      >
+        Chọn nhiệm vụ bên trái
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="rc-empty-center">
+        Đang tải dữ liệu...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rc-empty-center">
+        Lỗi: {error}
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const formatTime = (date) => {
+    if (!date) return "--";
+    const d = new Date(date);
+    return d.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
+  
+  const formatDate = (date) => {
+    if (!date) return "--";
+    return new Date(date).toLocaleDateString("vi-VN");
+  };
+  
+  const calcDuration = (start, end) => {
+    if (!start || !end) return "--";
+  
+    const diff = new Date(end) - new Date(start);
+  
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+  
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
+
+  /* ================= DATA ================= */
+
+  const request = data.rescueRequest;
+  const assignment = data.assignment;
+  
+  /* ================= SLA ================= */
+
+const getDurationMinutes = (start, end) => {
+  if (!start || !end) return null;
+  return (new Date(end) - new Date(start)) / 60000;
+};
+
+const actualMinutes = getDurationMinutes(
+  request?.createdAt,
+  assignment?.completedAt
+);
+
+/* ✅ urgency PHẢI nằm trước isOnTime */
+const urgency = urgencyLevels.find(
+  u => u.urgencyLevelId === request?.urgencyLevelId
+);
+
+/* ✅ trạng thái */
+const isRejected =
+  data.currentProgressCode === "REQUEST_REJECTED";
+
+/* ✅ SLA check */
+const isOnTime =
+  actualMinutes !== null &&
+  urgency?.slaMinutes &&
+  actualMinutes <= urgency.slaMinutes;
+  /* ================= IMAGE ================= */
+
+  const images = [];
+
+  if (request?.locationImageUrl) {
+    images.push(
+      request.locationImageUrl.startsWith("http")
+        ? request.locationImageUrl
+        : IMAGE_BASE + request.locationImageUrl
+    );
+  }
+
+  if (Array.isArray(request?.imageUrls)) {
+    images.push(...request.imageUrls);
+  }
+  const formatSLA = (minutes) => {
+    if (!minutes) return "--";
+  
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+  
+    if (h === 0) return `${m} phút`;
+    if (m === 0) return `${h} giờ`;
+  
+    return `${h} giờ ${m} phút`;
+  };
+  /* ================= UI ================= */
+
+  return (
+    <section className="rc-md">
+
+      {/* HEADER */}
+      <header className="rc-md__header">
+
+        <div>
+          <h2>Mã yêu cầu: #{request?.rescueRequestId}</h2>
+
+          <p>
+            {new Date(request.createdAt).toLocaleString()}
+          </p>
+
+          <Tag
+  color={
+    data.currentProgressCode === "COMPLETED"
+      ? "green"
+      : data.currentProgressCode === "REQUEST_REJECTED"
+      ? "red"
+      : "blue"
+  }
+>
+  {data.currentProgressLabel}
+</Tag>
+
+        </div>
+        <Tag color={getUrgencyColor(urgency?.urgencyLevelId)}>
+  {urgency?.levelName || "Không xác định"}
+</Tag>
+      </header>
+      <div className="rc-summary">
+
+  {/* START */}
+  <div className="rc-box">
+    <p className="label">THỜI GIAN BẮT ĐẦU</p>
+    <h3>{formatTime(request.createdAt)}</h3>
+    <span>{formatDate(request.createdAt)}</span>
   </div>
+
+  {/* END */}
+  <div className="rc-box">
+    <p className="label">THỜI GIAN KẾT THÚC</p>
+    <h3>{formatTime(assignment?.completedAt)}</h3>
+    <span>{formatDate(assignment?.completedAt)}</span>
+  </div>
+
+  {/* PEOPLE */}
+<div className="rc-box">
+  <p className="label">SỐ NGƯỜI ĐƯỢC CỨU</p>
+
+  <h3 style={{ color: "#0ea5a4" }}>
+    {isRejected ? "--" : request.victimCount}
+  </h3>
+
+  <span>
+    {isRejected ? "" : "nạn nhân"}
+  </span>
+</div>
+
+  {/* DURATION */}
+  <div className="rc-box">
+  <p className="label">TỔNG THỜI LƯỢNG</p>
+
+  <h3>
+    {assignment?.completedAt
+      ? calcDuration(request.createdAt, assignment.completedAt)
+      : "--"}
+  </h3>
+
+  {/* 👉 CHỈ HIỆN KHI ĐÃ HOÀN THÀNH */}
+  {assignment?.completedAt && (
+    <>
+      <span
+        style={{
+          color: isOnTime ? "green" : "red"
+        }}
+      >
+        {isOnTime ? "ĐÚNG TIẾN ĐỘ" : "TRỄ TIẾN ĐỘ"}
+      </span>
+
+      <span style={{ fontSize: 12, color: "#999" }}>
+  SLA: {formatSLA(urgency?.slaMinutes)}
+</span>
+    </>
+  )}
+</div>
+
+</div>
+
+      <div className="divider" />
+
+      <div className="detail-grid rc-md__content">
+
+        {/* LEFT */}
+        <div className="left-col">
+
+          <section className="card">
+          <h4 className="card-title">1. THÔNG TIN NGƯỜI GỬI</h4>
+            <p><b>Họ tên:</b> {request.fullName}</p>
+            <p><b>SĐT:</b> {request.contactPhone}</p>
+         
+            <p><b>Địa chỉ:</b> {request.address}</p>
+          </section>
+          
+          <section className="card">
+          <h4 className="card-title">2. YÊU CẦU</h4>
+            <p><b>Loại yêu cầu:</b> {request.requestType}</p>
+           
+          </section>
+          <section className="card">
+          <h4 className="card-title">3. MÔ TẢ CHI TIẾT</h4>
+            <p>{request.detailDescription}</p>
+           
+          </section>
+
+          <section className="card">
+
+<h4 className="card-title">
+  4. NGUỒN LỰC
+</h4>
+
+<div className="resource-grid">
+
+  <div className="resource-item">
+    <label>SỐ NGƯỜI GẶP NẠN</label>
+    <p>{request.victimCount}</p>
+  </div>
+
+  <div className="resource-item">
+    <label>DỤNG CỤ CỨU HỘ</label>
+    <p>{request.availableRescueTool}</p>
+  </div>
+
+</div>
+
+<label>NHU CẦU ĐẶC BIỆT</label>
+
+<p>{request.specialNeeds}</p>
+
+<label>GHI CHÚ CHO ĐỘI CỨU HỘ</label>
+
+<p>{request.rescueTeamNote || "Không có"}</p>
+
+</section>
+
+     {/* IMAGE */}
+     <section className="card">
+          <h4 className="card-title">5. HÌNH ẢNH THỰC TẾ</h4>
+
+            {images.length > 0 ? (
+              <Image.PreviewGroup>
+                {images.map((img, i) => (
+                  <Image key={i} src={img} width={160} />
+                ))}
+              </Image.PreviewGroup>
+            ) : (
+              <p>Không có hình ảnh</p>
+            )}
+
+          </section>
+          <section className="rc-op-card">
+
+<h4 className="card-title">
+6. VỊ TRÍ GPS
+<span className="rc-online">● TRỰC TUYẾN</span>
+</h4>
+
+<div className="rc-map-mini">
+
+<iframe
+              title="map"
+              width="100%"
+              height="250"
+              src={`https://www.google.com/maps?q=${request.locationLat},${request.locationLng}&z=13&output=embed`}
+            />
+
+</div>
+
 </section>
 
         </div>
 
         {/* RIGHT */}
-        <div className="rc-right">
-          {/* CONFIRM */}
-          <section className="rc-card confirm">
-            <h4>✔ XÁC NHẬN TỪ NGƯỜI DÂN</h4>
+        <div className="right-col">
 
-            <div className="confirm-user">
-              <div className="avatar-sm" />
-              <div>
-                <b>Trần Thị Thuận</b>
-                <p>
-                  “Đã nhận đủ hỗ trợ và được di dời an
-                  toàn. Đội cứu hộ rất nhiệt tình và
-                  chuyên nghiệp.”
-                </p>
-              </div>
-            </div>
+     
 
-            <div className="signature">
-              <span>CHỮ KÝ ĐIỆN TỬ</span>
-              <b>T.T.Thuận</b>
-              <p>Xác nhận lúc 16:50 - 24/10/2023</p>
-            </div>
+          {/* TEAM */}
+          <section className="card">
+          <h4 className="card-title">7. ĐỘI CỨU HỘ</h4>
+            <p><b>Tên:</b> {assignment?.rescueTeam?.teamName}</p>
+            <p><b>SĐT:</b> {assignment?.rescueTeam?.contactPhone}</p>
+            <p><b>Khu vực:</b> {assignment?.rescueTeam?.areaName}</p>
           </section>
 
-          {/* NOTE */}
-          <section className="rc-card">
-            <h4>📝 GHI CHÚ TỪ RESCUE TEAM</h4>
-            <p className="note">
-              “Khu vực Phường 4 hẻm nhỏ, khó di chuyển
-              bằng ca nô lớn. Đã sử dụng thuyền chèo tay
-              hỗ trợ thêm. 2 cụ già sức khỏe ổn định sau
-              khi được đưa về trạm xá.”
-            </p>
+          {/* MEMBERS */}
+          <section className="card">
+          <h4 className="card-title">8. THÀNH VIÊN CỨU HỘ</h4>
+
+  {!Array.isArray(teamMembers) || teamMembers.length === 0 ? (
+    <p>Không có thành viên</p>
+  ) : (
+    <div style={{ overflowX: "auto" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginTop: 10
+        }}
+      >
+        <thead>
+          <tr style={{ background: "#fafafa" }}>
+            <th style={thStyle}>STT</th>
+            <th style={thStyle}>Tên</th>
+            <th style={thStyle}>SĐT</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {teamMembers.map((m, index) => (
+            <tr key={index}>
+              <td style={tdStyle}>{index + 1}</td>
+              <td style={tdStyle}>
+                {m.fullName || m.name || "—"}
+              </td>
+              <td style={tdStyle}>
+                {m.phone || m.contactPhone || "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>
+
+          {/* VEHICLE */}
+          <section className="card">
+          <h4 className="card-title">9. PHƯƠNG TIỆN</h4>
+            <p><b>Tên:</b> {assignment?.vehicle?.vehicleName}</p>
+            <p><b>Loại:</b> {assignment?.vehicle?.vehicleType}</p>
+            <p><b>Vị trí:</b> {assignment?.vehicle?.vehicleLocation}</p>
           </section>
-        </div>
+
+          {/* STATUS */}
+          <section className="card">
+          <h4 className="card-title">10. HỆ THỐNG GHI NHẬN</h4>
+
+            <p><b>Xác minh:</b> {data.isVerified ? "✔️" : "❌"}</p>
+            <p><b>Đã phân công:</b> {data.isAssigned ? "✔️" : "❌"}</p>
+            <p><b>Trạng thái:</b> {assignment?.assignmentStatusLabel}</p>
+
+            {assignment?.rejectReason && (
+              <p style={{ color: "red" }}>
+                <b>Lý do từ chối:</b> {assignment.rejectReason}
+              </p>
+            )}
+
+            {assignment?.completedAt && (
+              <p>
+                <b>Hoàn thành:</b>{" "}
+                {new Date(assignment.completedAt).toLocaleString()}
+              </p>
+            )}
+
+          </section>
+          {data.currentProgressCode !== "REQUEST_REJECTED" && (
+  <section
+    style={{
+      background: "#e6f4f1",
+      borderRadius: 20,
+      padding: 24,
+      border: "1px solid #cde7e3",
+      textAlign: "center"
+    }}
+  >
+
+    {/* HEADER */}
+    <div style={{ marginBottom: 20 }}>
+ 
+
+      <h3
+        style={{
+          margin: 0,
+          marginTop: 6,
+          fontWeight: 700,
+          color: "#2aa39a",
+          letterSpacing: 1
+        }}
+      >
+        XÁC NHẬN TỪ
+        <br />
+        NGƯỜI DÂN
+      </h3>
+    </div>
+
+    {/* CARD */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 18,
+        padding: 20,
+        maxWidth: 280,
+        margin: "0 auto",
+        boxShadow: "0 6px 16px rgba(0,0,0,0.08)"
+      }}
+    >
+
+      {/* AVATAR */}
+      <div
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: "50%",
+          background: "#cde7e3",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 10px"
+        }}
+      >
+        <span style={{ fontSize: 26 }}>👤</span>
       </div>
+
+      {/* NAME */}
+      <h3 style={{ marginBottom: 6 }}>
+        Họ và tên: {request.fullName || "--"}
+      </h3>
+
+      {/* NOTE */}
+      <p
+        style={{
+          fontStyle: "italic",
+          color: "#6b7280",
+          lineHeight: 1.5,
+          marginBottom: 16
+        }}
+      >
+      Ghi chú:  “{request.note || "Đã nhận đủ hỗ trợ và an toàn"}”
+      </p>
+
+      {/* ICON CONFIRM */}
+      <div
+  style={{
+    margin: "10px 0",
+    padding: "10px 0",
+    borderTop: "1px dashed #ddd",
+    borderBottom: "1px dashed #ddd",
+    display: "flex",
+    flexDirection: "column",   // 👈 QUAN TRỌNG
+    alignItems: "center",      // 👈 căn giữa
+    justifyContent: "center"
+  }}
+>
+  <img src={verifyIcon} width={32} />
+
+  <p style={{ marginTop: 6, fontSize: 14, color: "#2aa39a" }}>
+    Đã xác nhận
+  </p>
+</div>
+
+      {/* TIME */}
+      <div
+        style={{
+          marginTop: 10,
+          fontSize: 13,
+          color: "#2aa39a"
+        }}
+      >
+        Xác nhận lúc{" "}
+        {assignment?.completedAt
+          ? new Date(assignment.completedAt).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit"
+            })
+          : "--"}
+        <br />
+        {assignment?.completedAt
+          ? new Date(assignment.completedAt).toLocaleDateString("vi-VN")
+          : "--"}
+      </div>
+
+    </div>
+  </section>
+)}
+        </div>
+
+      </div>
+
     </section>
   );
 }

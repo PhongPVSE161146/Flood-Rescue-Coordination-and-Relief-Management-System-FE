@@ -409,7 +409,7 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
         <div className="dispatch-header-left">
 
           <h2 className="dispatch-title">
-            Yêu cầu #{id}
+            Mã yêu cầu: #{id}
             <span className="dispatch-status">{status}</span>
           </h2>
 

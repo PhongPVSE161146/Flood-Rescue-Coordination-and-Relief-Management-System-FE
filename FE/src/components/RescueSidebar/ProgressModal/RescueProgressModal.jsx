@@ -74,6 +74,8 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const navigate = useNavigate();
   const [note, setNote] = useState("");
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  
   /* ================= API ================= */
 
   useEffect(() => {
@@ -126,34 +128,31 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
       cancelText: "Hủy",
   
       onOk: async () => {
-  
         try {
-  
           setConfirmLoading(true);
-  
+      
           await completeRescueRequest(
             requestId,
             tempNote || "Đã hoàn thành cứu trợ"
           );
-  
+      
           AuthNotify.success(
             "Thành công",
             "Đã xác nhận hoàn thành cứu hộ"
           );
-  
-          // 👉 navigate sau khi xong
-          navigate("/map");
-  
+      
+          setIsConfirmed(true); // 🔥 làm mờ nút
+      
+          // 👉 reload + chuyển trang
+          setTimeout(() => {
+            window.location.href = "/map";
+          }, 1000);
+      
         } catch (err) {
-  
           AuthNotify.error("Thất bại", err.message);
-  
         } finally {
-  
           setConfirmLoading(false);
-  
         }
-  
       }
   
     });
@@ -162,6 +161,9 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
 
   const isCompletedAssignment =
   data?.assignment?.assignmentStatus === "COMPLETED";
+
+const isFinalCompleted =
+  data?.currentProgressCode === "COMPLETED";
   /* ================= STEP ================= */
 
   const currentIndex = STATUS_STEPS.findIndex(
@@ -176,7 +178,7 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
   
   const urgencyLabel =
     priorityTranslate[urgency?.levelName] ||
-    urgency?.description ||
+    urgency?.levelName ||
     "Không xác định";
 
   /* ================= IMAGE ================= */
@@ -203,18 +205,19 @@ const isRejected =
 
     /* 🔥 FOOTER FIX */
     footer={[
-      data?.currentProgressCode !== "COMPLETED" && (
+      isCompletedAssignment && (
         <Button
           key="complete"
           type="primary"
           danger
+          htmlType="button"
           loading={confirmLoading}
-          disabled={!isCompletedAssignment}
-          onClick={handleConfirmComplete}
+          disabled={isFinalCompleted}
           style={{
-            opacity: isCompletedAssignment ? 1 : 0.5,
-            cursor: isCompletedAssignment ? "pointer" : "not-allowed"
+            opacity: isFinalCompleted ? 0.5 : 1,
+            cursor: isFinalCompleted ? "not-allowed" : "pointer"
           }}
+          onClick={handleConfirmComplete}
         >
           ✔ Xác nhận đã cứu trợ
         </Button>
@@ -234,7 +237,7 @@ const isRejected =
           <div>
 
             <h2>
-              🚑 Yêu cầu #{data?.rescueRequest?.rescueRequestId}
+              Mã yêu cầu: #{data?.rescueRequest?.rescueRequestId}
             </h2>
 
             <p>
@@ -245,7 +248,7 @@ const isRejected =
           </div>
 
           <div>
-            {/* <Tag color="blue">{data?.currentProgressLabel}</Tag> */}
+          
             <Tag color={urgencyColor[urgency?.levelName]}>
   {urgencyLabel}
 </Tag>
@@ -285,17 +288,12 @@ const isRejected =
       <div className="rp-icon">❌</div>
 
       <div className="rp-text">
-        TỪ CHỐI NHIỆM VỤ
+        TỪ CHỐI YÊU CẦU CỨU HỘ
       </div>
 
     </div>
 
-    {/* 👉 Lý do (nếu có) */}
-    {data?.assignment?.rejectReason && (
-      <div style={{ marginTop: 8, color: "#ff4d4f" }}>
-        Lý do: {data.assignment.rejectReason}
-      </div>
-    )}
+    
 
   </div>
 
@@ -303,7 +301,7 @@ const isRejected =
 
   /* 🔥 NORMAL TIMELINE */
   STATUS_STEPS
-    .filter(step => step.key !== "REQUEST_REJECTED") // ❌ bỏ step reject khỏi timeline thường
+    .filter(step => step.key !== "REQUEST_REJECTED") 
     .map((step, index) => {
 
       const isActive = index === currentIndex;
@@ -349,22 +347,22 @@ const isRejected =
               <div className="left-col">
 
                 <section className="card">
-                  <h4>👤 THÔNG TIN NGƯỜI GỬI</h4>
+                <h4 className="card-title">1. THÔNG TIN NGƯỜI GỬI</h4>
                   <p><b>Họ tên:</b> {data.rescueRequest?.fullName}</p>
                   <p><b>SĐT:</b> {data.rescueRequest?.contactPhone}</p>
                   <p><b>Địa chỉ:</b> {data.rescueRequest?.address}</p>
                 </section>
                 <section className="card">
-                  <h4>📌 LOẠI YÊU CẦU</h4>
+                <h4 className="card-title">2. LOẠI YÊU CẦU</h4>
                   <p>{getRequestTypeLabel(data.rescueRequest?.requestType)}</p>
                 </section>
 
                 <section className="card">
-                  <h4>📋 MÔ TẢ CHI TIẾT</h4>
+                <h4 className="card-title">3. MÔ TẢ CHI TIẾT</h4>
                   <p>{data.rescueRequest?.detailDescription}</p>
                 </section>
                 <section className="card">
-                  <h4>📷 HÌNH ẢNH THỰC TẾ </h4>
+                <h4 className="card-title">4. HÌNH ẢNH THỰC TẾ </h4>
 
                   {images?.length > 0 ? (
                     <Image.PreviewGroup>
@@ -382,14 +380,7 @@ const isRejected =
                   )}
 
                 </section>
-                {data.rescueRequest?.locationLat && (
-                  <section className="map-card">
-                    <iframe
-                      title="map"
-                      src={`https://www.google.com/maps?q=${data.rescueRequest.locationLat},${data.rescueRequest.locationLng}&z=15&output=embed`}
-                    />
-                  </section>
-                )}
+                
 
               </div>
 
@@ -400,7 +391,7 @@ const isRejected =
                 
 
                 <section className="card">
-                  <h4>📊 THÔNG TIN & Mô Tả</h4>
+                <h4 className="card-title">5. THÔNG TIN & Mô Tả</h4>
                   <p><b>Số người:</b> {data.rescueRequest?.victimCount}</p>
                   <p><b>Dụng cụ:</b> {data.rescueRequest?.availableRescueTool || "Không có"}</p>
                   <p><b>Nhu cầu:</b> {data.rescueRequest?.specialNeeds}</p>
@@ -408,28 +399,40 @@ const isRejected =
                 </section>
 
                 <section className="card">
-                  <h4>👨‍🚒 ĐỘI CỨU HỘ</h4>
+                <h4 className="card-title">6. ĐỘI CỨU HỘ</h4>
                   <p><b>Tên:</b> {data.assignment?.rescueTeam?.teamName}</p>
                   <p><b>SĐT:</b> {data.assignment?.rescueTeam?.contactPhone}</p>
                   <p><b>Khu vực:</b> {data.assignment?.rescueTeam?.areaName}</p>
                 </section>
 
                 <section className="card">
-                  <h4>🚗 PHƯƠNG TIỆN</h4>
+                <h4 className="card-title">7. PHƯƠNG TIỆN</h4>
                   <p><b>Tên:</b> {data.assignment?.vehicle?.vehicleName}</p>
                   <p><b>Loại:</b> {data.assignment?.vehicle?.vehicleType}</p>
-                  {/* <p><b>Trạng thái:</b> {data.assignment?.vehicle?.vehicleStatus}</p> */}
+               
                   <p><b>Vị trí:</b> {data.assignment?.vehicle?.vehicleLocation}</p>
                 </section>
 
                 <section className="card">
-                  <h4>⚙️ HỆ THỐNG GHI NHẬN </h4>
+                <h4 className="card-title">8. HỆ THỐNG GHI NHẬN </h4>
                   <p><b>Xác minh:</b> {data.isVerified ? "✔️" : "❌"}</p>
                   <p><b>Đã phân công:</b> {data.isAssigned ? "✔️" : "❌"}</p>
                   <p><b>Trạng thái:</b> {data.assignment?.assignmentStatusLabel}</p>
-                  <p><b>Lý do từ chối:</b> {data.assignment?.assignmentStatusLabel}</p>
-                </section>
+                  {data?.assignment?.rejectReason?.trim() && (
+  <p>
+    <b>Lý do từ chối: {data.assignment.rejectReason}</b>
+  </p>
+)}
 
+                </section>
+                {data.rescueRequest?.locationLat && (
+                  <section className="map-card">
+                    <iframe
+                      title="map"
+                      src={`https://www.google.com/maps?q=${data.rescueRequest.locationLat},${data.rescueRequest.locationLng}&z=15&output=embed`}
+                    />
+                  </section>
+                )}
               </div>
 
             </div>

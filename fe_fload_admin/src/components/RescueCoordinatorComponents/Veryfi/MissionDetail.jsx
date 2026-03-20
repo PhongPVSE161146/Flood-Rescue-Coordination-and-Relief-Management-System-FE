@@ -16,9 +16,14 @@ import "./MissionDetail.css";
 const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
 
 const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
+};
+const priorityClass = {
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
 
 export default function MissionDetail({ mission }) {
@@ -214,6 +219,17 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
   }
 
+  const formatSLA = (minutes) => {
+    if (!minutes) return "--";
+  
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+  
+    if (h === 0) return `${m} phút`;
+    if (m === 0) return `${h} giờ`;
+  
+    return `${h} giờ ${m} phút`;
+  };
   /* ================= IMAGE FIX ================= */
   const images = mission?.images ?? [];
 
@@ -234,7 +250,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
           <h2 className="request-title">
 
-            Yêu cầu #{mission.id}
+            Mã yêu cầu: #{mission.id}
 
             <span
               className="status status-pending"
@@ -475,10 +491,10 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
         <p>{level.description}</p>
 
-        <small className="sla-text">
-          Thời gian xử lý: {formatSla(level.slaMinutes)}
-        </small>
-
+       
+        <span style={{ fontSize: 12, color: "#999" }}>
+  SLA: {formatSLA(level.slaMinutes)}
+</span>
       </div>
 
     </div>

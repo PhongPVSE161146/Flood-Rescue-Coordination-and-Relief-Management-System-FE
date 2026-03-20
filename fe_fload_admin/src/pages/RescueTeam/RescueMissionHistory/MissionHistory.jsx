@@ -24,7 +24,7 @@ export default function MissionHistory() {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const pageSize = 5;
+  const pageSize = 3;
 
   const user =
     JSON.parse(localStorage.getItem("user")) ||

@@ -299,3 +299,40 @@ export const getRescueRequestById = async (id) => {
   }
 
 };
+export const getRescueProgress = async (id) => {
+
+  if (!id) {
+    throw new Error("Thiếu ID yêu cầu");
+  }
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueRequests/${id}/progress`,
+      {
+        headers: {
+          accept: "*/*"
+        }
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RESCUE PROGRESS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải tiến trình cứu hộ"
+    );
+
+  }
+
+};
+export const getRescueTeamMembers = (teamId) => {
+
+  return axiosInstance.get(`/api/rescueteams/${teamId}/members`);
+
+};

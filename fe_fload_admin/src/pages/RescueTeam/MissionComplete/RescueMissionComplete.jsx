@@ -18,11 +18,15 @@ import {
 // const API_BASE = "https://api-rescue.purintech.id.vn";
 
 const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
 };
-
+const priorityClass = {
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
+};
 const STATUS_STEPS = [
   { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
   { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
@@ -243,7 +247,7 @@ export default function RescueMissionComplete() {
 
         <div>
           <h2>
-            Nhiệm vụ #{detail.rescueRequestId}
+            Mã yêu cầu: #{detail.rescueRequestId}
             <span className="rc-badge rc-badge--danger">
               {detail.urgency}
             </span>

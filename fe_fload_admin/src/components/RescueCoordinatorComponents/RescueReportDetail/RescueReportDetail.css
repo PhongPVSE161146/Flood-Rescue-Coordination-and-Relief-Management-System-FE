@@ -280,3 +280,35 @@
     line-height: 1.6;
   }
   
+
+  .rc-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+  
+  .rc-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #eee;
+  }
+  
+  .rc-box .label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  
+  .rc-box h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  
+  .rc-box span {
+    font-size: 12px;
+    color: #999;
+  }
