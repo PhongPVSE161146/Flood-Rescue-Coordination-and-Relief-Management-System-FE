@@ -5,7 +5,7 @@ import {
   getAllAssignments,
   getPendingRescueRequests,
   getUrgencyLevels
-} from "../../../../../api/axios/RescueRequests/rescueRequestsApi";
+} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import MissionList from "../../../components/RescueCoordinatorComponents/MissionList";
 import MissionDetail from "../../../components/RescueCoordinatorComponents/Veryfi/MissionDetail";
-import { getRescueRequestById } from "../../../../api/axios/RescueRequests/rescueRequestsApi";
+import { getRescueRequestById } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./rc-mission-dispatch.layout.css";
