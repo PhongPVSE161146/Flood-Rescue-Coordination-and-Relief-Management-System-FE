@@ -273,3 +273,66 @@ export const rejectRescueRequest = async (requestId, reason) => {
   }
 
 };
+/* ================= GET RESCUE REQUEST BY ID ================= */
+
+export const getRescueRequestById = async (id) => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueRequests/${id}`
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy chi tiết RescueRequest:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải chi tiết yêu cầu cứu hộ"
+    );
+
+  }
+
+};
+export const getRescueProgress = async (id) => {
+
+  if (!id) {
+    throw new Error("Thiếu ID yêu cầu");
+  }
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/RescueRequests/${id}/progress`,
+      {
+        headers: {
+          accept: "*/*"
+        }
+      }
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RESCUE PROGRESS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải tiến trình cứu hộ"
+    );
+
+  }
+
+};
+export const getRescueTeamMembers = (teamId) => {
+
+  return axiosInstance.get(`/api/rescueteams/${teamId}/members`);
+
+};

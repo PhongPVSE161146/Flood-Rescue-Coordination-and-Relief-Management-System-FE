@@ -14,17 +14,17 @@ import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 import "./list-team-cuuho.css";
 
 const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
 };
 const priorityClass = {
-  "Mức Độ Cao": "priority-high",
-  "Mức Độ Trung Bình": "priority-medium",
-  "Mức Độ Thấp": "priority-low"
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
-
 const assignmentStatusMap = {
+  PENDING:"Chờ điều phối",
   ASSIGNED: "Đã điều động",
   ACCEPTED: "Đội đã nhận nhiệm vụ",
   DEPARTED: "Đã xuất phát",
@@ -34,6 +34,7 @@ const assignmentStatusMap = {
 }
 
 const assignmentStatusClass = {
+  PENDING:  "status-pending",
   ASSIGNED: "status-assigned",
   ACCEPTED: "status-accepted",
   DEPARTED: "status-departed",
@@ -192,9 +193,9 @@ export default function ListTeamCuuHo({ onSelectMission }) {
 
   const URGENCY_OPTIONS=[
     {label:"Tất cả",value:""},
-    {label:"Mức Độ Cao",value:"Mức Độ Cao"},
-    {label:"Mức Độ Trung Bình",value:"Mức Độ Trung Bình"},
-    {label:"Mức Độ Thấp",value:"Mức Độ Thấp"}
+    {label:"Khẩn cấp",value:"Khẩn cấp"},
+    {label:"Ưu tiên",value:"Ưu tiên"},
+    {label:"Cần hỗ trợ",value:"Cần hỗ trợ"}
   ]
 
   /* ================= TAB ================= */
@@ -291,12 +292,6 @@ onClick={()=>changeTab("new")}
 MỚI NHẤT
 </button>
 
-{/* <button
-className={tab==="expired"?"active":""}
-onClick={()=>changeTab("expired")}
->
-QUÁ HẠN
-</button> */}
 
 <button
 className={tab==="merge"?"active":""}
@@ -369,7 +364,7 @@ urgency:v || ""
 
 <div className="rc-team-item__top">
 <div className="rc-team-item__id">
-  Mã : #{item.id}
+  Mã yêu cầu: #{item.id}
 </div>
 
 <span
@@ -385,18 +380,86 @@ className={`status-badge ${assignmentStatusClass[item.assignmentStatus]}`}
 </span>
 </div>
 
-<strong>{item.fullname}</strong>
+<div
+  className="info-box-minato"
+  style={{
+    background: "#fff",
+    borderRadius: 12,
+    padding: "14px 16px",
+    border: "1px solid #eee",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8
+  }}
+>
 
-<div>👥 {item.team}</div>
+  <strong
+    style={{
+      fontSize: 15,
+      fontWeight: 700,
+      color: "#1677ff"
+    }}
+  >
+     Họ và tên: {item.fullname}
+  </strong>
 
-<div>🚑 {item.vehicle}</div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Tên đội: {item.team}
+  </div>
 
-<div>📍 {item.address}</div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Tên phương tiện: {item.vehicle}
+  </div>
 
-<div>📞 {item.phone}</div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Vị trí: {item.address}
+  </div>
 
+  <div
+    style={{
+      fontSize: 14,
+      fontWeight: 600,
+      color: "#52c41a",
+      padding: "6px 10px",
+      background: "#f6ffed",
+      borderRadius: 8,
+      border: "1px solid #b7eb8f"
+    }}
+  >
+    Số điện thoại: {item.phone}
+  </div>
+
+</div>
 <div className="rc-team-item__footer">
-⏱ {item.time}
+⏱Phân công lúc:  {item.time}
 </div>
 
 </div>

@@ -201,7 +201,7 @@ export default function CreateMemberModal({
 
       AuthNotify.error(
         "Tạo thành viên thất bại",
-        "Không thể thêm thành viên"
+        "Thành viên này đã có trong đội cứu hộ"
       );
 
     }

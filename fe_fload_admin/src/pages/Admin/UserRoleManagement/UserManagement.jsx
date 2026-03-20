@@ -33,6 +33,32 @@ export default function UserManagement() {
 
   const [roleFilter, setRoleFilter] = useState("ALL");
 
+
+  const loadUsers = async () => {
+    const res = await getAllUser(); // ✅ đúng
+  
+    const data = res?.data || res;
+  
+    if (!Array.isArray(data)) return;
+  
+    const validUsers = data.filter(u => u.roleName);
+  
+    const mappedUsers = validUsers.map(user => ({
+      id: user.userId,
+      name: user.fullName,
+      phone: user.phone,
+      role: user.roleName,
+      areaId: user.areaId,
+      status: user.status || "Hoạt động",
+      raw: user,
+    }));
+  
+    setUsers(mappedUsers);
+  };
+useEffect(() => {
+  loadUsers();
+}, []);
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -79,6 +105,13 @@ export default function UserManagement() {
 
   };
   const handleDelete = (user) => {
+    if (user.role === "Admin") {
+      AuthNotify.error(
+        "Không thể xóa tài khoản Admin",
+        "Tài khoản Admin có quyền cao nhất, vui lòng không xóa thông tin tài khoản này"
+      );
+      return;
+    }
     Modal.confirm({
       title: (
         <span style={{ fontSize: 18, fontWeight: 600, color: "#ff4d4f" }}>
@@ -99,20 +132,21 @@ export default function UserManagement() {
       okType: "danger",
       centered: true,
   
-      async onOk() {
+      onOk: async () => {
         try {
           await deleteUser(user.id);
-  
+      
           AuthNotify.success(
             "Xóa user thành công",
             `User "${user.name}" đã được xóa`
           );
-  
-          loadUsers();
+      
+          loadUsers(); // ✅ chỉ chạy khi bạn đã truyền prop
+      
         } catch (err) {
           AuthNotify.error("Xóa user thất bại", err?.message || "");
         }
-      },
+      }
     });
   
     console.log(user);
@@ -122,6 +156,7 @@ export default function UserManagement() {
     roleFilter === "ALL"
       ? users
       : users.filter(u => u.role === roleFilter);
+      
       const handleSubmit = async () => {
 
         try {
@@ -355,6 +390,7 @@ export default function UserManagement() {
         }}
         onEdit={openEditModal}
         onDelete={handleDelete}
+    
       />
 
       <UserFormModal

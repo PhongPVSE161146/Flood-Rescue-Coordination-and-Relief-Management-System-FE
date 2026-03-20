@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Tag, Select } from "antd";
-import { EnvironmentOutlined } from "@ant-design/icons";
-
-import { getDispatchQueue as getPendingRescueRequests } from "../../../api/axios/RescueRequests/rescueRequestsApi";
+import { getPendingRescueRequests } from "../../../api/axios/CoordinatorApi/RescueRequestApi";
 import AuthNotify from "../../utils/Common/AuthNotify";
 import { getRequestStatuses } from "../../../api/axios/Auth/authApi";
 import "./MissionList.css";
@@ -455,22 +453,6 @@ export default function MissionList({ onSelectMission }) {
     <Option value="120">2 giờ</Option>
   </Select>
 
-  {/* RESET FILTER */}
-
-  {/* {(filters.requestType || filters.address || filters.timeRange) && (
-    <button
-      className="rc-filter-reset"
-      onClick={() =>
-        setFilters({
-          requestType: "",
-          address: "",
-          timeRange: ""
-        })
-      }
-    >
-      Xóa bộ lọc
-    </button>
-  )} */}
 
 </div>
 
@@ -505,7 +487,8 @@ export default function MissionList({ onSelectMission }) {
               <div className="rc-queue__top">
 
                 <span className="rc-queue__id">
-                  Mã : #{m.id}
+                  Mã yêu cầu: #{m.id}
+                  
                 </span>
 
                 <span className="rc-queue__time">
@@ -529,24 +512,61 @@ export default function MissionList({ onSelectMission }) {
                 </span>
 
               </div>
+              <div
+  className="info-box-minato"
+  style={{
+    background: "#fff",
+    borderRadius: 12,
+    padding: "14px 16px",
+    border: "1px solid #eee",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8
+  }}
+>
+<strong
+    style={{
+      fontSize: 15,
+      fontWeight: 700,
+      color: "#1677ff"
+    }}
+  >
+     Họ và tên: {m.name}
+  </strong>
 
-              <div className="rc-queue__name">
-                Họ và tên : {m.name}
-              </div>
+  <div
+    style={{
+      fontSize: 14,
+      fontWeight: 600,
+      color: "#52c41a",
+      padding: "6px 10px",
+      background: "#f6ffed",
+      borderRadius: 8,
+      border: "1px solid #b7eb8f"
+    }}
+  >
+    Số điện thoại: {m.phone}
+  </div>
 
-              <div className="rc-queue__phone">
-                📞 {m.phone}
-              </div>
-
-              <div className="rc-queue__location">
-                <EnvironmentOutlined />
-                {m.address}
-              </div>
+  <div
+    style={{
+      fontSize: 14,
+      color: "#444",
+      padding: "6px 10px",
+      background: "#fafafa",
+      borderRadius: 8,
+      border: "1px solid #eee"
+    }}
+  >
+     Vị trí: {m.address}
+  </div>
 
               <div className="rc-queue__tags">
                 <Tag color="red">{m.incident}</Tag>
               </div>
 
+            </div>
             </div>
 
           ))
