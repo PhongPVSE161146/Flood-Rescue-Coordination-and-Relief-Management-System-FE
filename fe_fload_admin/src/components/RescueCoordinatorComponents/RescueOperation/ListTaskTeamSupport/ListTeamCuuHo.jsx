@@ -14,16 +14,15 @@ import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 import "./list-team-cuuho.css";
 
 const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
 };
 const priorityClass = {
-  "Mức Độ Cao": "priority-high",
-  "Mức Độ Trung Bình": "priority-medium",
-  "Mức Độ Thấp": "priority-low"
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
-
 const assignmentStatusMap = {
   PENDING:"Chờ điều phối",
   ASSIGNED: "Đã điều động",
@@ -194,9 +193,9 @@ export default function ListTeamCuuHo({ onSelectMission }) {
 
   const URGENCY_OPTIONS=[
     {label:"Tất cả",value:""},
-    {label:"Mức Độ Cao",value:"Mức Độ Cao"},
-    {label:"Mức Độ Trung Bình",value:"Mức Độ Trung Bình"},
-    {label:"Mức Độ Thấp",value:"Mức Độ Thấp"}
+    {label:"Khẩn cấp",value:"Khẩn cấp"},
+    {label:"Ưu tiên",value:"Ưu tiên"},
+    {label:"Cần hỗ trợ",value:"Cần hỗ trợ"}
   ]
 
   /* ================= TAB ================= */
@@ -365,7 +364,7 @@ urgency:v || ""
 
 <div className="rc-team-item__top">
 <div className="rc-team-item__id">
-  Mã : #{item.id}
+  Mã yêu cầu: #{item.id}
 </div>
 
 <span

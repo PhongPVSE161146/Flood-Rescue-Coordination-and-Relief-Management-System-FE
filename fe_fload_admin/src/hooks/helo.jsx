@@ -14,15 +14,11 @@ import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 const API_BASE = "https://api-rescue.purintech.id.vn";
 const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
+  High: "Mức Độ Cao",
+  Medium: "Mức Độ Trung Bình",
+  Low: "Mức Độ Thấp"
 };
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
-};
+
 
 
 const STATUS_STEPS = [
@@ -32,7 +28,7 @@ const STATUS_STEPS = [
   { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
   { key: "ARRIVED", label: "Đã đến hiện trường", icon: "📍" },
   { key: "COMPLETED", label: "Hoàn thành", icon: "✔" },
-  { key: "REJECTED", label: "Từ chối", icon: "✖" },
+  // { key: "REJECTED", label: "Từ chối nhiệm vụ", icon: "❌" }
 ];
 
 export default function RescueOperationDetail({ assignmentId }) {
@@ -231,7 +227,7 @@ setImages(normalizedImages);
       </div>
     );
   }
-  const isRejected = detail.assignmentStatus === "REJECTED";
+
   let visibleSteps = STATUS_STEPS
 
   if(detail.assignmentStatus === "CANCELLED"){
@@ -274,7 +270,9 @@ new Date(detail.startTime).toLocaleTimeString("vi-VN")}
 
 <div className="rc-op-detail__actions">
 
-
+<button className="btn-outline">
+Hỗ trợ thêm đội
+</button>
 
 <button
 className="btn-primary"
@@ -291,79 +289,44 @@ Kết thúc nhiệm vụ
 
 <section className="rc-op-card">
 
-  {isRejected ? (
+<div className="rc-timeline">
 
-    <div style={{ textAlign: "center", padding: 20 }}>
-     <div className="rc-timeline__item active">
+{visibleSteps.map((step,index)=>{
+
+const isActive = index === currentIndex
+const isDone = index < currentIndex
+
+return(
+
+<div key={step.key} className="rc-timeline__step">
 
 <div
-  className="rc-timeline__icon"
-  style={{
-    background: "#dc2626",
-    color: "#fff",
-    borderRadius: "50%",
-    width: 48,
-    height: 48,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 20
-  }}
+className={`rc-timeline__item 
+${isActive ? "active":""}
+${isDone ? "done":""}`}
 >
-  ✖
+
+<div className="rc-timeline__icon">
+{step.icon}
 </div>
 
 <div className="rc-timeline__content">
-
+<b>{step.label.toUpperCase()}</b>
 </div>
 
 </div>
-      <b style={{ color: "#dc2626", fontSize: 16 }}>
-        NHIỆM VỤ ĐÃ BỊ TỪ CHỐI
-      </b>
-    </div>
 
-  ) : (
+{index < visibleSteps.length-1 && (
+<div className={`rc-timeline__line ${isDone ? "done":""}`} />
+)}
 
-    <div className="rc-timeline">
+</div>
 
-      {STATUS_STEPS.map((step, index) => {
+)
 
-        const currentIndex = STATUS_STEPS.findIndex(
-          s => s.key === detail.assignmentStatus
-        );
+})}
 
-        const isActive = index === currentIndex;
-        const isDone = index < currentIndex;
-
-        return (
-          <div key={step.key} className="rc-timeline__step">
-
-            <div
-              className={`rc-timeline__item 
-              ${isActive ? "active" : ""}
-              ${isDone ? "done" : ""}`}
-            >
-              <div className="rc-timeline__icon">
-                {step.icon}
-              </div>
-
-              <div className="rc-timeline__content">
-                <b>{step.label.toUpperCase()}</b>
-              </div>
-            </div>
-
-            {index < STATUS_STEPS.length - 1 && (
-              <div className={`rc-timeline__line ${isDone ? "done" : ""}`} />
-            )}
-
-          </div>
-        );
-      })}
-
-    </div>
-
-  )}
+</div>
 
 </section>
 
@@ -410,6 +373,13 @@ Kết thúc nhiệm vụ
 
     <h4 className="card-title">2. ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
 
+    {/* <button
+  className="rc-op-edit-btn"
+  onClick={()=>setOpenEdit(true)}
+  disabled={detail?.statusId >= 3}
+>
+  ✏️ Chỉnh sửa
+</button> */}
 
   </div>
 
@@ -534,22 +504,32 @@ loading="lazy"
 <p>{detail.rescueTeamNote || "Không có"}</p>
 
 </section>
-{isRejected && (
-  <section className="card">
-    <h4 className="card-title">
-      7. LÝ DO TỪ CHỐI
-    </h4>
+<section className="card">
 
-    <p className="quote">
-      {detail.rejectReason || "Không có lý do"}
-    </p>
-  </section>
-)}
+<h4 className="card-title">
+  7. LÝ DO TỪ CHỐI
+</h4>
 
-</div>
+<p className="quote">
+  {detail.rejectReason}
+</p>
+
+</section>
 
 </div>
 
+</div>
+
+{/* <UpdateDetailTeam
+open={openEdit}
+detail={detail}
+onClose={()=>setOpenEdit(false)}
+onSave={()=>{
+
+  fetchData()
+
+}}
+/> */}
 
 </section>
 

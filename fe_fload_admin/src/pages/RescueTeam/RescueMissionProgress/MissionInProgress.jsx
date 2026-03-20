@@ -18,9 +18,14 @@ import AuthNotify from "../../../utils/Common/AuthNotify";
 // const API_BASE = "https://api-rescue.purintech.id.vn";
 
 const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
+};
+const priorityClass = {
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
 
 const STATUS_STEPS = [
@@ -89,9 +94,7 @@ export default function MissionInProgress() {
       const urgencyMap = {};
       urgencies.forEach(u => (urgencyMap[u.urgencyLevelId] = u.levelName));
 
-      // const req = requests.find(
-      //   r => r.rescueRequestId === assignment?.rescueRequestId
-      // );
+
 
       if (!assignment) return;
 
@@ -277,7 +280,7 @@ export default function MissionInProgress() {
 
         <div>
           <h2>
-            Nhiệm vụ #{detail.rescueRequestId}
+            Mã yêu cầu: #{detail.rescueRequestId}
             <span className="rc-badge rc-badge--danger">
               {detail.urgency}
             </span>

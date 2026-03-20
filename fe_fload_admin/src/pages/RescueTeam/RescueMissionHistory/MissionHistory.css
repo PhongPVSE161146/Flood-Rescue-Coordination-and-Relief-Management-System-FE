@@ -184,6 +184,72 @@
 
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
-.ant-pagination {
+/* .ant-pagination {
   margin-top: 10px;
+} */
+/* ===== PAGINATION WRAPPER ===== */
+.rc-pagination-wrapper {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* ===== BASE ===== */
+.ant-pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ===== ITEM ===== */
+.ant-pagination-item {
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  min-width: 36px;
+  height: 36px;
+  line-height: 34px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.ant-pagination-item:hover {
+  border-color: #1677ff !important;
+  color: #1677ff;
+}
+
+/* active */
+.ant-pagination-item-active {
+  background: #1677ff !important;
+  border-color: #1677ff !important;
+}
+
+.ant-pagination-item-active a {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* ===== prev / next ===== */
+.ant-pagination-prev,
+.ant-pagination-next {
+  border-radius: 10px !important;
+}
+
+.ant-pagination-prev button,
+.ant-pagination-next button {
+  border-radius: 10px;
+}
+
+/* ===== disabled ===== */
+.ant-pagination-disabled {
+  opacity: 0.4;
+}
+
+/* ===== mini responsive ===== */
+@media (max-width: 768px) {
+  .ant-pagination-item {
+    min-width: 30px;
+    height: 30px;
+    line-height: 28px;
+    font-size: 12px;
+  }
 }

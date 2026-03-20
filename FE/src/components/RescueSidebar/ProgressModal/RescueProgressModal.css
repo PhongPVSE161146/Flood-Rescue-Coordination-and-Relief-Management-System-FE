@@ -122,17 +122,25 @@
 .rp-line.done {
   background: #52c41a;
 }
-
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #1677ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 /* ================= ACTIVE ================= */
 
 .rp-item.active .rp-icon {
-  background: #1890ff;
+  background: #52c41a;
   color: white;
   transform: scale(1.1);
 }
 
 .rp-item.active .rp-text {
-  color: #1890ff;
+  color: #52c41a;
   font-weight: 700;
 }
 

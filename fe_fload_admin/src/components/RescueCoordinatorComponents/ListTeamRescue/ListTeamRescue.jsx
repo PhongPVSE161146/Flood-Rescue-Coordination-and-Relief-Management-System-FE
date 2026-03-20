@@ -107,16 +107,21 @@ const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
 /* ================= PRIORITY ================= */
 
 const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
+};
+const priorityClass = {
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
 
 const URGENCY_OPTIONS = [
   { label: "Tất cả", value: "" },
-  { label: "Mức Độ Cao", value: "Mức Độ Cao" },
-  { label: "Mức Độ Trung Bình", value: "Mức Độ Trung Bình" },
-  { label: "Mức Độ Thấp", value: "Mức Độ Thấp" }
+  { label: "Khẩn cấp", value: "Khẩn cấp" },
+  { label: "Ưu tiên", value: "Ưu tiên" },
+  { label: "Cần hỗ trợ", value: "Cần hỗ trợ" }
 ];
 
 /* ================= CONVERT API ================= */

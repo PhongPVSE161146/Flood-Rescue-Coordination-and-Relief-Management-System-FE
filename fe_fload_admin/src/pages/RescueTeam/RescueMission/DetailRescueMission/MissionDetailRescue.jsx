@@ -18,9 +18,14 @@ import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 
 const priorityTranslate = {
-High:"Mức Độ Cao",
-Medium:"Mức Độ Trung Bình",
-Low:"Mức Độ Thấp"
+  "Khẩn cấp": "Khẩn cấp",
+  "ưu tiên": "ưu tiên",
+  "Cần hỗ trợ": "Cần hỗ trợ"
+};
+const priorityClass = {
+  "Khẩn cấp": "priority-high",
+  "ưu tiên": "priority-medium",
+  "Cần hỗ trợ": "priority-low"
 };
 const LOCK_STATUSES = [
   "ACCEPTED",
@@ -260,7 +265,7 @@ return(
 Nhiệm vụ cứu hộ
 
 <span className="md-badge">
-#{detail.requestId}
+Mã yêu cầu: #{detail.requestId}
 </span>
 
 <span className="md-status">
