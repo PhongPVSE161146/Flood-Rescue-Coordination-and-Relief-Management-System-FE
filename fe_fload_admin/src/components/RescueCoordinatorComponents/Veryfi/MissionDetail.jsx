@@ -4,14 +4,13 @@ import { PhoneOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
-  verifyRescueRequest as verifyAndDispatchRescueRequest,
-  rejectRescueRequest,
-  getUrgencyLevels
-} from "../../../../api/axios/RescueRequests/rescueRequestsApi";
+  getUrgencyLevels,
+  verifyAndDispatchRescueRequest,
+  rejectRescueRequest
+} from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
-import MissionHistory from "../../Common/MissionHistory/MissionHistory";
 import "./MissionDetail.css";
 
 const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
@@ -385,7 +384,9 @@ const [rejectLoading, setRejectLoading] = useState(false);
               src={`https://www.google.com/maps?q=${mission.locationLat},${mission.locationLng}&z=13&output=embed`}
             />
 
-          </section>
+</div>
+
+</section>
 
         </div>
 
