@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import {
   getRescueAssignmentById,
-  getDispatchQueue as getPendingRescueRequests,
+  getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 import { Image } from "antd";
