@@ -202,14 +202,14 @@ export default function MissionHistory() {
                 {getInitials(m.name)}
               </div>
               <div>
-                <h4>👤 {m.name}</h4>
-                <span className="rm-phone">📞 {m.phone}</span>
+                <h4>Họ tên: {m.name}</h4>
+                <span className="rm-phone">SĐT: {m.phone}</span>
               </div>
             </div>
 
             {/* ADDRESS */}
             <div className="rm-address">
-              📍 {m.address}
+              Địa chỉ: {m.address}
             </div>
 
             {/* INFO */}
@@ -240,7 +240,7 @@ export default function MissionHistory() {
                   navigate(`/rescueTeam/history/${m.id}`)
                 }
               >
-                📋 Xem lịch sử
+                 Xem lịch sử
               </button>
             </div>
 

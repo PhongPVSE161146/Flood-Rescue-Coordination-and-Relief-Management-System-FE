@@ -32,7 +32,7 @@ const STATUS_STEPS = [
   { key: "DEPARTED", label: "Đã xuất phát", icon: "🚑" },
   { key: "ARRIVED", label: "Đã đến hiện trường", icon: "📍" },
   { key: "COMPLETED", label: "Hoàn thành", icon: "✔" },
-  { key: "REJECTED", label: "Từ chối", icon: "✖" },
+
 ];
 
 export default function RescueOperationDetail({ assignmentId }) {
@@ -325,43 +325,40 @@ Kết thúc nhiệm vụ
 
   ) : (
 
-    <div className="rc-timeline">
+      <div className="rc-timeline">
 
-      {STATUS_STEPS.map((step, index) => {
+          {STATUS_STEPS.map((step, index) => {
 
-        const currentIndex = STATUS_STEPS.findIndex(
-          s => s.key === detail.assignmentStatus
-        );
+            const isDone = index < currentIndex;
+            const isActive = index === currentIndex;
 
-        const isActive = index === currentIndex;
-        const isDone = index < currentIndex;
+            return (
+              <div key={step.key} className="rc-timeline__step">
 
-        return (
-          <div key={step.key} className="rc-timeline__step">
+                <div
+                  className={`rc-timeline__item 
+                  ${isActive ? "active" : ""}
+                  ${isDone ? "done" : ""}`}
+                >
+                  <div className="rc-timeline__icon">
+                    {step.icon}
+                  </div>
 
-            <div
-              className={`rc-timeline__item 
-              ${isActive ? "active" : ""}
-              ${isDone ? "done" : ""}`}
-            >
-              <div className="rc-timeline__icon">
-                {step.icon}
+                  <div className="rc-timeline__content">
+                    <b>{step.label.toUpperCase()}</b>
+                  </div>
+                </div>
+
+                {index < STATUS_STEPS.length - 1 && (
+                  <div className={`rc-timeline__line ${isDone ? "done" : ""}`} />
+                )}
+
               </div>
+            );
 
-              <div className="rc-timeline__content">
-                <b>{step.label.toUpperCase()}</b>
-              </div>
-            </div>
+          })}
 
-            {index < STATUS_STEPS.length - 1 && (
-              <div className={`rc-timeline__line ${isDone ? "done" : ""}`} />
-            )}
-
-          </div>
-        );
-      })}
-
-    </div>
+        </div>
 
   )}
 
@@ -454,7 +451,7 @@ loading="lazy"
 
 </div>
 
-{/* CHAT */}
+
 
 <div className="rc-op-col">
 

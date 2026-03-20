@@ -108,62 +108,51 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
 
   }, [open, requestId]);
   const handleConfirmComplete = () => {
-
     let tempNote = "";
   
     AntModal.confirm({
-  
       title: "Xác nhận hoàn thành cứu hộ",
-  
       content: (
         <Input.TextArea
-          placeholder="Nhập ghi chú..."
+          placeholder="Nhập ghi chú (tùy chọn)..."
+          autoSize={{ minRows: 3, maxRows: 6 }}
           onChange={(e) => {
             tempNote = e.target.value;
           }}
         />
       ),
-  
       okText: "Xác nhận",
       cancelText: "Hủy",
-  
       onOk: async () => {
         try {
           setConfirmLoading(true);
-      
+  
           await completeRescueRequest(
             requestId,
-            tempNote || "Đã hoàn thành cứu trợ"
+            tempNote.trim() || "Đã hoàn thành cứu trợ"
           );
-      
-          AuthNotify.success(
-            "Thành công",
-            "Đã xác nhận hoàn thành cứu hộ"
-          );
-      
-          setIsConfirmed(true); // 🔥 làm mờ nút
-      
-          // 👉 reload + chuyển trang
-          setTimeout(() => {
-            window.location.href = "/map";
-          }, 1000);
-      
+  
+          AuthNotify.success("Thành công", "Đã xác nhận hoàn thành cứu hộ");
+  
+          setIsConfirmed(true);        // ← quan trọng: ẩn nút
+  
+          // Tùy chọn: reload data để đồng bộ (nếu cần)
+          // const newData = await getRescueProgress(requestId);
+          // setData(newData);
+  
         } catch (err) {
-          AuthNotify.error("Thất bại", err.message);
+          AuthNotify.error("Thất bại", err.message || "Có lỗi xảy ra");
         } finally {
           setConfirmLoading(false);
         }
-      }
-  
+      },
     });
-  
   };
+  const shouldShowConfirmButton = 
+  data?.assignment?.assignmentStatus?.trim().toUpperCase() === "COMPLETED";
 
-  const isCompletedAssignment =
-  data?.assignment?.assignmentStatus === "COMPLETED";
+const isButtonDisabled = isConfirmed;
 
-const isFinalCompleted =
-  data?.currentProgressCode === "COMPLETED";
   /* ================= STEP ================= */
 
   const currentIndex = STATUS_STEPS.findIndex(
@@ -193,6 +182,7 @@ const isFinalCompleted =
 const isRejected =
   data?.currentProgressCode === "REQUEST_REJECTED" ||
   data?.assignment?.assignmentStatus === "REJECTED";
+  
   return (
 
     <Modal
@@ -205,23 +195,24 @@ const isRejected =
 
     /* 🔥 FOOTER FIX */
     footer={[
-      isCompletedAssignment && (
-        <Button
-          key="complete"
-          type="primary"
-          danger
-          htmlType="button"
-          loading={confirmLoading}
-          disabled={isFinalCompleted}
-          style={{
-            opacity: isFinalCompleted ? 0.5 : 1,
-            cursor: isFinalCompleted ? "not-allowed" : "pointer"
-          }}
-          onClick={handleConfirmComplete}
-        >
-          ✔ Xác nhận đã cứu trợ
-        </Button>
-      ),
+      ...(shouldShowConfirmButton
+        ? [
+            <Button
+              key="complete"
+              type="primary"
+              danger
+              loading={confirmLoading}
+              onClick={handleConfirmComplete}
+              disabled={isButtonDisabled}
+  style={{
+    opacity: isButtonDisabled ? 0.6 : 1,
+    cursor: isButtonDisabled ? "not-allowed" : "pointer"
+  }}
+            >
+             {isButtonDisabled ? "✓ Đã xác nhận hoàn thành" : "✔ Xác nhận đã cứu trợ"}
+            </Button>
+          ]
+        : []),
     
       <Button key="close" onClick={onClose}>
         Đóng

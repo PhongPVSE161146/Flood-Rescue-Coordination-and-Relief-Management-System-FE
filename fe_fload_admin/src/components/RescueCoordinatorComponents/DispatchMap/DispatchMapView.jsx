@@ -61,44 +61,48 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
     useEffect(() => {
 
-      const fetchProvinces = async () => {
-  
-        try {
-  
-          const res = await getProvinces();
-  
-          const list =
-            res?.data ||
-            res?.data?.items ||
-            [];
-  
-          setProvinces(list);
-  
-        } catch (err) {
-  
-          console.error("Load provinces error:", err);
-  
-        }
-  
-      };
-  
       fetchProvinces();
   
     }, []);
   
+    const fetchProvinces = async () => {
+  
+      try {
+  
+        const res = await getProvinces();
+  
+        const data = res?.data || res || [];
+  
+        setProvinces(data);
+  
+        const map = {};
+  
+        data.forEach((p) => {
+          map[p.id] = p.name;
+        });
+  
+     
+  
+      }
+      catch (err) {
+  
+        console.log("Load provinces error:", err);
+  
+      }
+  
+    };
+  
     /* ================= MAP AREA ID -> NAME ================= */
   
-    const provinceMap = useMemo(() => {
+const provinceMap = useMemo(() => {
+  const map = {};
 
-      const map = {};
-    
-      provinces.forEach(p => {
-        map[p.id] = p.name;
-      });
-    
-      return map;
-    
-    }, [provinces]);
+  provinces.forEach(p => {
+    map[Number(p.id)] = p.name;
+  });
+
+  return map;
+}, [provinces]);
 
 
 
@@ -121,7 +125,9 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
         const teams = teamRes?.data || [];
 
         const availableTeams =
-          teams.filter(t => t.teamStatus === "on duty");
+        teams.filter(
+          t => t.teamStatus?.toLowerCase().trim() === "on duty"
+        );
 
         const mapped = await Promise.all(
 
@@ -490,14 +496,29 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
               onClick={() => toggleTeam(team.id)}
             >
 
-              <h5>{team.name}</h5>
+<div style={{ lineHeight: "1.6" }}>
+  <h5 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600 }}>
+    Tên đội: {team.name}
+  </h5>
 
-              <p><b>Trạng thái:</b> 🟢 Sẵn sàng</p>
+  <div style={{ fontSize: 13, color: "#374151", marginBottom: 4 }}>
+    📍 Khu vực: {provinceMap[Number(team.areaId)] || "Không xác định"}
+  </div>
 
-              {/* <p><b>Vị trí:</b> {team.address}</p>
-              <p>
-  <b>Khu Vực:</b> {provinces.find(p => p.id === team.areaId)?.name || "Không xác định"}
-</p> */}
+  <div style={{ fontSize: 13 }}>
+    <b>Trạng thái:</b>{" "}
+    <span
+      style={{
+        color: "#2e7d32",
+        fontWeight: 600
+      }}
+    >
+      ● Sẵn sàng
+    </span>
+  </div>
+</div>
+
+             
 
             </div>
 
@@ -511,13 +532,35 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
               onClick={() => toggleVehicle(v.id)}
             >
 
-              <h5>{v.name}</h5>
+<div style={{ lineHeight: "1.6" }}>
+  <h5 style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600 }}>
+    Tên phương tiện: {v.name}
+  </h5>
 
-              <p><b>Loại:</b> {v.type}</p>
+  <div style={{ fontSize: 13, color: "#374151" }}>
+    <b>Loại phương tiện:</b> {v.type}
+  </div>
 
-              <p><b>Trạng thái:</b> {v.status}</p>
+  <div style={{ fontSize: 13, marginTop: 4 }}>
+    <b>Trạng thái:</b>{" "}
+    <span
+      style={{
+        padding: "2px 10px",
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 600,
+        background: "#e8f5e9",
+        color: "#2e7d32"
+      }}
+    >
+      Sẵn sàng
+    </span>
+  </div>
 
-              <p><b>Khu vực:</b> {v.location}</p>
+  <div style={{ fontSize: 15, marginTop: 4, color: "#6b7280" , fontWeight: "bold"}}>
+    Khu vưc: {v.location}
+  </div>
+</div>
 
             </div>
 

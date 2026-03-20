@@ -253,3 +253,12 @@
     font-size: 12px;
   }
 }
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #1677ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

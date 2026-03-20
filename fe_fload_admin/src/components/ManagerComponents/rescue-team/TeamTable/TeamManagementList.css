@@ -173,3 +173,20 @@
     background: #f1f5f9;
     padding: 10px 0;
   }
+  .team-mgmt-status {
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    display: inline-block;
+    font-size: 12px;
+  }
+  
+  .team-mgmt-status.active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .team-mgmt-status.inactive {
+    background-color: #ffebee;
+    color: #d32f2f;
+  }
