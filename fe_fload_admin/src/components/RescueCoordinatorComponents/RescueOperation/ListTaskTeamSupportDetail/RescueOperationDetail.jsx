@@ -13,15 +13,21 @@ import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTea
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 const API_BASE = "https://api-rescue.purintech.id.vn";
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
-};
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
+const getPriorityClass = (id) => {
+  const colors = [
+    "priority-high",
+    "priority-medium",
+    "priority-low",
+    "priority-blue",
+    "priority-purple",
+    "priority-cyan",
+    "priority-gold",
+    "priority-lime",
+    "priority-magenta",
+    "priority-volcano"
+  ];
+
+  return colors[(id - 1) % colors.length] || "priority-default";
 };
 
 
@@ -92,10 +98,10 @@ export default function RescueOperationDetail({ assignmentId }) {
         vehicleMap[v.vehicleId]=v.vehicleName
       })
   
-      const urgencyMap={}
-      urgencies.forEach(u=>{
-        urgencyMap[u.urgencyLevelId]=u.levelName
-      })
+      const urgencyMap = {};
+      urgencies.forEach(u => {
+        urgencyMap[u.urgencyLevelId] = u;
+      });
   
       const statusMap={}
       statuses.forEach(s=>{
@@ -106,12 +112,10 @@ export default function RescueOperationDetail({ assignmentId }) {
         r=>r.rescueRequestId===assignment.rescueRequestId
       )
   
-      const urgencyLevel = urgencyMap[req?.urgencyLevelId]
-  
+      const urgencyObj = urgencyMap[req?.urgencyLevelId];
+
       const urgencyText =
-        priorityTranslate[urgencyLevel] ||
-        urgencyLevel ||
-        "Không xác định"
+        urgencyObj?.levelName || "Không xác định";
   
         const data={
 
@@ -127,7 +131,8 @@ export default function RescueOperationDetail({ assignmentId }) {
           phone:req?.contactPhone,
           address:req?.address,
         
-          urgency:urgencyText,
+          urgency: urgencyText,
+          urgencyLevelId: req?.urgencyLevelId,
         
           status:statusMap[req?.requestStatusId],
           statusId:req?.requestStatusId,
@@ -258,8 +263,8 @@ setImages(normalizedImages);
 <h2>
 Mã yêu cầu: #{detail.rescueRequestId}
 
-<span className="rc-badge rc-badge--danger">
-{detail.urgency}
+<span className={`rc-badge ${getPriorityClass(detail.urgencyLevelId)}`}>
+  {detail.urgency}
 </span>
 
 </h2>
@@ -433,7 +438,7 @@ Kết thúc nhiệm vụ
 <section className="rc-op-card">
 
 <h4 className="card-title">
-3. VỊ TRÍ GPS
+3. VỊ TRÍ HIỆN TẠI
 <span className="rc-online">● TRỰC TUYẾN</span>
 </h4>
 

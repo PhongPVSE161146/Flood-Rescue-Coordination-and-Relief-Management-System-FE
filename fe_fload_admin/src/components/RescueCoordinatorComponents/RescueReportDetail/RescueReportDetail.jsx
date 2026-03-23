@@ -12,12 +12,20 @@ import "./RescueReportDetail.css";
 const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
 
 const getUrgencyColor = (id) => {
-  switch (id) {
-    case 1: return "red";     // Khẩn cấp
-    case 2: return "orange";  // ưu tiên
-    case 3: return "blue";    // cần hỗ trợ
-    default: return "default";
-  }
+  const colors = [
+    "red",
+    "orange",
+    "green",
+    "blue",
+    "purple",
+    "cyan",
+    "gold",
+    "lime",
+    "magenta",
+    "volcano"
+  ];
+
+  return colors[(id - 1) % colors.length] || "default";
 };
 const thStyle = {
   padding: "8px",
@@ -33,6 +41,7 @@ const tdStyle = {
   border: "1px solid #eee",
   fontSize: 14
 };
+
 export default function RescueReportDetail({ mission }) {
 
   const [data, setData] = useState(null);

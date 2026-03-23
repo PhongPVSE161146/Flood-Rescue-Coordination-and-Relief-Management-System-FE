@@ -17,16 +17,7 @@ import { getAllRescueTeams } from "../../../../../api/axios/ManagerApi/rescueTea
 import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
-};
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
-};
+
 const LOCK_STATUSES = [
   "ACCEPTED",
   "DEPARTED",
@@ -91,8 +82,11 @@ teams.forEach(t=>teamMap[t.rcid]=t.rcName)
 const vehicleMap={}
 vehicles.forEach(v=>vehicleMap[v.vehicleId]=v.vehicleName)
 
-const urgencyMap={}
-urgencies.forEach(u=>urgencyMap[u.urgencyLevelId]=u.levelName)
+
+const urgencyMap = {};
+urgencies.forEach(u => {
+  urgencyMap[u.urgencyLevelId] = u;
+});
 
 const statusMap={}
 statuses.forEach(s=>statusMap[s.statusId]=s.description)
@@ -101,12 +95,10 @@ const req = requests.find(
 r=>r.rescueRequestId===assignment.rescueRequestId
 )
 
-const urgencyLevel = urgencyMap[req?.urgencyLevelId]
+const urgencyObj = urgencyMap[req?.urgencyLevelId];
 
 const urgencyText =
-priorityTranslate[urgencyLevel] ||
-urgencyLevel ||
-"Không xác định"
+  urgencyObj?.levelName || "Không xác định";
 
 setDetail({
 
@@ -285,7 +277,7 @@ Mã yêu cầu: #{detail.requestId}
 </div>
 
 <p className="md-address">
-📍 {detail.address}
+Địa chỉ: {detail.address}
 </p>
 
 </div>
@@ -315,7 +307,7 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <div className="md-card">
 
-<h4>👤 Người yêu cầu</h4>
+<h4 className="card-title">1. Người gửi yêu cầu</h4>
 
 <div className="md-row">
 
@@ -335,7 +327,7 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <div className="md-card md-danger">
 
-<h4>⚠ Mức độ nguy hiểm</h4>
+<h4 className="card-title">2. Mức độ nguy hiểm</h4>
 
 <p>{detail.urgency}</p>
 
@@ -343,16 +335,16 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <div className="md-card">
 
-<h4>🚑 Đội cứu hộ</h4>
+<h4 className="card-title">3. Đội cứu hộ</h4>
 
-<p>👥 {detail.team}</p>
-<p>🚗 {detail.vehicle}</p>
+<p>Tên đội: {detail.team}</p>
+<p>Tên phương tiện: {detail.vehicle}</p>
 
 </div>
 
 <div className="md-card">
 
-<h4>📝 Mô tả sự cố</h4>
+<h4 className="card-title">4. Mô tả sự cố chi tiết</h4>
 
 <p className="md-description">
 {detail.detailDescription}
@@ -362,7 +354,7 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <section className="md-media">
 
-  <h4>📷 Hình ảnh hiện trường</h4>
+<h4 className="card-title">5. Hình ảnh hiện trường</h4>
 
   <div className="md-media-list">
 
@@ -397,7 +389,7 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 
 <div className="md-card">
 
-<h4>📋 Thông tin cứu hộ</h4>
+<h4 className="card-title">6. Nguồn lực & mô tả</h4>
 
 <div className="md-rescue-info">
 
@@ -429,7 +421,7 @@ onClick={()=>window.location.href=`tel:${detail.phone}`}
 <div className="md-map">
 
 <div className="md-map-label">
-📍 {detail.address}
+ {detail.address}
 </div>
 
 <iframe

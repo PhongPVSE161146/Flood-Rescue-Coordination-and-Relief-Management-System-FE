@@ -448,3 +448,41 @@
   border-radius: 10px;
   cursor: pointer; /* 👈 thêm để nhìn clickable */
 }
+
+
+
+
+/* P4 – GRAY */
+.rc-p4 { background: #f5f5f5; }
+.rc-p4.is-active { border-color: #9ca3af; }
+.rc-p4.is-active .rc-radio { background: #9ca3af; border-color: #9ca3af; }
+
+/* P5 – PURPLE */
+.rc-p5 { background: #faf5ff; }
+.rc-p5.is-active { border-color: #c084fc; }
+.rc-p5.is-active .rc-radio { background: #c084fc; border-color: #c084fc; }
+
+/* P6 – ORANGE */
+.rc-p6 { background: #fff7ed; }
+.rc-p6.is-active { border-color: #fb923c; }
+.rc-p6.is-active .rc-radio { background: #fb923c; border-color: #fb923c; }
+
+/* P7 – CYAN */
+.rc-p7 { background: #ecfeff; }
+.rc-p7.is-active { border-color: #22d3ee; }
+.rc-p7.is-active .rc-radio { background: #22d3ee; border-color: #22d3ee; }
+
+/* P8 – PINK */
+.rc-p8 { background: #fdf2f8; }
+.rc-p8.is-active { border-color: #f472b6; }
+.rc-p8.is-active .rc-radio { background: #f472b6; border-color: #f472b6; }
+
+/* P9 – YELLOW */
+.rc-p9 { background: #fefce8; }
+.rc-p9.is-active { border-color: #facc15; }
+.rc-p9.is-active .rc-radio { background: #facc15; border-color: #facc15; }
+
+/* P10 – TEAL */
+.rc-p10 { background: #f0fdfa; }
+.rc-p10.is-active { border-color: #2dd4bf; }
+.rc-p10.is-active .rc-radio { background: #2dd4bf; border-color: #2dd4bf; }

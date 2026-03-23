@@ -1,5 +1,5 @@
 import MissionListRescue from "../../../components/RescueTeamComponents/ListTaskMission/MissionListRescue";
-import MissionQuickNotify from "../../../components/RescueTeamComponents/ListTaskNotify/MissionQuickNotify";
+// import MissionQuickNotify from "../../../components/RescueTeamComponents/ListTaskNotify/MissionQuickNotify";
 import "./RescueMission.css";
 
 export default function RescueMission() {
@@ -11,9 +11,9 @@ export default function RescueMission() {
       </aside>
 
       {/* RIGHT – THÔNG BÁO NHANH */}
-      <aside className="rc-dispatch__right">
+      {/* <aside className="rc-dispatch__right">
         <MissionQuickNotify />
-      </aside>
+      </aside> */}
     </div>
   );
 }

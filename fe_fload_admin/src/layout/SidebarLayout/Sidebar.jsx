@@ -147,7 +147,7 @@ const menuByRole = {
     //   path: "/rescueTeam/messages"
     // },
     {
-      label: "Cá nhân",
+      label: "Thành Viên Đội",
       icon: <UserOutlined />,
       path: "/rescueTeam/list-member"
     }

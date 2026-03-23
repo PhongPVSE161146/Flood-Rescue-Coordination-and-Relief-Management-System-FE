@@ -15,16 +15,7 @@ import "./MissionDetail.css";
 
 const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
 
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
-};
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
-};
+
 
 export default function MissionDetail({ mission }) {
 
@@ -373,7 +364,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
     <section className="rc-op-card">
 
 <h4 className="card-title">
-4. VỊ TRÍ GPS
+4. VỊ TRÍ HIỆN TẠI
 <span className="rc-online">● TRỰC TUYẾN</span>
 </h4>
 
@@ -479,7 +470,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
       <div className="priority-title">
   <span className="priority-name">
-    {priorityTranslate[level.levelName] || level.levelName}
+   Mức đô: {[level.levelName] || level.levelName}
   </span>
 
   {recommendedPriority === priorityCode && (
@@ -489,7 +480,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
   )}
 </div>
 
-        <p>{level.description}</p>
+        <p>Trạng thái: {level.description}</p>
 
        
         <span style={{ fontSize: 12, color: "#999" }}>

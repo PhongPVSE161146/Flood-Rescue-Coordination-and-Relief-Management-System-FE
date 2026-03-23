@@ -7,6 +7,20 @@ import "./MissionList.css";
 
 const { Option } = Select;
 
+
+
+
+
+const normalizeAddress = (address) => {
+  if (!address) return "";
+
+  return address
+    .replace(/^(Hẻm|Ngõ|Hẽm)\s*\d*\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+};
+
 /* ================= TIME AGO ================= */
 
 function timeAgo(ts) {
@@ -36,26 +50,9 @@ const isNew = (createdAt) => {
   return diff <= 60;
 };
 
-/* ================= REQUEST TYPES ================= */
 
-const REQUEST_TYPES = [
-  "cứu hộ khẩn cấp",
-  "hỗ trợ cứu trợ",
-  "cứu hộ ngập lụt",
-  "cứu hộ lũ quét",
-  "cứu hộ sạt lở",
-  "hỗ trợ sơ tán",
-  "hỗ trợ y tế khẩn cấp",
-  "tiếp tế lương thực",
-  "tìm kiếm cứu nạn",
-  "cứu người mắc kẹt",
-  "đưa đến nơi trú ẩn"
-];
 
-const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
-  value: t,
-  label: t
-}));
+
 
 /* ================= CONVERT API ================= */
 
@@ -110,10 +107,7 @@ const convertApiToMission = (data = [], statuses = []) => {
 
         createdAt: new Date(item.createdAt).getTime(),
 
-        incident:
-          MAIN_INCIDENT_OPTIONS.find(
-            (o) => o.value === item.requestType
-          )?.label || item.requestType,
+        incident: item.requestType || "Không rõ",
 
         status: "pending",
         statusText: statusObj?.description || "Đang xử lý",
@@ -194,16 +188,20 @@ export default function MissionList({ onSelectMission }) {
 
   /* ================= ADDRESS OPTIONS ================= */
 
-  const ADDRESS_OPTIONS = useMemo(() => {
-
-    const unique = [...new Set(missions.map(m => m.address).filter(Boolean))];
-
-    return unique.map(addr => ({
-      label: addr,
-      value: addr
-    }));
-
-  }, [missions]);
+   const ADDRESS_OPTIONS = useMemo(() => {
+ 
+     const unique = [...new Set(
+       missions
+         .map(m => normalizeAddress(m.address))
+         .filter(Boolean)
+     )];
+   
+     return unique.map(addr => ({
+       label: addr,
+       value: addr
+     }));
+   
+   }, [missions]);
 
   /* ================= CHANGE TAB ================= */
 
@@ -267,6 +265,26 @@ export default function MissionList({ onSelectMission }) {
 
   }, []);
 
+
+
+
+  const INCIDENT_OPTIONS = useMemo(() => {
+
+    const unique = [...new Set(
+      missions
+        .map(m => m.incident)
+        .filter(Boolean)
+    )];
+  
+    return [
+      { label: "Tất cả", value: "" },
+      ...unique.map(i => ({
+        label: i,
+        value: i
+      }))
+    ];
+  
+  }, [missions]);
   /* ================= FILTER ================= */
 
   const filtered = useMemo(() => {
@@ -283,13 +301,17 @@ export default function MissionList({ onSelectMission }) {
 
     if (tab === "merge") {
 
-      if (filters.requestType)
-        list = list.filter(m =>
-          m.incident?.toLowerCase().includes(filters.requestType.toLowerCase())
-        );
+   if (filters.requestType)
+  list = list.filter(
+    m => m.incident === filters.requestType
+  );
 
-      if (filters.address)
-        list = list.filter(m => m.address === filters.address);
+  if (filters.address)
+    list = list.filter(m =>
+      normalizeAddress(m.address)
+        .toLowerCase()
+        .includes(filters.address.toLowerCase())
+    );
 
       if (filters.timeRange) {
 
@@ -395,10 +417,7 @@ export default function MissionList({ onSelectMission }) {
     allowClear
     value={filters.requestType || undefined}
     style={{ width: "100%" }}
-    options={[
-      { label: "Tất cả", value: "" },
-      ...MAIN_INCIDENT_OPTIONS
-    ]}
+    options={INCIDENT_OPTIONS}
     optionFilterProp="label"
     onChange={(value) =>
       setFilters({
@@ -412,24 +431,17 @@ export default function MissionList({ onSelectMission }) {
   {/* ĐỊA CHỈ */}
 
   <Select
-    placeholder="Địa chỉ"
-    showSearch
-    allowClear
-    value={filters.address || undefined}
-    style={{ width: "100%", marginTop: 8 }}
-    options={[
-      { label: "Tất cả", value: "" },
-      ...ADDRESS_OPTIONS
-    ]}
-    optionFilterProp="label"
-    onChange={(value) =>
-      setFilters({
-        requestType: "",
-        address: value || "",
-        timeRange: ""
-      })
-    }
-  />
+placeholder="Địa chỉ"
+allowClear
+style={{width:"100%"}}
+options={ADDRESS_OPTIONS}
+value={filters.address || undefined}
+onChange={(v)=>setFilters({
+requestType:"",
+address:v || "",
+urgency:""
+})}
+/>
 
   {/* THỜI GIAN */}
 
