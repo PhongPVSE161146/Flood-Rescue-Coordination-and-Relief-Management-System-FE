@@ -174,7 +174,6 @@ export default function Sidebar() {
     (sessionStorage.getItem("role") || "admin")
       .toLowerCase();
 
-  const fullName = user.fullName || "Unknown User";
   const roleName = user.roleName || role;
 
   const menus = menuByRole[role] || [];
@@ -200,6 +199,7 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile();
   }, []);
 

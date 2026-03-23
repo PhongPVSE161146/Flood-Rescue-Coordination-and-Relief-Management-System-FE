@@ -27,6 +27,7 @@ const MissionHistory = ({ rescueRequestId, title = "Lịch sử Hoạt động" 
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchLogs();
   }, [rescueRequestId]);
 

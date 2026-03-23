@@ -35,11 +35,6 @@ const priorityTranslate = {
   "ưu tiên": "ưu tiên",
   "Cần hỗ trợ": "Cần hỗ trợ"
 };
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
-};
 
 /* ================= REQUEST TYPES ================= */
 

@@ -32,6 +32,7 @@ export default function UserTable({
 
   /* ================= FETCH PROVINCES ================= */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProvinces();
   }, []);
 
