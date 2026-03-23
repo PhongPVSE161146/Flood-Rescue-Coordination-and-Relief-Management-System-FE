@@ -229,8 +229,17 @@ export default function SystemSetting() {
                   <div className="config-group-content">
                     <Card title={`Nhóm: ${group.toUpperCase()}`} variant="borderless">
                       {configs
-                        .filter((c) => c.configGroup === group)
-                        .map((config) => (
+  .filter((c) => c.configGroup === group)
+  .sort((a, b) => {
+    const order = {
+      LOW_SCORE: 1,
+      MEDIUM_SCORE: 2,
+      HIGH_SCORE: 3,
+    };
+
+    return (order[a.configKey] || 99) - (order[b.configKey] || 99);
+  })
+  .map((config) => (
                           <div key={config.configKey} className="config-item">
                             <div className="config-info">
                               <h4>{config.description || config.configKey}</h4>
