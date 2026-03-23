@@ -5,7 +5,7 @@ export async function getAddressFromLatLng(lat, lng) {
       );
       const data = await res.json();
       return data.display_name || "Không xác định địa chỉ";
-    } catch (err) {
+    } catch {
       return "Không lấy được địa chỉ";
     }
   }

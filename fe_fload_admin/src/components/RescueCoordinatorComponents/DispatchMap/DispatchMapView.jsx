@@ -163,10 +163,11 @@ const provinceMap = useMemo(() => {
 
               }
 
-            } catch {}
+            } catch {
+              // ignore parse error
+            }
 
             return {
-
               id: team.rescueTeamId,
               name: team.teamName,
               status: team.teamStatus,
