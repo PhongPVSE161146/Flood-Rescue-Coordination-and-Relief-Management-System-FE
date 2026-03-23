@@ -31,9 +31,7 @@ import "./RescueHistory.css";
 /* ================= INCIDENT TYPE ================= */
 
 const REQUEST_TYPES = [
-  "cứu hộ khẩn cấp",
-  "hỗ trợ cứu trợ",
-  "cứu hộ ngập lụt",
+
   "cứu hộ lũ quét",
   "cứu hộ sạt lở",
   "hỗ trợ sơ tán",
@@ -387,9 +385,8 @@ export default RescueHistory;
 function HistoryCard({ data, onEdit, onDelete, onView, onProcess }) {
 
   const isEditable = data.statusId === 1;   // status 1
-  const isTracking =
-  data.statusId === 2 ||
-  data.statusId === 3 ||
+  const isTracking = data.statusId === 2 ;
+  const isProgress = data.statusId === 3 ||
   data.statusId === 4 ||
   data.statusId === 5 ||
   data.statusId === 6;
@@ -479,7 +476,7 @@ function HistoryCard({ data, onEdit, onDelete, onView, onProcess }) {
         )}
 
         {/* 🔥 STATUS 2: CHỈ XEM QUÁ TRÌNH */}
-        {isTracking && (
+        {isProgress && (
           <Button
             size="small"
             type="text"
@@ -495,7 +492,7 @@ function HistoryCard({ data, onEdit, onDelete, onView, onProcess }) {
         )}
 
         {/* 🔥 STATUS KHÁC */}
-        {!isEditable && !isTracking && (
+        {isTracking && (
           <Button
             size="small"
             type="text"

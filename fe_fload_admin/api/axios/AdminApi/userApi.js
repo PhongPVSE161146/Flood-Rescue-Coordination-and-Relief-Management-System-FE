@@ -59,7 +59,7 @@ export const getAllUser = async () => {
         throw new Error(`Unexpected status: ${response.status}`);
       }
       
-      return response.data;  // "User deleted successfully!" hoặc object nếu backend đổi
+      return response.data;  
     } catch (error) {
       console.error("DELETE USER ERROR:", error);
       // Có thể log thêm response nếu có

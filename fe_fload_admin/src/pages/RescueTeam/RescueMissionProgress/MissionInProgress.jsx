@@ -17,17 +17,16 @@ import {
 import AuthNotify from "../../../utils/Common/AuthNotify";
 // const API_BASE = "https://api-rescue.purintech.id.vn";
 
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
-};
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
-};
+const getUrgencyColor = (id) => {
+  if (!id) return "default";
 
+  const colors = [
+    "red","orange","blue","green","purple",
+    "cyan","gold","lime","magenta","volcano"
+  ];
+
+  return colors[(id - 1) % colors.length] || "default";
+};
 const STATUS_STEPS = [
   { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
   { key: "ASSIGNED", label: "Đã điều động", icon: "📋" },
@@ -66,7 +65,6 @@ export default function MissionInProgress() {
         vehicleRes
       ] = await Promise.all([
         getRescueAssignmentById(id),
-        // getPendingRescueRequests(),
         getUrgencyLevels(),
         getAllRescueTeams(),
         getAllVehicles()
@@ -79,7 +77,7 @@ export default function MissionInProgress() {
       const req = await getRescueRequestById(
         assignment.rescueRequestId
       );
-      const requests = requestRes?.data || requestRes || [];
+      // const requests = requestRes?.data || requestRes || [];
       const teams = teamRes?.data?.items || [];
       const vehicles = vehicleRes?.data || [];
       const urgencies = urgencyRes || [];
@@ -92,13 +90,14 @@ export default function MissionInProgress() {
       vehicles.forEach(v => (vehicleMap[v.vehicleId] = v.vehicleName));
 
       const urgencyMap = {};
-      urgencies.forEach(u => (urgencyMap[u.urgencyLevelId] = u.levelName));
+      urgencies.forEach(u => {
+        urgencyMap[u.urgencyLevelId] = u;
+      });
 
 
 
       if (!assignment) return;
-
-      const urgencyLevel = urgencyMap[req?.urgencyLevelId];
+      const urgencyObj = urgencyMap[req?.urgencyLevelId];
 
       /* ===== SET DETAIL ===== */
       setDetail({
@@ -121,10 +120,8 @@ export default function MissionInProgress() {
         detailDescription: req?.detailDescription || "Không có",
         rescueTeamNote: req?.rescueTeamNote || "Không có",
 
-        urgency:
-          priorityTranslate[urgencyLevel] ||
-          urgencyLevel ||
-          "Không xác định",
+        urgency: urgencyObj?.levelName || "Không xác định",
+        urgencyLevelId: req?.urgencyLevelId,
 
         startTime: assignment.assignedAt
       });
@@ -281,9 +278,15 @@ export default function MissionInProgress() {
         <div>
           <h2>
             Mã yêu cầu: #{detail.rescueRequestId}
-            <span className="rc-badge rc-badge--danger">
-              {detail.urgency}
-            </span>
+            <span
+  className="rc-badge"
+  style={{
+    background: getUrgencyColor(detail.urgencyLevelId),
+    color: "#fff"
+  }}
+>
+  {detail.urgency}
+</span>
           </h2>
 
           <p>
@@ -348,7 +351,7 @@ export default function MissionInProgress() {
           {/* Người dân */}
           <section className="rc-op-card">
 
-  <h4>👤 NGƯỜI GỬI YÊU CẦU</h4>
+          <h4 className="card-title">1. THÔNG TIN NGƯỜI GỬI YÊU CẦU</h4>
 
   <div className="rc-user-grid">
 
@@ -361,19 +364,21 @@ export default function MissionInProgress() {
       <label>Số điện thoại</label>
       <p className="phone">{detail.phone}</p>
     </div>
+    <div >
+  <label>Địa chỉ</label>
 
+    
+  </div>
   </div>
 
-  <div className="rc-address">
-    📍 {detail.address}
-  </div>
+  <p >{detail.address}</p>
 
 </section>
 
           {/* Sự cố */}
           <section className="rc-op-card">
 
-          <h4 className="card-title"> THÔNG TIN SỰ CỐ</h4>
+          <h4 className="card-title">2. NGUỒN LỰC & MÔ TẢ </h4>
 
 <div className="rc-incident-grid">
 
@@ -405,7 +410,7 @@ export default function MissionInProgress() {
 
           {/* MAP */}
           <section className="rc-op-card">
-            <h4>📍 Bản Đồ</h4>
+          <h4 className="card-title">3, ĐỊA CHỈ HIỆN TẠI</h4>
             <iframe
               title="map"
               src={`https://www.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`}
@@ -419,25 +424,25 @@ export default function MissionInProgress() {
         <div className="rc-op-col">
     {/* Đội */}
     <section className="rc-op-card">
-            <h4>🚑 ĐỘI CỨU HỘ</h4>
-            <p>👥 {detail.team}</p>
-            <p>🚑 {detail.vehicle}</p>
+    <h4 className="card-title">4. THÔNG ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
+            <p>Tên đội: {detail.team}</p>
+            <p>Tên phương tiện: {detail.vehicle}</p>
           </section>
 
           {/* Mô tả */}
           <section className="rc-op-card">
-            <h4>📝 MÔ TẢ</h4>
+          <h4 className="card-title">5.  THÔNG TIN CHI TIẾT</h4>
             <p>{detail.detailDescription}</p>
           </section>
 
           {/* Ghi chú */}
           <section className="rc-op-card">
-            <h4>📌 GHI CHÚ</h4>
+          <h4 className="card-title">6. GHI CHÚ ĐỘI CỨU HỘ</h4>
             <p>{detail.rescueTeamNote}</p>
           </section>
 
           <section className="card">
-                  <h4>📷 HÌNH ẢNH THỰC TẾ </h4>
+          <h4 className="card-title">7. HÌNH ẢNH THỰC TẾ </h4>
 
                   {images?.length > 0 ? (
                     <Image.PreviewGroup>

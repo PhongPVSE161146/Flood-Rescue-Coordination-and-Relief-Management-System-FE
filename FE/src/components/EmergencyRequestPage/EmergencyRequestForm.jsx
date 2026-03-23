@@ -18,9 +18,6 @@ import {
   const { Option } = Select;
   
   const REQUEST_TYPES = [
-    "cứu hộ khẩn cấp",
-
-    "cứu hộ ngập lụt",
     "cứu hộ lũ quét",
     "cứu hộ sạt lở",
     "hỗ trợ sơ tán",
@@ -215,7 +212,7 @@ import {
   <label>ĐỊA CHỈ HIỆN TẠI <span className="required">*</span></label>
 
 <Input
-placeholder="Nhập địa chỉ chi tiết hoặc dùng GPS"
+placeholder="Nhập địa chỉ chi tiết hoặc lấy địa chỉ hiện tại"
 
 value={address}
 onChange={(e)=>{
@@ -231,7 +228,7 @@ className="gps-locate-btn"
 loading={loadingGPS}
 onClick={handleGetGPS}
 >
-🎯 LẤY TỌA ĐỘ GPS
+🎯 LẤY ĐỊA CHỈ HIỆN TẠI
 </Button>
 
 {!gpsSuccess && (

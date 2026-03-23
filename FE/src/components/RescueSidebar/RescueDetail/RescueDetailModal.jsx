@@ -17,6 +17,20 @@ const REQUEST_TYPES = [
   "cứu người mắc kẹt",
   "đưa đến nơi trú ẩn"
 ];
+const getStatusStyle = (status) => {
+  switch (status) {
+    case "PENDING":
+      return { background: "#fff7e6", color: "#fa8c16" };
+    case "PROCESSING":
+      return { background: "#e6f7ff", color: "#1890ff" };
+    case "DONE":
+      return { background: "#f6ffed", color: "#52c41a" };
+    case "CANCEL":
+      return { background: "#fff1f0", color: "#ff4d4f" };
+    default:
+      return { background: "#f5f5f5", color: "#595959" };
+  }
+};
 
 const REQUEST_TYPE_OPTIONS = REQUEST_TYPES.map(t => ({
   value: t,
@@ -108,7 +122,7 @@ export default function RescueDetailModal({ data, onClose }) {
             <section className="card">
 
               <h4 className="card-title">
-                👤 THÔNG TIN NGƯỜI DÂN
+                1. THÔNG TIN NGƯỜI DÂN
               </h4>
 
               <div className="info-row">
@@ -140,7 +154,7 @@ export default function RescueDetailModal({ data, onClose }) {
             <section className="card">
 
               <h4 className="card-title">
-                📋 TÌNH TRẠNG KHẨN CẤP
+                2. TÌNH TRẠNG KHẨN CẤP
               </h4>
 
               <p className="quote">
@@ -177,7 +191,7 @@ export default function RescueDetailModal({ data, onClose }) {
             <section className="card">
 
               <h4 className="card-title">
-                📷 HÌNH ẢNH HIỆN TRƯỜNG
+                3. HÌNH ẢNH HIỆN TRƯỜNG
               </h4>
 
               {normalizedImages.length > 0 ? (
@@ -208,7 +222,7 @@ export default function RescueDetailModal({ data, onClose }) {
             <section className="card">
 
   <h4 className="card-title">
-    📌 LOẠI YÊU CẦU
+    4. LOẠI YÊU CẦU
   </h4>
 
   <p style={{ fontWeight:600 }}>
@@ -219,7 +233,7 @@ export default function RescueDetailModal({ data, onClose }) {
 <section className="card">
 
 <h4 className="card-title">
-  🧰 NGUỒN LỰC
+  5. NGUỒN LỰC
 </h4>
 
 <div className="resource-grid">

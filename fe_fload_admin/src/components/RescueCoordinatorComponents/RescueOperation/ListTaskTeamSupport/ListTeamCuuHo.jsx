@@ -13,16 +13,24 @@ import { getRequestStatuses } from "../../../../../api/axios/Auth/authApi";
 
 import "./list-team-cuuho.css";
 
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
+
+const getPriorityClass = (id) => {
+  const map = {
+    1: "priority-high",     // đỏ
+    2: "priority-medium",   // cam
+    3: "priority-low",      // xanh lá
+    4: "priority-blue",     // xanh dương
+    5: "priority-purple",   // tím
+    6: "priority-cyan",     // cyan
+    7: "priority-gold",     // vàng
+    8: "priority-lime",     // lime
+    9: "priority-magenta",  // hồng
+    10: "priority-volcano"  // đỏ cam
+  };
+
+  return map[id] || "priority-default";
 };
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
-};
+
 const assignmentStatusMap = {
   PENDING:"Chờ điều phối",
   ASSIGNED: "Đã điều động",
@@ -42,6 +50,15 @@ const assignmentStatusClass = {
   COMPLETED: "status-completed",
   REJECTED: "status-rejected"
 }
+const normalizeAddress = (address) => {
+  if (!address) return "";
+
+  return address
+    .replace(/^(Hẻm|Ngõ|Hẽm)\s*\d*\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+};
 
 export default function ListTeamCuuHo({ onSelectMission }) {
 
@@ -106,10 +123,10 @@ export default function ListTeamCuuHo({ onSelectMission }) {
         requestMap[r.rescueRequestId]=r
       })
 
-      const urgencyMap={}
-      urgencies.forEach(u=>{
-        urgencyMap[u.urgencyLevelId]=u.levelName
-      })
+      const urgencyMap = {};
+      urgencies.forEach(u => {
+        urgencyMap[u.urgencyLevelId] = u;
+      });
 
       /* STATUS MAP (VIETNAMESE) */
 
@@ -126,7 +143,7 @@ export default function ListTeamCuuHo({ onSelectMission }) {
 
         const req = requestMap[a.rescueRequestId]
         
-        const urgencyLevel = urgencyMap[req?.urgencyLevelId]
+        const urgencyObj = urgencyMap[req?.urgencyLevelId];
         
         const requestStatus = statusMap[req?.statusId]
         
@@ -151,10 +168,8 @@ export default function ListTeamCuuHo({ onSelectMission }) {
         
         assignmentStatus:assignmentStatus,
         
-        urgency:
-        priorityTranslate[urgencyLevel] ||
-        urgencyLevel ||
-        "Không xác định",
+        urgency: urgencyObj?.levelName || "Không xác định",
+        urgencyLevelId: req?.urgencyLevelId,
         
         status:requestStatus || "Đang xử lý",
         
@@ -186,17 +201,46 @@ export default function ListTeamCuuHo({ onSelectMission }) {
 
   /* ================= FILTER OPTIONS ================= */
 
-  const ADDRESS_OPTIONS = useMemo(()=>{
-    const unique=[...new Set(missions.map(m=>m.address))]
-    return unique.map(a=>({label:a,value:a}))
-  },[missions])
+   const ADDRESS_OPTIONS = useMemo(() => {
+  
+      const unique = [...new Set(
+        missions
+          .map(m => normalizeAddress(m.address))
+          .filter(Boolean)
+      )];
+    
+      return unique.map(addr => ({
+        label: addr,
+        value: addr
+      }));
+    
+    }, [missions]);
 
-  const URGENCY_OPTIONS=[
-    {label:"Tất cả",value:""},
-    {label:"Khẩn cấp",value:"Khẩn cấp"},
-    {label:"Ưu tiên",value:"Ưu tiên"},
-    {label:"Cần hỗ trợ",value:"Cần hỗ trợ"}
-  ]
+    const URGENCY_OPTIONS = useMemo(() => {
+
+      const unique = [...new Set(
+        missions
+          .map(m => m.urgencyLevelId)
+          .filter(Boolean)
+      )];
+    
+      return [
+        { label: "Tất cả", value: "" },
+        ...unique.map(id => {
+    
+          const item = missions.find(
+            m => m.urgencyLevelId === id
+          );
+    
+          return {
+            label: item?.urgency || `Level ${id}`,
+            value: id
+          };
+    
+        })
+      ];
+    
+    }, [missions]);
 
   /* ================= TAB ================= */
 
@@ -228,13 +272,17 @@ export default function ListTeamCuuHo({ onSelectMission }) {
       )
     }
 
-    if(filters.address){
-      list=list.filter(m=>m.address===filters.address)
-    }
-
-    if(filters.urgency){
-      list=list.filter(m=>m.urgency===filters.urgency)
-    }
+    if (filters.address)
+      list = list.filter(m =>
+        normalizeAddress(m.address)
+          .toLowerCase()
+          .includes(filters.address.toLowerCase())
+      );
+      if (filters.urgency) {
+        list = list.filter(
+          m => m.urgencyLevelId === filters.urgency
+        );
+      }
 
     return list
 
@@ -269,13 +317,13 @@ disabled={loading}
 </button>
 
 </div>
-
+{/* 
 <input
 className="rc-team-list__search"
 placeholder="Lọc theo đội..."
 value={search}
 onChange={(e)=>setSearch(e.target.value)}
-/>
+/> */}
 
 </div>
 
@@ -367,9 +415,7 @@ urgency:v || ""
   Mã yêu cầu: #{item.id}
 </div>
 
-<span
-  className={`rc-team-item__priority ${priorityClass[item.urgency] || ""}`}
->
+<span className={`rc-team-item__priority ${getPriorityClass(item.urgencyLevelId)}`}>
   {item.urgency}
 </span>
 

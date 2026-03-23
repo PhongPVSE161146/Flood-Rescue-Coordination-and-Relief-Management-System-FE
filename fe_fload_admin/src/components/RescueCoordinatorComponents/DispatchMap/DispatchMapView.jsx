@@ -19,7 +19,7 @@ import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./rc-dispatch-map.css";
 
-export default function DispatchMapView({ request, onDispatchSuccess }) {
+export default function DispatchMapView({ requests = [], onDispatchSuccess }) {
 
   const navigate = useNavigate();
 
@@ -52,11 +52,20 @@ export default function DispatchMapView({ request, onDispatchSuccess }) {
 
   /* ================= REQUEST ================= */
 
-  const id = request?.id || request?.requestId || "N/A";
-  const fullname = request?.fullname || request?.name || "Không rõ";
-  const address = request?.address || "Không rõ địa chỉ";
-  const status = request?.statusText || "Đang xử lý";
+  const firstRequest = requests[0] || {};
 
+  const id =
+    firstRequest?.id ||
+    firstRequest?.requestId ||
+    "N/A";
+    const fullname =
+    firstRequest?.fullname || firstRequest?.name || "Không rõ";
+  
+  const address =
+    firstRequest?.address || "Không rõ địa chỉ";
+  
+  const status =
+    firstRequest?.statusText || "Đang xử lý";
     /* ================= LOAD PROVINCES ================= */
 
     useEffect(() => {
@@ -133,8 +142,8 @@ const provinceMap = useMemo(() => {
 
           availableTeams.map(async (team) => {
 
-            let lat = request?.lat || 10.8231;
-            let lng = request?.lng || 106.6297;
+            let lat = firstRequest?.lat
+            let lng = firstRequest?.lng
             let address = "Không xác định";
 
             try {
@@ -186,7 +195,7 @@ const provinceMap = useMemo(() => {
 
     fetchTeams();
 
-  }, [request, provinces]);
+  }, [firstRequest, provinces]);
 
   /* ================= LOAD VEHICLES ================= */
 
@@ -288,23 +297,23 @@ const provinceMap = useMemo(() => {
 
   const mapUrl = useMemo(() => {
 
-    if (!request) {
+    if (!firstRequest) {
       return "https://www.google.com/maps?q=10.8231,106.6297&z=13&output=embed";
     }
 
     if (!selectedTeam) {
-      return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
+      return `https://www.google.com/maps?q=${firstRequest.lat},${firstRequest.lng}&z=15&output=embed`;
     }
 
     const team = rescueTeams.find(t => t.id === selectedTeam);
 
     if (!team) {
-      return `https://www.google.com/maps?q=${request.lat},${request.lng}&z=15&output=embed`;
+      return `https://www.google.com/maps?q=${firstRequest.lat},${firstRequest.lng}&z=15&output=embed`;
     }
 
-    return `https://www.google.com/maps?saddr=${team.lat},${team.lng}&daddr=${request.lat},${request.lng}&z=15&output=embed`;
+    return `https://www.google.com/maps?saddr=${team.lat},${team.lng}&daddr=${firstRequest.lat},${firstRequest.lng}&z=15&output=embed`;
 
-  }, [selectedTeam, rescueTeams, request]);
+  }, [selectedTeam, rescueTeams, firstRequest]);
 
   /* ================= CONFIRM ================= */
 
@@ -328,12 +337,10 @@ const provinceMap = useMemo(() => {
     try {
 
       const payload = {
-
-        rescueRequestId: Number(id),
+        rescueRequestIds: requestIds.map(Number),
         rescueTeamId: Number(selectedTeam),
         vehicleId: Number(selectedVehicles[0]),
         assignedBy: Number(assignedBy)
-
       };
 
       await confirmDispatchRescueRequest(payload);
@@ -356,7 +363,7 @@ const provinceMap = useMemo(() => {
         "Đội cứu hộ đã được điều động"
       );
 
-      onDispatchSuccess?.(id);
+      onDispatchSuccess?.(requestIds);
 
       navigate("/coordinator/mina", {
 
@@ -364,7 +371,7 @@ const provinceMap = useMemo(() => {
 
           teamId: selectedTeam,
           vehicleIds: selectedVehicles,
-          request
+          requests
 
         }
 
@@ -385,26 +392,29 @@ const provinceMap = useMemo(() => {
     }
 
   };
+  const requestIds = requests.map(
+    r => r.id || r.requestId
+  );
 
-  if (!request) {
+  // if (!requests) {
 
-    return (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 22,
-          fontWeight: 600,
-          color: "#555"
-        }}
-      >
-        Chọn yêu cầu bên trái để xem chi tiết
-      </div>
-    );
+  //   return (
+  //     <div
+  //       style={{
+  //         height: "100%",
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //         fontSize: 22,
+  //         fontWeight: 600,
+  //         color: "#555"
+  //       }}
+  //     >
+  //       Chọn yêu cầu bên trái để xem chi tiết
+  //     </div>
+  //   );
 
-  }
+  // }
 
   return (
 
@@ -414,14 +424,15 @@ const provinceMap = useMemo(() => {
 
         <div className="dispatch-header-left">
 
-          <h2 className="dispatch-title">
-            Mã yêu cầu: #{id}
-            <span className="dispatch-status">{status}</span>
-          </h2>
+        <h2 className="dispatch-title">
+  Mã yêu cầu:{" "}
+  {requestIds.map(id => `#${id}`).join(", ")}
+  <span className="dispatch-status">{status}</span>
+</h2>
 
         </div>
 
-        <div className="dispatch-header-right">
+        {/* <div className="dispatch-header-right">
 
           <div className="dispatch-user">
             Họ Và Tên : {fullname}
@@ -431,7 +442,7 @@ const provinceMap = useMemo(() => {
             📍 {address}
           </div>
 
-        </div>
+        </div> */}
 
       </header>
 

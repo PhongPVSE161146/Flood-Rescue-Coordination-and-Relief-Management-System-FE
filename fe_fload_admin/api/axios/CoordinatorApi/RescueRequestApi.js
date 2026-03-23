@@ -133,7 +133,7 @@ export const confirmDispatchRescueRequest = async (payload) => {
   try {
 
     const response = await axiosInstance.post(
-      "/api/RescueAssignments",
+      "/api/RescueAssignments/batch",
       payload
     );
 

@@ -227,13 +227,13 @@ export default function MissionListRescue() {
                 {getInitials(m.name)}
               </div>
               <div>
-                <h4>👤 {m.name}</h4>
-                <span className="rm-phone">📞 {m.phone}</span>
+                <h4>Họ tên: {m.name}</h4>
+                <span className="rm-phone">SĐT: {m.phone}</span>
               </div>
             </div>
 
             <div className="rm-address">
-              📍 {m.address}
+              Địa chỉ: {m.address}
             </div>
 
             <div className="rm-info">

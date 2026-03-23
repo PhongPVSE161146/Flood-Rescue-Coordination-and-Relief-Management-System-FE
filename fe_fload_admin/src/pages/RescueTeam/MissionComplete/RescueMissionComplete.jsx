@@ -17,15 +17,15 @@ import {
 
 // const API_BASE = "https://api-rescue.purintech.id.vn";
 
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
-};
-const priorityClass = {
-  "Khẩn cấp": "priority-high",
-  "ưu tiên": "priority-medium",
-  "Cần hỗ trợ": "priority-low"
+const getUrgencyColor = (id) => {
+  if (!id) return "default";
+
+  const colors = [
+    "red","orange","blue","green","purple",
+    "cyan","gold","lime","magenta","volcano"
+  ];
+
+  return colors[(id - 1) % colors.length] || "default";
 };
 const STATUS_STEPS = [
   { key: "PENDING", label: "Chờ điều phối", icon: "⏳" },
@@ -91,7 +91,9 @@ export default function RescueMissionComplete() {
       vehicles.forEach(v => (vehicleMap[v.vehicleId] = v.vehicleName));
 
       const urgencyMap = {};
-      urgencies.forEach(u => (urgencyMap[u.urgencyLevelId] = u.levelName));
+      urgencies.forEach(u => {
+        urgencyMap[u.urgencyLevelId] = u;
+      });
 
       // const req = requests.find(
       //   r => r.rescueRequestId === assignment?.rescueRequestId
@@ -99,7 +101,7 @@ export default function RescueMissionComplete() {
 
       if (!assignment) return;
 
-      const urgencyLevel = urgencyMap[req?.urgencyLevelId];
+    const urgencyObj = urgencyMap[req?.urgencyLevelId];
 
       /* ===== SET DETAIL ===== */
       setDetail({
@@ -122,10 +124,8 @@ export default function RescueMissionComplete() {
         detailDescription: req?.detailDescription || "Không có",
         rescueTeamNote: req?.rescueTeamNote || "Không có",
 
-        urgency:
-          priorityTranslate[urgencyLevel] ||
-          urgencyLevel ||
-          "Không xác định",
+        urgency: urgencyObj?.levelName || "Không xác định",
+        urgencyLevelId: req?.urgencyLevelId,
 
         startTime: assignment.assignedAt
       });
@@ -240,218 +240,226 @@ export default function RescueMissionComplete() {
 
   return (
 
-    <section className="rc-op-detail">
-
-      {/* HEADER */}
-      <header className="rc-op-detail__header">
-
-        <div>
-          <h2>
-            Mã yêu cầu: #{detail.rescueRequestId}
-            <span className="rc-badge rc-badge--danger">
-              {detail.urgency}
-            </span>
-          </h2>
-
-          <p>
-            ⏱ {detail.startTime
-              ? new Date(detail.startTime).toLocaleString("vi-VN")
-              : "Chưa có"}
-          </p>
-        </div>
-
-        <button onClick={() => navigate(-1)} className="btn-outline">
-          ← Quay lại
-        </button>
-
-      </header>
-
-      {/* TIMELINE */}
-      <section className="rc-op-card">
-
-        <div className="rc-timeline">
-
-          {STATUS_STEPS.map((step, index) => {
-
-            const isDone = index < currentIndex;
-            const isActive = index === currentIndex;
-
-            return (
-              <div key={step.key} className="rc-timeline__step">
-
-                <div
-                  className={`rc-timeline__item 
-                  ${isActive ? "active" : ""}
-                  ${isDone ? "done" : ""}`}
-                >
-                  <div className="rc-timeline__icon">
-                    {step.icon}
-                  </div>
-
-                  <div className="rc-timeline__content">
-                    <b>{step.label.toUpperCase()}</b>
-                  </div>
-                </div>
-
-                {index < STATUS_STEPS.length - 1 && (
-                  <div className={`rc-timeline__line ${isDone ? "done" : ""}`} />
-                )}
-
-              </div>
-            );
-
-          })}
-
-        </div>
-
-      </section>
-
-      {/* GRID */}
-      <div className="rc-op-grid">
-
-        {/* LEFT */}
-        <div className="rc-op-col">
-
-          {/* Người dân */}
-          <section className="rc-op-card">
-
-  <h4>👤 NGƯỜI GỬI YÊU CẦU</h4>
-
-  <div className="rc-user-grid">
-
-    <div>
-      <label>Họ tên</label>
-      <p>{detail.fullname}</p>
-    </div>
-
-    <div>
-      <label>Số điện thoại</label>
-      <p className="phone">{detail.phone}</p>
-    </div>
-
-  </div>
-
-  <div className="rc-address">
-    📍 {detail.address}
-  </div>
-
-</section>
-
-          {/* Sự cố */}
-          <section className="rc-op-card">
-
-<h4>📋 THÔNG TIN SỰ CỐ</h4>
-
-<div className="rc-incident-grid">
-
-  <div className="rc-box">
-    <span>Loại</span>
-    <b>{detail.requestType}</b>
-  </div>
-
-  <div className="rc-box">
-    <span>Số nạn nhân</span>
-    <b>{detail.victimCount}</b>
-  </div>
-
-  <div className="rc-box">
-    <span>Dụng cụ</span>
-    <b>{detail.availableRescueTool}</b>
-  </div>
-
-  <div className="rc-box">
-    <span>Nhu cầu</span>
-    <b>{detail.specialNeeds}</b>
-  </div>
-
-</div>
-
-</section>
-
-      
-
-          {/* MAP */}
-          <section className="rc-op-card">
-            <h4>📍 Bản Đồ</h4>
-            <iframe
-              title="map"
-              src={`https://www.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`}
-              loading="lazy"
-            />
-          </section>
-
-        </div>
-
-        {/* RIGHT */}
-        <div className="rc-op-col">
-    {/* Đội */}
-    <section className="rc-op-card">
-            <h4>🚑 ĐỘI CỨU HỘ</h4>
-            <p>👥 {detail.team}</p>
-            <p>🚑 {detail.vehicle}</p>
-          </section>
-
-          {/* Mô tả */}
-          <section className="rc-op-card">
-            <h4>📝 MÔ TẢ</h4>
-            <p>{detail.detailDescription}</p>
-          </section>
-
-          {/* Ghi chú */}
-          <section className="rc-op-card">
-            <h4>📌 GHI CHÚ</h4>
-            <p>{detail.rescueTeamNote}</p>
-          </section>
-
-          <section className="card">
-                  <h4>📷 HÌNH ẢNH THỰC TẾ </h4>
-
-                  {images?.length > 0 ? (
-                    <Image.PreviewGroup>
-                      {images.map((img, i) => (
-                        <Image
-                          key={i}
-                          src={img}
-                          width="100%"
-                          referrerPolicy="no-referrer"
-                        />
-                      ))}
-                    </Image.PreviewGroup>
-                  ) : (
-                    <p>Không có ảnh</p>
-                  )}
-
-                </section>
-
-        </div>
-
-      </div>
-      <footer className="rp-footer">
-
-<div className="rp-actions">
-
-  <button className="rp-help">
-    🆘 Yêu cầu hỗ trợ
-  </button>
-
-  <button
-    className={`rp-done ${
-      detail.assignmentStatus === "COMPLETED" ? "disabled" : ""
-    }`}
-    onClick={handleAction}
-    disabled={
-      actionLoading ||
-      detail.assignmentStatus === "COMPLETED"
-    }
-  >
-    {actionLoading
-      ? "⏳ Đang xử lý..."
-      : getActionText()}
-  </button>
-
-</div>
-
-</footer>
-    </section>
+  <section className="rc-op-detail">
+ 
+       {/* HEADER */}
+       <header className="rc-op-detail__header">
+ 
+         <div>
+           <h2>
+             Mã yêu cầu: #{detail.rescueRequestId}
+             <span
+  className="rc-badge"
+  style={{
+    background: getUrgencyColor(detail.urgencyLevelId),
+    color: "#fff"
+  }}
+>
+  {detail.urgency}
+</span>
+           </h2>
+ 
+           <p>
+             ⏱ {detail.startTime
+               ? new Date(detail.startTime).toLocaleString("vi-VN")
+               : "Chưa có"}
+           </p>
+         </div>
+ 
+         <button onClick={() => navigate(-1)} className="btn-outline">
+           ← Quay lại
+         </button>
+ 
+       </header>
+ 
+       {/* TIMELINE */}
+       <section className="rc-op-card">
+ 
+         <div className="rc-timeline">
+ 
+           {STATUS_STEPS.map((step, index) => {
+ 
+             const isDone = index < currentIndex;
+             const isActive = index === currentIndex;
+ 
+             return (
+               <div key={step.key} className="rc-timeline__step">
+ 
+                 <div
+                   className={`rc-timeline__item 
+                   ${isActive ? "active" : ""}
+                   ${isDone ? "done" : ""}`}
+                 >
+                   <div className="rc-timeline__icon">
+                     {step.icon}
+                   </div>
+ 
+                   <div className="rc-timeline__content">
+                     <b>{step.label.toUpperCase()}</b>
+                   </div>
+                 </div>
+ 
+                 {index < STATUS_STEPS.length - 1 && (
+                   <div className={`rc-timeline__line ${isDone ? "done" : ""}`} />
+                 )}
+ 
+               </div>
+             );
+ 
+           })}
+ 
+         </div>
+ 
+       </section>
+ 
+       {/* GRID */}
+       <div className="rc-op-grid">
+ 
+         {/* LEFT */}
+         <div className="rc-op-col">
+ 
+           {/* Người dân */}
+           <section className="rc-op-card">
+ 
+           <h4 className="card-title">1. THÔNG TIN NGƯỜI GỬI YÊU CẦU</h4>
+ 
+   <div className="rc-user-grid">
+ 
+     <div>
+       <label>Họ tên</label>
+       <p>{detail.fullname}</p>
+     </div>
+ 
+     <div>
+       <label>Số điện thoại</label>
+       <p className="phone">{detail.phone}</p>
+     </div>
+     <div >
+   <label>Địa chỉ</label>
+ 
+     
+   </div>
+   </div>
+ 
+   <p >{detail.address}</p>
+ 
+ </section>
+ 
+           {/* Sự cố */}
+           <section className="rc-op-card">
+ 
+           <h4 className="card-title">2. NGUỒN LỰC & MÔ TẢ </h4>
+ 
+ <div className="rc-incident-grid">
+ 
+   <div className="rc-box">
+     <span>Loại</span>
+     <b>{detail.requestType}</b>
+   </div>
+ 
+   <div className="rc-box">
+     <span>Số nạn nhân</span>
+     <b>{detail.victimCount}</b>
+   </div>
+ 
+   <div className="rc-box">
+     <span>Dụng cụ</span>
+     <b>{detail.availableRescueTool}</b>
+   </div>
+ 
+   <div className="rc-box">
+     <span>Nhu cầu</span>
+     <b>{detail.specialNeeds}</b>
+   </div>
+ 
+ </div>
+ 
+ </section>
+ 
+       
+ 
+           {/* MAP */}
+           <section className="rc-op-card">
+           <h4 className="card-title">3, ĐỊA CHỈ HIỆN TẠI</h4>
+             <iframe
+               title="map"
+               src={`https://www.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`}
+               loading="lazy"
+             />
+           </section>
+ 
+         </div>
+ 
+         {/* RIGHT */}
+         <div className="rc-op-col">
+     {/* Đội */}
+     <section className="rc-op-card">
+     <h4 className="card-title">4. THÔNG ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
+             <p>Tên đội: {detail.team}</p>
+             <p>Tên phương tiện: {detail.vehicle}</p>
+           </section>
+ 
+           {/* Mô tả */}
+           <section className="rc-op-card">
+           <h4 className="card-title">5.  THÔNG TIN CHI TIẾT</h4>
+             <p>{detail.detailDescription}</p>
+           </section>
+ 
+           {/* Ghi chú */}
+           <section className="rc-op-card">
+           <h4 className="card-title">6. GHI CHÚ ĐỘI CỨU HỘ</h4>
+             <p>{detail.rescueTeamNote}</p>
+           </section>
+ 
+           <section className="card">
+           <h4 className="card-title">7. HÌNH ẢNH THỰC TẾ </h4>
+ 
+                   {images?.length > 0 ? (
+                     <Image.PreviewGroup>
+                       {images.map((img, i) => (
+                         <Image
+                           key={i}
+                           src={img}
+                           width="100%"
+                           referrerPolicy="no-referrer"
+                         />
+                       ))}
+                     </Image.PreviewGroup>
+                   ) : (
+                     <p>Không có ảnh</p>
+                   )}
+ 
+                 </section>
+ 
+         </div>
+ 
+       </div>
+       <footer className="rp-footer">
+ 
+ <div className="rp-actions">
+ 
+   <button className="rp-help">
+      Yêu cầu hỗ trợ
+   </button>
+ 
+   <button
+     className={`rp-done ${
+       detail.assignmentStatus === "COMPLETED" ? "disabled" : ""
+     }`}
+     onClick={handleAction}
+     disabled={
+       actionLoading ||
+       detail.assignmentStatus === "COMPLETED"
+     }
+   >
+     {actionLoading
+       ? "⏳ Đang xử lý..."
+       : getActionText()}
+   </button>
+ 
+ </div>
+ 
+ </footer>
+     </section>
   );
 }
