@@ -407,7 +407,7 @@ const isOnTime =
           <section className="rc-op-card">
 
 <h4 className="card-title">
-6. VỊ TRÍ GPS
+6. VỊ TRÍ HIỆN TẠI
 <span className="rc-online">● TRỰC TUYẾN</span>
 </h4>
 
