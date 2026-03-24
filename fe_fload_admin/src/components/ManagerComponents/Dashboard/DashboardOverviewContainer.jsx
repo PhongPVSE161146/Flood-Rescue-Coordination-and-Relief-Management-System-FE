@@ -1001,7 +1001,7 @@ function InventoryDetail({ onNavigate }) {
 
       {inventoryData.map((item, index) => (
         <div
-          key={index}
+          key={item.item}
           style={{
             padding: "16px",
             border: "1px solid #e5e7eb",

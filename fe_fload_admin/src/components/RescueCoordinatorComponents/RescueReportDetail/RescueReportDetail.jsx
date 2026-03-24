@@ -464,7 +464,7 @@ const isOnTime =
 
         <tbody>
           {teamMembers.map((m, index) => (
-            <tr key={index}>
+            <tr key={m.id || `${m.fullName || m.name}-${m.phone || m.contactPhone}-${index}`}>
               <td style={tdStyle}>{index + 1}</td>
               <td style={tdStyle}>
                 {m.fullName || m.name || "—"}

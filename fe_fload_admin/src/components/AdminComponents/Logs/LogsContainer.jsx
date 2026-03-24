@@ -10,21 +10,31 @@ export default function LogsContainer() {
   const [requestId, setRequestId] = useState("");
 
   const fetchLogs = async (id = "") => {
+    // Require rescueRequestId to fetch logs
+    if (!id || id.trim() === "") {
+      message.warning("Vui lòng nhập Rescue Request ID");
+      setLogs([]);
+      return;
+    }
+
     try {
       setLoading(true);
-      // Fetch logs. If id is empty, it depends on API if it returns all or nothing.
-      const data = await getAllRequestLogs(id || null);
+      const data = await getAllRequestLogs(Number(id));
       setLogs(Array.isArray(data) ? data : []);
+      if (Array.isArray(data) && data.length === 0) {
+        message.info("Không có nhật ký cho yêu cầu này");
+      }
     } catch (error) {
       console.error("Fetch logs failed:", error);
       message.error("Không thể tải nhật ký hệ thống");
+      setLogs([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLogs();
+    // Don't fetch on initial load - require user input
   }, []);
 
   const columns = [
@@ -72,35 +82,55 @@ export default function LogsContainer() {
         <div className="page-actions">
           <Space size="middle">
             <Input
-              placeholder="Nhập Rescue Request ID"
+              placeholder="Nhập Rescue Request ID để xem logs"
               value={requestId}
               onChange={(e) => setRequestId(e.target.value)}
               prefix={<SearchOutlined />}
-              style={{ width: 250 }}
+              style={{ width: 280 }}
               onPressEnter={() => fetchLogs(requestId)}
+              allowClear
             />
             <Button
               type="primary"
               icon={<ReloadOutlined />}
               onClick={() => fetchLogs(requestId)}
               loading={loading}
+              disabled={!requestId || requestId.trim() === ""}
               size="large"
             >
-              Làm mới
+              Tìm kiếm
             </Button>
           </Space>
         </div>
       </div>
 
       <div className="logs-table" style={{ background: "#fff", borderRadius: "12px", padding: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
-        <Table
-          rowKey="id"
-          dataSource={logs}
-          columns={columns}
-          loading={loading}
-          pagination={{ pageSize: 10, showSizeChanger: true }}
-          bordered
-        />
+        {logs.length === 0 && !loading && requestId === "" && (
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "#999" }}>
+            <p style={{ fontSize: "16px", marginBottom: "10px" }}>📝 Nhập Rescue Request ID để xem nhật ký hoạt động</p>
+            <p style={{ fontSize: "14px", color: "#ccc" }}>Dữ liệu sẽ hiển thị sau khi bạn nhập ID và bấm tìm kiếm</p>
+          </div>
+        )}
+        {logs.length === 0 && !loading && requestId !== "" && (
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "#999" }}>
+            <p style={{ fontSize: "16px" }}>Không có nhật ký cho Rescue Request ID: <strong>{requestId}</strong></p>
+          </div>
+        )}
+        {logs.length > 0 && (
+          <Table
+            rowKey="id"
+            dataSource={logs}
+            columns={columns}
+            loading={loading}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            bordered
+          />
+        )}
+        {loading && logs.length === 0 && (
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <Spin />
+          </div>
+        )}
       </div>
     </div>
   );

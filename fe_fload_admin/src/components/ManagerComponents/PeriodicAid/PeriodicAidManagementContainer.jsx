@@ -59,7 +59,7 @@ export default function PeriodicAidManagementContainer() {
 
   // Current user info
   const user = JSON.parse(localStorage.getItem("user") || sessionStorage.getItem("user") || "{}");
-  const currentUserId = Number(user?.userId || user?.id || 0);
+  const currentUserId = Number(user?.userId || user?.id) || null;
 
   useEffect(() => {
     loadCampaigns();
@@ -83,7 +83,23 @@ export default function PeriodicAidManagementContainer() {
     setLoading(true);
     try {
       const res = await getAllPeriodicAidCampaigns();
-      setCampaigns(res.data || []);
+      const campaignData = res.data || [];
+      setCampaigns(campaignData);
+
+      // Set first campaign as default if available
+      if (campaignData.length > 0 && !selectedCampaignId) {
+        const firstCampaignId = campaignData[0].id;
+        setSelectedCampaignId(firstCampaignId);
+
+        // Load related data for the first campaign
+        if (activeTab === "beneficiaries") {
+          loadBeneficiaries(firstCampaignId);
+        } else if (activeTab === "supplyPlans") {
+          loadSupplyPlans(firstCampaignId);
+        } else if (activeTab === "distributions") {
+          loadDistributions(firstCampaignId);
+        }
+      }
     } catch {
       message.error("Lỗi khi tải danh sách chiến dịch");
     } finally {
@@ -157,12 +173,37 @@ export default function PeriodicAidManagementContainer() {
 
   const handleTabChange = (key) => {
     setActiveTab(key);
-    if (key === "campaigns") loadCampaigns();
-    else if (key === "beneficiaries" && selectedCampaignId) loadBeneficiaries(selectedCampaignId);
-    else if (key === "supplyPlans" && selectedCampaignId) loadSupplyPlans(selectedCampaignId);
-    else if (key === "distributions" && selectedCampaignId) loadDistributions(selectedCampaignId);
-    else if (key === "distributionDetails" && selectedDistributionId) loadDistributionDetails(selectedDistributionId);
-    else if (key === "transactions") loadInventoryTransactions();
+    if (key === "campaigns") {
+      loadCampaigns();
+    } else if (key === "beneficiaries") {
+      if (selectedCampaignId) {
+        loadBeneficiaries(selectedCampaignId);
+      } else if (campaigns.length > 0) {
+        const firstCampaignId = campaigns[0].id;
+        setSelectedCampaignId(firstCampaignId);
+        loadBeneficiaries(firstCampaignId);
+      }
+    } else if (key === "supplyPlans") {
+      if (selectedCampaignId) {
+        loadSupplyPlans(selectedCampaignId);
+      } else if (campaigns.length > 0) {
+        const firstCampaignId = campaigns[0].id;
+        setSelectedCampaignId(firstCampaignId);
+        loadSupplyPlans(firstCampaignId);
+      }
+    } else if (key === "distributions") {
+      if (selectedCampaignId) {
+        loadDistributions(selectedCampaignId);
+      } else if (campaigns.length > 0) {
+        const firstCampaignId = campaigns[0].id;
+        setSelectedCampaignId(firstCampaignId);
+        loadDistributions(firstCampaignId);
+      }
+    } else if (key === "distributionDetails" && selectedDistributionId) {
+      loadDistributionDetails(selectedDistributionId);
+    } else if (key === "transactions") {
+      loadInventoryTransactions();
+    }
   };
 
   const handleSelectCampaign = (value) => {
@@ -230,10 +271,13 @@ export default function PeriodicAidManagementContainer() {
         await updateBeneficiary(editingItem.id, values);
         message.success("Cập nhật người nhận thành công");
       } else {
-        const payload = { 
-          ...values, 
+        const campaignAreaId = selectedCampaignId
+          ? (campaigns.find(c => c.id === selectedCampaignId)?.areaId || null)
+          : null;
+        const payload = {
+          ...values,
           selectedByAdminId: currentUserId,
-          areaId: selectedCampaignId ? (campaigns.find(c => c.id === selectedCampaignId)?.areaId || 1) : 1
+          areaId: values.areaId || campaignAreaId
         };
         await createBeneficiary(payload);
         message.success("Thêm người nhận thành công");
@@ -542,6 +586,73 @@ export default function PeriodicAidManagementContainer() {
     }
   ];
 
+  /* ================= TAB ITEMS ================= */
+
+  const tabItems = [
+    {
+      key: "campaigns",
+      label: "Chiến dịch",
+      children: (
+        <>
+          <Button type="primary" style={{ marginBottom: 16 }} onClick={() => openCampaignModal()}>Thêm chiến dịch</Button>
+          <Table loading={loading} rowKey={(record) => record.id || record.campaignId || `campaign-${record.campaignName}-${record.month}-${record.year}`} columns={campaignColumns} dataSource={campaigns} />
+        </>
+      )
+    },
+    {
+      key: "supplyPlans",
+      label: "Kế hoạch hàng hóa",
+      children: (
+        <>
+          <Button type="primary" style={{ marginBottom: 16 }} disabled={!selectedCampaignId} onClick={() => openSupplyPlanModal()}>Thêm kế hoạch</Button>
+          <Table loading={loading} rowKey={(record) => record.id || record.supplyPlanId || `supply-${record.reliefItemId}-${record.plannedQuantity}`} columns={supplyPlanColumns} dataSource={supplyPlans} />
+        </>
+      )
+    },
+    {
+      key: "beneficiaries",
+      label: "Người nhận hỗ trợ",
+      children: (
+        <>
+          <Button type="primary" style={{ marginBottom: 16 }} disabled={!selectedCampaignId} onClick={() => openBeneficiaryModal()}>Thêm người nhận</Button>
+          <Table loading={loading} rowKey={(record) => record.id || record.beneficiaryId || `beneficiary-${record.fullName}-${record.phone}`} columns={beneficiaryColumns} dataSource={beneficiaries} />
+        </>
+      )
+    },
+    {
+      key: "distributions",
+      label: "Đợt phân phát",
+      children: (
+        <>
+          <Button type="primary" style={{ marginBottom: 16 }} disabled={!selectedCampaignId} onClick={() => openDistributionModal()}>Tạo đợt phân phát</Button>
+          <Table loading={loading} rowKey={(record) => record.id || record.distributionId || `distribution-${record.rescueTeamId}-${record.distributedAt}`} columns={distributionColumns} dataSource={distributions} />
+        </>
+      )
+    },
+    {
+      key: "distributionDetails",
+      label: "Chi tiết phân phát",
+      children: selectedDistributionId ? (
+        <>
+          <Button type="primary" style={{ marginBottom: 16 }} onClick={() => openDetailModal()}>Thêm chi tiết</Button>
+          <Table loading={loading} rowKey={(record) => record.id || record.detailId || `detail-${record.beneficiaryId}-${record.status}`} columns={distributionDetailColumns} dataSource={distributionDetails} />
+        </>
+      ) : (
+        <p>Vui lòng chọn một đợt phân phát từ tab Đợt phân phát để xem chi tiết.</p>
+      )
+    },
+    {
+      key: "transactions",
+      label: "Giao dịch kho",
+      children: (
+        <>
+          <Button type="primary" style={{ marginBottom: 16 }} onClick={openTransactionModal}>Tạo giao dịch</Button>
+          <Table loading={loading} rowKey={(record) => record.id || record.transactionId || `transaction-${record.warehouseId}-${record.transactionType}`} columns={transactionColumns} dataSource={inventoryTransactions} />
+        </>
+      )
+    }
+  ];
+
   /* ================= RENDER ================= */
 
   return (
@@ -552,53 +663,22 @@ export default function PeriodicAidManagementContainer() {
       </div>
 
       <div className="periodic-aid-card">
-        <Tabs activeKey={activeTab} onChange={handleTabChange} tabBarExtraContent={
-          ["beneficiaries", "supplyPlans", "distributions"].includes(activeTab) && (
-            <Select 
-              placeholder="Chọn chiến dịch" 
-              style={{ width: 250, marginRight: 16 }}
-              value={selectedCampaignId}
-              onChange={handleSelectCampaign}
-              options={campaigns.map(c => ({ value: c.id, label: c.campaignName }))}
-            />
-          )
-        }>
-          <Tabs.TabPane tab="Chiến dịch" key="campaigns">
-            <Button type="primary" style={{ marginBottom: 16 }} onClick={() => openCampaignModal()}>Thêm chiến dịch</Button>
-            <Table loading={loading} rowKey="id" columns={campaignColumns} dataSource={campaigns} />
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="Kế hoạch hàng hóa" key="supplyPlans">
-            <Button type="primary" style={{ marginBottom: 16 }} disabled={!selectedCampaignId} onClick={() => openSupplyPlanModal()}>Thêm kế hoạch</Button>
-            <Table loading={loading} rowKey="id" columns={supplyPlanColumns} dataSource={supplyPlans} />
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="Người nhận hỗ trợ" key="beneficiaries">
-            <Button type="primary" style={{ marginBottom: 16 }} disabled={!selectedCampaignId} onClick={() => openBeneficiaryModal()}>Thêm người nhận</Button>
-            <Table loading={loading} rowKey="id" columns={beneficiaryColumns} dataSource={beneficiaries} />
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="Đợt phân phát" key="distributions">
-            <Button type="primary" style={{ marginBottom: 16 }} disabled={!selectedCampaignId} onClick={() => openDistributionModal()}>Tạo đợt phân phát</Button>
-            <Table loading={loading} rowKey="id" columns={distributionColumns} dataSource={distributions} />
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="Chi tiết phân phát" key="distributionDetails">
-            {selectedDistributionId ? (
-              <>
-                <Button type="primary" style={{ marginBottom: 16 }} onClick={() => openDetailModal()}>Thêm chi tiết</Button>
-                <Table loading={loading} rowKey="id" columns={distributionDetailColumns} dataSource={distributionDetails} />
-              </>
-            ) : (
-              <p>Vui lòng chọn một đợt phân phát từ tab Đợt phân phát để xem chi tiết.</p>
-            )}
-          </Tabs.TabPane>
-
-          <Tabs.TabPane tab="Giao dịch kho" key="transactions">
-            <Button type="primary" style={{ marginBottom: 16 }} onClick={openTransactionModal}>Tạo giao dịch</Button>
-            <Table loading={loading} rowKey="id" columns={transactionColumns} dataSource={inventoryTransactions} />
-          </Tabs.TabPane>
-        </Tabs>
+        <Tabs
+          activeKey={activeTab}
+          onChange={handleTabChange}
+          items={tabItems}
+          tabBarExtraContent={
+            ["beneficiaries", "supplyPlans", "distributions"].includes(activeTab) && (
+              <Select
+                placeholder="Chọn chiến dịch"
+                style={{ width: 250, marginRight: 16 }}
+                value={selectedCampaignId}
+                onChange={handleSelectCampaign}
+                options={campaigns.map(c => ({ value: c.id, label: c.campaignName }))}
+              />
+            )
+          }
+        />
       </div>
 
       {/* Campaign Modal */}
@@ -619,6 +699,9 @@ export default function PeriodicAidManagementContainer() {
           <Form.Item name="fullName" label="Họ và tên" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="phone" label="Điện thoại"><Input /></Form.Item>
           <Form.Item name="address" label="Địa chỉ"><Input.TextArea /></Form.Item>
+          <Form.Item name="areaId" label="Khu vực ID"><InputNumber style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="householdSize" label="Số người trong hộ"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="targetGroup" label="Nhóm đối tượng"><Input placeholder="Ví dụ: Người già, Trẻ em..." /></Form.Item>
           <Form.Item name="priorityLevel" label="Mức độ ưu tiên"><InputNumber min={0} style={{ width: "100%" }} /></Form.Item>
           <Form.Item name="status" label="Trạng thái" rules={[{ required: true }]}><Input /></Form.Item>
         </Form>

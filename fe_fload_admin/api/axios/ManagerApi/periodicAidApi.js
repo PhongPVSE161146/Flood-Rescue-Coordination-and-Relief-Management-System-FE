@@ -63,16 +63,16 @@ export const getBeneficiaryById = (id) => {
 export const createBeneficiary = (data) => {
   return axiosInstance.post("/api/periodic-aid-beneficiaries", {
     campaignId: safeNumber(data.campaignId),
-    citizenUserId: safeNumber(data.citizenUserId) || 0,
+    citizenUserId: safeNumber(data.citizenUserId) || null,
     fullName: data.fullName || "",
     phone: data.phone || "",
     address: data.address || "",
-    areaId: safeNumber(data.areaId),
+    areaId: safeNumber(data.areaId) || null,
     householdSize: safeNumber(data.householdSize) || 0,
     targetGroup: data.targetGroup || "",
     priorityLevel: safeNumber(data.priorityLevel) || 0,
     status: data.status || "",
-    selectedByAdminId: safeNumber(data.selectedByAdminId),
+    selectedByAdminId: safeNumber(data.selectedByAdminId) || null,
     selectedAt: data.selectedAt || new Date().toISOString()
   });
 };
@@ -83,12 +83,12 @@ export const updateBeneficiary = (id, data) => {
     fullName: data.fullName || "",
     phone: data.phone || "",
     address: data.address || "",
-    areaId: safeNumber(data.areaId) || 0,
+    areaId: safeNumber(data.areaId) || null,
     householdSize: safeNumber(data.householdSize) || 0,
     targetGroup: data.targetGroup || "",
     priorityLevel: safeNumber(data.priorityLevel) || 0,
     status: data.status || "",
-    selectedByAdminId: safeNumber(data.selectedByAdminId) || 0,
+    selectedByAdminId: safeNumber(data.selectedByAdminId) || null,
     selectedAt: data.selectedAt || new Date().toISOString()
   });
 };
@@ -189,8 +189,8 @@ export const getDistributionDetailById = (id) => {
 
 export const createDistributionDetail = (data) => {
   return axiosInstance.post("/api/periodic-aid-distribution-details", {
-    distributionId: safeNumber(data.distributionId) || 0,
-    beneficiaryId: safeNumber(data.beneficiaryId) || 0,
+    distributionId: safeNumber(data.distributionId),
+    beneficiaryId: safeNumber(data.beneficiaryId),
     status: data.status || "",
     note: data.note || ""
   });
