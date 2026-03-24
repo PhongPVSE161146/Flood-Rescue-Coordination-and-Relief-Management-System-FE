@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -28,7 +28,6 @@ import {
   GlobalOutlined,
   AimOutlined,
   BarChartOutlined,
-
 } from "@ant-design/icons";
 
 import { useState, useEffect } from "react";
@@ -36,7 +35,6 @@ import { getUserProfile } from "../../../api/axios/Auth/authApi";
 import UserProfileModal from "../../components/UserComponents/UserProfileModal";
 import "./Sidebar.css";
 import { useLocation } from "react-router-dom";
-
 
 /* ================= MENU BY ROLE ================= */
 
@@ -46,23 +44,23 @@ const menuByRole = {
       label: "Quản lý người dùng",
       icon: <TeamOutlined />,
       path: "/admin/user",
-      end: true
+      end: true,
     },
     {
       label: "Cấu hình tham số",
       icon: <SettingOutlined />,
-      path: "/admin/settings"
+      path: "/admin/settings",
     },
     {
       label: "Logs hệ thống",
       icon: <FileTextOutlined />,
-      path: "/admin/logs"
+      path: "/admin/logs",
     },
     {
       label: "Phân quyền nâng cao",
       icon: <SafetyOutlined />,
-      path: "/admin/permissions"
-    }
+      path: "/admin/permissions",
+    },
   ],
 
   manager: [
@@ -70,28 +68,28 @@ const menuByRole = {
       label: "Tổng quan",
       icon: <AppstoreOutlined />,
       path: "/manager",
-      end: true
+      end: true,
     },
     {
       label: "Phương tiện",
       icon: <CarOutlined />,
-      path: "/manager/vehicles"
+      path: "/manager/vehicles",
     },
     {
       label: "Kho hàng",
       icon: <InboxOutlined />,
-      path: "/manager/inventory"
+      path: "/manager/inventory",
     },
     {
       label: "Phê duyệt",
       icon: <CheckSquareOutlined />,
-      path: "/manager/approve"
+      path: "/manager/approve",
     },
     {
       label: "Đội cứu hộ",
       icon: <UsergroupAddOutlined />,
-      path: "/manager/rescue-team"
-    }
+      path: "/manager/rescue-team",
+    },
   ],
 
   coordinator: [
@@ -99,28 +97,28 @@ const menuByRole = {
       label: "Xác minh yêu cầu",
       icon: <CheckCircleOutlined />,
       path: "/coordinator",
-      end: true
+      end: true,
     },
     {
       label: "Đang điều phối",
       icon: <GlobalOutlined />,
-      path: "/coordinator/dang"
+      path: "/coordinator/dang",
     },
     {
       label: "Đang cứu hộ",
       icon: <AimOutlined />,
-      path: "/coordinator/mina"
+      path: "/coordinator/mina",
     },
     {
       label: "Hoàn thành & báo cáo",
       icon: <BarChartOutlined />,
-      path: "/coordinator/reports"
+      path: "/coordinator/reports",
     },
     {
       label: "Tài nguyên",
       icon: <AppstoreOutlined />,
-      path: "/coordinator/resources"
-    }
+      path: "/coordinator/resources",
+    },
   ],
 
   rescueteam: [
@@ -128,18 +126,18 @@ const menuByRole = {
       label: "Nhiệm vụ",
       icon: <CarryOutOutlined />,
       path: "/rescueTeam",
-      end: true
+      end: true,
     },
     {
       label: "Đang cứu hộ",
       icon: <GlobalOutlined />,
-      path: "/rescueTeam/dangcuho/:id", 
-      isDynamic: true
+      path: "/rescueTeam/dangcuho/:id",
+      isDynamic: true,
     },
     {
       label: "Lịch sử",
       icon: <HistoryOutlined />,
-      path: "/rescueTeam/history"
+      path: "/rescueTeam/history",
     },
     // {
     //   label: "Tin nhắn",
@@ -149,13 +147,12 @@ const menuByRole = {
     {
       label: "Thành Viên Đội",
       icon: <UserOutlined />,
-      path: "/rescueTeam/list-member"
-    }
-  ]
+      path: "/rescueTeam/list-member",
+    },
+  ],
 };
 
 export default function Sidebar() {
-
   const navigate = useNavigate();
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -164,9 +161,7 @@ export default function Sidebar() {
 
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
-  const role =
-    (sessionStorage.getItem("role") || "admin")
-      .toLowerCase();
+  const role = (sessionStorage.getItem("role") || "admin").toLowerCase();
 
   const fullName = user.fullName || "Unknown User";
   const roleName = user.roleName || role;
@@ -177,10 +172,8 @@ export default function Sidebar() {
 
   const [userProfile, setUserProfile] = useState({
     fullName: "Loading...",
-    roleName: ""
+    roleName: "",
   });
-  
-  
 
   /* LOAD PROFILE */
 
@@ -202,11 +195,10 @@ export default function Sidebar() {
   const avatarText =
     userProfile.fullName
       ?.split(" ")
-      ?.map(w => w[0])
+      ?.map((w) => w[0])
       ?.slice(0, 2)
       ?.join("")
-      ?.toUpperCase()
-    || "U";
+      ?.toUpperCase() || "U";
 
   /* LOGOUT */
 
@@ -217,80 +209,50 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-
       {/* MENU */}
 
       <nav className="sidebar-menu">
-
         {menus.map((item, index) => (
-
           <NavLink
             key={index}
             to={item.path}
             end={item.end}
             className={({ isActive }) => {
-
               const isDangCuuHo =
                 item.isDynamic &&
                 location.pathname.includes("/rescueTeam/dangcuho");
-            
-              return `menu-item ${
-                isActive || isDangCuuHo ? "active" : ""
-              }`;
+
+              return `menu-item ${isActive || isDangCuuHo ? "active" : ""}`;
             }}
           >
-            
+            <span className="menu-icon">{item.icon}</span>
 
-            <span className="menu-icon">
-              {item.icon}
-            </span>
-
-            <span className="menu-label">
-              {item.label}
-            </span>
-
+            <span className="menu-label">{item.label}</span>
           </NavLink>
-
         ))}
-
       </nav>
 
       {/* FOOTER */}
 
       <div className="sidebar-footer">
-
         <div
           className="user-info"
           onClick={() => setProfileOpen(true)}
           style={{ cursor: "pointer" }}
         >
-
-          <div className="avatar">
-            {avatarText}
-          </div>
+          <div className="avatar">{avatarText}</div>
 
           <div>
-            <strong>
-              {userProfile.fullName}
-            </strong>
+            <strong>{userProfile.fullName}</strong>
 
-            <p>
-              {roleName}
-            </p>
+            <p>{roleName}</p>
           </div>
-
         </div>
 
-        <button
-          className="logout-btn"
-          onClick={handleLogout}
-        >
-
+        <button className="logout-btn" onClick={handleLogout}>
           <LogoutOutlined />
           <span>Đăng xuất</span>
-
         </button>
-
       </div>
 
       {/* PROFILE MODAL */}
@@ -302,7 +264,6 @@ export default function Sidebar() {
           loadProfile();
         }}
       />
-
     </aside>
   );
 }

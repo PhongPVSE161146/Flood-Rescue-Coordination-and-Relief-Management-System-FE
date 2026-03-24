@@ -1,8 +1,4 @@
-import { Input, Badge } from "antd";
-import {
-  BellOutlined,
-  QuestionCircleOutlined,
-} from "@ant-design/icons";
+
 import adminIcon from "../../assets/admin.png";
 import managerIcon from "../../assets/manager.svg";
 import coordinatorIcon from "../../assets/coordinator.svg";
@@ -58,11 +54,6 @@ export default function Header() {
 {/* RIGHT */}
 <div className="rc-hd__actions">
 
-  {/* <Badge dot>
-    <BellOutlined className="rc-hd__icon" />
-  </Badge>
-
-  <QuestionCircleOutlined className="rc-hd__icon" /> */}
 
   <span className="rc-hd__lang">
           Ngôn Ngữ: VN
