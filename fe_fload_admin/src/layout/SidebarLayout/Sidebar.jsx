@@ -115,11 +115,11 @@ const menuByRole = {
       icon: <BarChartOutlined />,
       path: "/coordinator/reports",
     },
-    {
-      label: "Tài nguyên",
-      icon: <AppstoreOutlined />,
-      path: "/coordinator/resources",
-    },
+    // {
+    //   label: "Tài nguyên",
+    //   icon: <AppstoreOutlined />,
+    //   path: "/coordinator/resources",
+    // },
   ],
 
   rescueteam: [

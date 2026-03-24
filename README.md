@@ -17,7 +17,7 @@ xong xóa thư muc dist chạy lẹnh (rm -rf dist)
 sau đó build lại lệnh (npm run build)
  cuối cùng dploy lên lại cả win và mac dùng lệnh (netlify deploy --prod) đốp với mac phải thêm sudo dùng lệnh (sudo netlify deploy --prod)
 
- #1 nếu chưa cấu hình thì dùng lệnh đối với máy mac phải thêm  sudo 
+ #2 nếu chưa cấu hình thì dùng lệnh đối với máy mac phải thêm  sudo 
 
  1. Cài Netlify CLI
  npm install -g netlify-cli
