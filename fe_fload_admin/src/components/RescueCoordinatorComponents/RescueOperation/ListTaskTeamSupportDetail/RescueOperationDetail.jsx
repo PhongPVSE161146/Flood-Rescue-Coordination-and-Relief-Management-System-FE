@@ -205,18 +205,18 @@ setImages(normalizedImages);
   },[assignmentId])
 
 
-  const handleFinishMission=()=>{
-    navigate("/coordinator/reports")
-  }
+  // const handleFinishMission=()=>{
+  //   navigate("/coordinator/reports")
+  // }
 
-  if(loading){
-    return(
-      <div className="rc-loading">
+  // if(loading){
+  //   return(
+  //     <div className="rc-loading">
     
-        Đang tải dữ liệu nhiệm vụ...
-      </div>
-    )
-  }
+  //       Đang tải dữ liệu nhiệm vụ...
+  //     </div>
+  //   )
+  // }
   
   if(!detail){
     return (
@@ -263,9 +263,9 @@ setImages(normalizedImages);
 <h2>
 Mã yêu cầu: #{detail.rescueRequestId}
 
-<span className={`rc-badge ${getPriorityClass(detail.urgencyLevelId)}`}>
+{/* <span className={`rc-badge ${getPriorityClass(detail.urgencyLevelId)}`}>
   {detail.urgency}
-</span>
+</span> */}
 
 </h2>
 
@@ -281,13 +281,10 @@ new Date(detail.startTime).toLocaleTimeString("vi-VN")}
 
 
 
-<button
-className="btn-primary"
-onClick={handleFinishMission}
->
-Kết thúc nhiệm vụ
-</button>
 
+<span className={`rc-badge ${getPriorityClass(detail.urgencyLevelId)}`}>
+  {detail.urgency}
+</span>
 </div>
 
 </header>
