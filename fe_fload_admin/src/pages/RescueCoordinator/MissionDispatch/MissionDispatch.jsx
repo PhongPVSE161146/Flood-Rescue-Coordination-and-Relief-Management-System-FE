@@ -12,16 +12,23 @@ export default function MissionDispatch() {
   const [loading, setLoading] = useState(false);
 
   const handleSelectMission = async (mission) => {
-    if (!mission?.id) return;
+    const requestId = mission?.id || mission?.rescueRequestId;
+
+    if (!requestId) {
+      console.error("Missing ID:", mission);
+      return;
+    }
     
     try {
       setLoading(true);
-      const data = await getRescueRequestById(mission.id);
+    
+      const data = await getRescueRequestById(requestId);
+    
       setSelectedMission(data || mission);
     } catch (error) {
       console.error("Error fetching mission detail:", error);
       AuthNotify.error("Không thể tải chi tiết yêu cầu");
-      // Fallback to the mission object from the list if API fails
+    
       setSelectedMission(mission);
     } finally {
       setLoading(false);

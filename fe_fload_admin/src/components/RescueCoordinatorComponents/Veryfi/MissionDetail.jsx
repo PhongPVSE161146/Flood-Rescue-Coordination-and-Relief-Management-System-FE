@@ -110,13 +110,18 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
     try {
 
-      await verifyAndDispatchRescueRequest(
-        mission.id,
-        {
-          urgencyLevelId: level.urgencyLevelId,
-          note: note || "Xác minh yêu cầu cứu hộ"
-        }
-      );
+      const requestId = mission.id || mission.rescueRequestId;
+
+      if (!requestId) {
+        AuthNotify.error("Thiếu ID request");
+        console.error("MISSION:", mission);
+        return;
+      }
+      
+      await verifyAndDispatchRescueRequest(requestId, {
+        urgencyLevelId: level.urgencyLevelId,
+        note: note || "Xác minh yêu cầu cứu hộ"
+      });
 
       AuthNotify.success("Xác nhận và điều phối thành công");
 
@@ -153,8 +158,16 @@ const [rejectLoading, setRejectLoading] = useState(false);
   
       setRejectLoading(true);
   
+      const requestId = mission?.id || mission?.rescueRequestId;
+
+      if (!requestId) {
+        AuthNotify.error("Thiếu ID request");
+        console.error("MISSION:", mission);
+        return;
+      }
+      
       await rejectRescueRequest(
-        mission.id,
+        requestId,
         rejectReason
       );
   
@@ -222,7 +235,11 @@ const [rejectLoading, setRejectLoading] = useState(false);
     return `${h} giờ ${m} phút`;
   };
   /* ================= IMAGE FIX ================= */
-  const images = mission?.images ?? [];
+  const images = [
+    ...(mission?.images || []),
+    ...(mission?.imageUrls || []),
+    ...(mission?.locationImageUrl ? [mission.locationImageUrl] : [])
+  ];
 
 
 
@@ -241,7 +258,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
 
           <h2 className="request-title">
 
-            Mã yêu cầu: #{mission.id}
+          Mã yêu cầu: #{mission.id || mission.rescueRequestId}
 
             <span
               className="status status-pending"
