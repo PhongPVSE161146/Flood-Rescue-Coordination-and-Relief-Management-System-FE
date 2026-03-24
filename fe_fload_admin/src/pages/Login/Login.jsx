@@ -18,7 +18,6 @@ import LoginLoaderPay from "../../utils/LoginLoader/LoginLoaderPay";
 import "./login.css";
 
 export default function Login() {
-
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -39,7 +38,6 @@ export default function Login() {
   const phoneRegex = /^\d{10}$/;
 
   const handleLogin = async (e) => {
-
     if (e) e.preventDefault();
 
     const err = {};
@@ -48,8 +46,7 @@ export default function Login() {
 
     if (!phone.trim()) {
       err.phone = "Nhập số điện thoại";
-    }
-    else if (!phoneRegex.test(phone)) {
+    } else if (!phoneRegex.test(phone)) {
       err.phone = "Số điện thoại phải đủ 10 chữ số";
     }
 
@@ -64,24 +61,20 @@ export default function Login() {
     if (Object.keys(err).length) return;
 
     try {
-
       /* HIỆN LOADER */
 
       setLoading(true);
 
       /* CHO REACT 1 FRAME RENDER LOADER */
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const res = await loginApi({ phone, password });
 
       console.log("LOGIN RESPONSE:", res);
 
       if (!res || !res.user || !res.token) {
-
-        AuthNotify.error(
-          "Sai số điện thoại hoặc mật khẩu"
-        );
+        AuthNotify.error("Sai số điện thoại hoặc mật khẩu");
 
         return;
       }
@@ -101,29 +94,17 @@ export default function Login() {
       const role = res.user.roleName.toLowerCase();
 
       navigate(redirectByRole[role], { replace: true });
-
-    }
-    catch (error) {
-
+    } catch (error) {
       console.error(error);
 
-      AuthNotify.error(
-        "Sai số điện thoại hoặc mật khẩu"
-      );
-
-    }
-    finally {
-
+      AuthNotify.error("Sai số điện thoại hoặc mật khẩu");
+    } finally {
       setLoading(false);
-
     }
-
   };
 
   return (
-
     <div className="login-page">
-
       {/* LOADER */}
 
       {loading && <LoginLoaderPay />}
@@ -131,19 +112,11 @@ export default function Login() {
       {/* LEFT */}
 
       <div className="login-hero">
-
-        <video
-          className="hero-video"
-          autoPlay
-          loop
-          muted
-          playsInline
-        >
+        <video className="hero-video" autoPlay loop muted playsInline>
           <source src="/Videonen.mp4" type="video/mp4" />
         </video>
 
         <div className="hero-overlay">
-
           <div className="hero-top">
             <img src={shield} alt="" />
             <span>PREMIUM COMMAND</span>
@@ -159,15 +132,12 @@ export default function Login() {
             <span>AES-256</span>
             <span>REALTIME</span>
           </div>
-
         </div>
-
       </div>
 
       {/* RIGHT */}
 
       <div className="login-card">
-
         <h2>Đăng nhập</h2>
 
         <div className="login-line" />
@@ -177,14 +147,10 @@ export default function Login() {
         </p>
 
         <div className="login-form">
-
           {/* PHONE */}
 
           <div className="form-group">
-
-            <label className="login-label">
-              TÀI KHOẢN NỘI BỘ
-            </label>
+            <label className="login-label">TÀI KHOẢN NỘI BỘ</label>
 
             <TextField
               fullWidth
@@ -194,25 +160,21 @@ export default function Login() {
               autoComplete="new-phone"
               name="phone_login_fake"
               onChange={(e) => {
-
                 const value = e.target.value.replace(/\D/g, "");
 
                 if (value.length <= 10) {
-
                   setPhone(value);
 
-                  setErrors(prev => ({
+                  setErrors((prev) => ({
                     ...prev,
-                    phone: null
+                    phone: null,
                   }));
-
                 }
-
               }}
               error={!!errors.phone}
               inputProps={{
                 maxLength: 10,
-                inputMode: "numeric"
+                inputMode: "numeric",
               }}
               InputProps={{
                 startAdornment: (
@@ -223,21 +185,13 @@ export default function Login() {
               }}
             />
 
-            {errors.phone && (
-              <span className="error-text">
-                {errors.phone}
-              </span>
-            )}
-
+            {errors.phone && <span className="error-text">{errors.phone}</span>}
           </div>
 
           {/* PASSWORD */}
 
           <div className="form-group">
-
-            <label className="login-label">
-              MẬT KHẨU HỆ THỐNG
-            </label>
+            <label className="login-label">MẬT KHẨU HỆ THỐNG</label>
 
             <TextField
               fullWidth
@@ -248,14 +202,12 @@ export default function Login() {
               autoComplete="new-password"
               name="password_login_fake"
               onChange={(e) => {
-
                 setPassword(e.target.value);
 
-                setErrors(prev => ({
+                setErrors((prev) => ({
                   ...prev,
-                  password: null
+                  password: null,
                 }));
-
               }}
               error={!!errors.password}
               InputProps={{
@@ -277,11 +229,8 @@ export default function Login() {
             />
 
             {errors.password && (
-              <span className="error-text">
-                {errors.password}
-              </span>
+              <span className="error-text">{errors.password}</span>
             )}
-
           </div>
 
           <Button
@@ -293,13 +242,8 @@ export default function Login() {
           >
             TRUY CẬP QUẢN TRỊ →
           </Button>
-
         </div>
-
       </div>
-
     </div>
-
   );
-
 }

@@ -13,8 +13,6 @@ import Permissions from "../pages/Admin/Permissions/Permissions";
 /* ================= MANAGER ================= */
 import DashboardOverview from "../pages/Manager/Dashboard/DashboardOverview";
 import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
-
-// import ManagerInfo from "../pages/Manager/Info";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
 import Approve from "../pages/Manager/Approval/ApprovalManagement";
 import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
@@ -33,8 +31,7 @@ import MissionHistory from "../pages/RescueTeam/RescueMissionHistory/MissionHist
 import MissionInProgress from "../pages/RescueTeam/RescueMissionProgress/MissionInProgress";
 import RescueMissionComplete from "../pages/RescueTeam/MissionComplete/RescueMissionComplete";
 import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/TeamMembersMisionList";
-// import RescueMessages from "../pages/Rescue/Messages";
-// import RescueProfile from "../pages/Rescue/Profile";
+
 
 export default function AppRoutes() {
   const isAuth = sessionStorage.getItem("isAuth") === "true";
@@ -82,11 +79,7 @@ export default function AppRoutes() {
         <Route path="inventory" element={<Inventory />} />
         <Route path="approve" element={<Approve />} />
         <Route path="rescue-team" element={<ManagerRescueTeam />} />
-        <Route path="periodic-aid" element={<PeriodicAid />} />
-        {/* <Route path="info" element={<ManagerInfo />} />
-        <Route path="warehouse" element={<Warehouse />} />
-     
-         />  */}
+        
       </Route>
 
       {/* ================= COORDINATOR ================= */}

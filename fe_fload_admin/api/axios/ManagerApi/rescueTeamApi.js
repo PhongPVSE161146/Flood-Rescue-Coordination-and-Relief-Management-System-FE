@@ -1,8 +1,6 @@
 import axiosInstance from "../../axiosInstance";
 
-/**
- * CREATE MEMBER
- */
+
 export const createTeamMember = (teamId, data) => {
 
   return axiosInstance.post(

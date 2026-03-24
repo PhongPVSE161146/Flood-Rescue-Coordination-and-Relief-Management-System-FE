@@ -23,6 +23,7 @@ const [address, setAddress] = useState("");
 const [loadingGPS, setLoadingGPS] = useState(false);
 const [gpsSuccess, setGpsSuccess] = useState(false);
 const [submitting, setSubmitting] = useState(false);
+
 const [location, setLocation] = useState({
   lat: "",
   lng: ""
@@ -35,7 +36,7 @@ const [form, setForm] = useState({
   fullName: "",
   contactPhone: "",
   requestType: "",
-  victimCount: 0,
+  victimCount: null,
   availableRescueTool: "",
   specialNeeds: "",
   detailDescription: "",

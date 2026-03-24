@@ -7,6 +7,16 @@ import "./MissionList.css";
 
 const { Option } = Select;
 
+const normalizeAddress = (address) => {
+  if (!address) return "";
+
+  return address
+    .replace(/^(Hẻm|Ngõ|Hẽm)\s*\d*\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+};
+
 /* ================= TIME AGO ================= */
 
 function timeAgo(ts) {
@@ -36,56 +46,34 @@ const isNew = (createdAt) => {
   return diff <= 60;
 };
 
-/* ================= REQUEST TYPES ================= */
-
-const REQUEST_TYPES = [
-  "cứu hộ khẩn cấp",
-  "hỗ trợ cứu trợ",
-  "cứu hộ ngập lụt",
-  "cứu hộ lũ quét",
-  "cứu hộ sạt lở",
-  "hỗ trợ sơ tán",
-  "hỗ trợ y tế khẩn cấp",
-  "tiếp tế lương thực",
-  "tìm kiếm cứu nạn",
-  "cứu người mắc kẹt",
-  "đưa đến nơi trú ẩn"
-];
-
-const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
-  value: t,
-  label: t
-}));
-
 /* ================= CONVERT API ================= */
-
 
 const API_BASE = "https://api-rescue.purintech.id.vn";
 
 const convertApiToMission = (data = [], statuses = []) => {
-
   if (!Array.isArray(data)) return [];
 
   return data
-    .filter(item => item.statusId === 1)
+    .filter((item) => item.statusId === 1)
     .map((item) => {
-
-      const statusObj = statuses.find(
-        s => s.statusId === item.statusId
-      );
+      const statusObj = statuses.find((s) => s.statusId === item.statusId);
 
       const images = [];
 
       if (Array.isArray(item.imageUrls)) {
-        images.push(...item.imageUrls.map(url =>
-          url.startsWith("http") ? url : API_BASE + url
-        ));
+        images.push(
+          ...item.imageUrls.map((url) =>
+            url.startsWith("http") ? url : API_BASE + url
+          )
+        );
       }
 
       if (Array.isArray(item.images)) {
-        images.push(...item.images.map(url =>
-          url.startsWith("http") ? url : API_BASE + url
-        ));
+        images.push(
+          ...item.images.map((url) =>
+            url.startsWith("http") ? url : API_BASE + url
+          )
+        );
       }
 
       if (item.locationImageUrl) {
@@ -110,10 +98,7 @@ const convertApiToMission = (data = [], statuses = []) => {
 
         createdAt: new Date(item.createdAt).getTime(),
 
-        incident:
-          MAIN_INCIDENT_OPTIONS.find(
-            (o) => o.value === item.requestType
-          )?.label || item.requestType,
+        incident: item.requestType || "Không rõ",
 
         status: "pending",
         statusText: statusObj?.description || "Đang xử lý",
@@ -127,14 +112,11 @@ const convertApiToMission = (data = [], statuses = []) => {
         availableRescueTool: item.availableRescueTool,
         specialNeeds: item.specialNeeds,
       };
-
     });
-
 };
 /* ================= COMPONENT ================= */
 
 export default function MissionList({ onSelectMission }) {
-
   const [missions, setMissions] = useState([]);
   const [tab, setTab] = useState("new");
 
@@ -147,47 +129,35 @@ export default function MissionList({ onSelectMission }) {
   const [filters, setFilters] = useState({
     requestType: "",
     timeRange: "",
-    address: ""
+    address: "",
   });
 
   /* ================= LOAD API ================= */
 
   const fetchData = async () => {
-
     try {
-
       setLoading(true);
 
       const response = await getPendingRescueRequests();
-      const list = Array.isArray(response)
-      ? response
-      : response?.data || [];
-    
-    /* Chỉ lấy request chưa xác minh */
-    
-    const pendingList = list.filter(item => item.statusId === 1);
-    
-    setMissions(
-      convertApiToMission(pendingList, requestStatuses)
-    );
+      const list = Array.isArray(response) ? response : response?.data || [];
 
-    }
-    catch (error) {
+      /* Chỉ lấy request chưa xác minh */
 
+      const pendingList = list.filter((item) => item.statusId === 1);
+
+      setMissions(convertApiToMission(pendingList, requestStatuses));
+    } catch (error) {
       AuthNotify.error(
         "Không tải được dữ liệu",
         error?.response?.data?.message || error.message
       );
-
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
-
   };
 
   useEffect(() => {
-    if(requestStatuses.length > 0){
+    if (requestStatuses.length > 0) {
       fetchData();
     }
   }, [requestStatuses]);
@@ -195,46 +165,42 @@ export default function MissionList({ onSelectMission }) {
   /* ================= ADDRESS OPTIONS ================= */
 
   const ADDRESS_OPTIONS = useMemo(() => {
+    const unique = [
+      ...new Set(
+        missions.map((m) => normalizeAddress(m.address)).filter(Boolean)
+      ),
+    ];
 
-    const unique = [...new Set(missions.map(m => m.address).filter(Boolean))];
-
-    return unique.map(addr => ({
+    return unique.map((addr) => ({
       label: addr,
-      value: addr
+      value: addr,
     }));
-
   }, [missions]);
 
   /* ================= CHANGE TAB ================= */
 
   const changeTab = (key) => {
-
     setTabLoading(key);
 
     setTimeout(() => {
-
       setTab(key);
 
       if (key !== "merge") {
         setFilters({
           requestType: "",
           timeRange: "",
-          address: ""
+          address: "",
         });
       }
 
       setTabLoading(null);
-
     }, 200);
-
   };
 
   /* ================= REALTIME CLOCK ================= */
 
   useEffect(() => {
-
     const updateTime = () => {
-
       const now = new Date();
 
       setCurrentTime(
@@ -244,7 +210,6 @@ export default function MissionList({ onSelectMission }) {
           second: "2-digit",
         })
       );
-
     };
 
     updateTime();
@@ -252,110 +217,99 @@ export default function MissionList({ onSelectMission }) {
     const timer = setInterval(updateTime, 1000);
 
     return () => clearInterval(timer);
-
   }, []);
 
   /* ================= UPDATE TIME AGO ================= */
 
   useEffect(() => {
-
     const timer = setInterval(() => {
-      forceRender(n => n + 1);
+      forceRender((n) => n + 1);
     }, 60000);
 
     return () => clearInterval(timer);
-
   }, []);
 
+  const INCIDENT_OPTIONS = useMemo(() => {
+    const unique = [
+      ...new Set(missions.map((m) => m.incident).filter(Boolean)),
+    ];
+
+    return [
+      { label: "Tất cả", value: "" },
+      ...unique.map((i) => ({
+        label: i,
+        value: i,
+      })),
+    ];
+  }, [missions]);
   /* ================= FILTER ================= */
 
   const filtered = useMemo(() => {
-
     let list = [...missions];
 
     if (tab === "new") {
-      list = list.filter(m => isNew(m.createdAt));
+      list = list.filter((m) => isNew(m.createdAt));
     }
 
     if (tab === "expired") {
-      list = list.filter(m => isExpired(m.createdAt));
+      list = list.filter((m) => isExpired(m.createdAt));
     }
 
     if (tab === "merge") {
-
       if (filters.requestType)
-        list = list.filter(m =>
-          m.incident?.toLowerCase().includes(filters.requestType.toLowerCase())
-        );
+        list = list.filter((m) => m.incident === filters.requestType);
 
       if (filters.address)
-        list = list.filter(m => m.address === filters.address);
+        list = list.filter((m) =>
+          normalizeAddress(m.address)
+            .toLowerCase()
+            .includes(filters.address.toLowerCase())
+        );
 
       if (filters.timeRange) {
-
         const minutes = Number(filters.timeRange);
 
-        list = list.filter(m => {
+        list = list.filter((m) => {
           const diff = (Date.now() - m.createdAt) / 60000;
           return diff <= minutes;
         });
-
       }
-
     }
 
     list.sort((a, b) => b.createdAt - a.createdAt);
 
     return list;
-
   }, [missions, tab, filters]);
 
   useEffect(() => {
-
     const loadStatuses = async () => {
-  
       try {
-  
         const data = await getRequestStatuses();
-  
-        const list = Array.isArray(data)
-          ? data
-          : data?.data || [];
-  
+
+        const list = Array.isArray(data) ? data : data?.data || [];
+
         setRequestStatuses(list);
-  
       } catch (error) {
-  
         console.error("LOAD STATUS ERROR:", error);
-  
       }
-  
     };
-  
+
     loadStatuses();
-  
   }, []);
 
   /* ================= UI ================= */
 
   return (
-
     <aside className="rc-queue">
-
       <div className="rc-queue__header">
-
         <h3>Hàng đợi ({filtered.length})</h3>
 
-        <span className="rc-queue__live">
-          {currentTime}
-        </span>
-
+        <span className="rc-queue__live">{currentTime}</span>
       </div>
 
       {/* TABS */}
 
       <div className="rc-queue__tabs">
-
         <button
           disabled={tabLoading !== null}
           className={tab === "new" ? "active" : ""}
@@ -379,204 +333,158 @@ export default function MissionList({ onSelectMission }) {
         >
           {tabLoading === "merge" ? "Loading..." : "GỘP YÊU CẦU"}
         </button>
-
       </div>
 
       {/* FILTER */}
       {tab === "merge" && (
+        <div className="rc-filter">
+          {/* LOẠI YÊU CẦU */}
 
-<div className="rc-filter">
+          <Select
+            placeholder="Loại yêu cầu"
+            showSearch
+            allowClear
+            value={filters.requestType || undefined}
+            style={{ width: "100%" }}
+            options={INCIDENT_OPTIONS}
+            optionFilterProp="label"
+            onChange={(value) =>
+              setFilters({
+                requestType: value || "",
+                address: "",
+                timeRange: "",
+              })
+            }
+          />
 
-  {/* LOẠI YÊU CẦU */}
+          {/* ĐỊA CHỈ */}
 
-  <Select
-    placeholder="Loại yêu cầu"
-    showSearch
-    allowClear
-    value={filters.requestType || undefined}
-    style={{ width: "100%" }}
-    options={[
-      { label: "Tất cả", value: "" },
-      ...MAIN_INCIDENT_OPTIONS
-    ]}
-    optionFilterProp="label"
-    onChange={(value) =>
-      setFilters({
-        requestType: value || "",
-        address: "",
-        timeRange: ""
-      })
-    }
-  />
+          <Select
+            placeholder="Địa chỉ"
+            allowClear
+            style={{ width: "100%" }}
+            options={ADDRESS_OPTIONS}
+            value={filters.address || undefined}
+            onChange={(v) =>
+              setFilters({
+                requestType: "",
+                address: v || "",
+                urgency: "",
+              })
+            }
+          />
 
-  {/* ĐỊA CHỈ */}
+          {/* THỜI GIAN */}
 
-  <Select
-    placeholder="Địa chỉ"
-    showSearch
-    allowClear
-    value={filters.address || undefined}
-    style={{ width: "100%", marginTop: 8 }}
-    options={[
-      { label: "Tất cả", value: "" },
-      ...ADDRESS_OPTIONS
-    ]}
-    optionFilterProp="label"
-    onChange={(value) =>
-      setFilters({
-        requestType: "",
-        address: value || "",
-        timeRange: ""
-      })
-    }
-  />
-
-  {/* THỜI GIAN */}
-
-  <Select
-    placeholder="Thời gian"
-    allowClear
-    value={filters.timeRange || undefined}
-    style={{ width: "100%", marginTop: 8 }}
-    onChange={(value) =>
-      setFilters({
-        requestType: "",
-        address: "",
-        timeRange: value || ""
-      })
-    }
-  >
-    <Option value="">Tất cả</Option>
-    <Option value="10">10 phút</Option>
-    <Option value="30">30 phút</Option>
-    <Option value="60">60 phút</Option>
-    <Option value="120">2 giờ</Option>
-  </Select>
-
-
-</div>
-
-)}
+          <Select
+            placeholder="Thời gian"
+            allowClear
+            value={filters.timeRange || undefined}
+            style={{ width: "100%", marginTop: 8 }}
+            onChange={(value) =>
+              setFilters({
+                requestType: "",
+                address: "",
+                timeRange: value || "",
+              })
+            }
+          >
+            <Option value="">Tất cả</Option>
+            <Option value="10">10 phút</Option>
+            <Option value="30">30 phút</Option>
+            <Option value="60">60 phút</Option>
+            <Option value="120">2 giờ</Option>
+          </Select>
+        </div>
+      )}
 
       {/* LIST */}
 
       <div className="rc-queue__list">
-
         {loading ? (
-
-          <div className="rc-loading">
-            Đang tải dữ liệu...
-          </div>
-
+          <div className="rc-loading">Đang tải dữ liệu...</div>
         ) : filtered.length === 0 ? (
-
-          <div className="rc-empty">
-            Không có dữ liệu
-          </div>
-
+          <div className="rc-empty">Không có dữ liệu</div>
         ) : (
-
           filtered.map((m) => (
-
             <div
               className="rc-queue__card"
               key={m.id}
               onClick={() => onSelectMission(m)}
             >
-
               <div className="rc-queue__top">
-
-                <span className="rc-queue__id">
-                  Mã yêu cầu: #{m.id}
-                  
-                </span>
+                <span className="rc-queue__id">Mã yêu cầu: #{m.id}</span>
 
                 <span className="rc-queue__time">
-
                   {timeAgo(m.createdAt)}
 
-              <div className="rc-queue__status">
-
-  {m.status === "pending" ? (
-    <Tag color="orange">
-      {m.statusText || "Đang xử lý"}
-    </Tag>
-  ) : (
-    <Tag color="green">
-      {m.statusText || "Đã xác nhận"}
-    </Tag>
-  )}
-
-</div>
-
+                  <div className="rc-queue__status">
+                    {m.status === "pending" ? (
+                      <Tag color="orange">{m.statusText || "Đang xử lý"}</Tag>
+                    ) : (
+                      <Tag color="green">{m.statusText || "Đã xác nhận"}</Tag>
+                    )}
+                  </div>
                 </span>
-
               </div>
               <div
-  className="info-box-minato"
-  style={{
-    background: "#fff",
-    borderRadius: 12,
-    padding: "14px 16px",
-    border: "1px solid #eee",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8
-  }}
->
-<strong
-    style={{
-      fontSize: 15,
-      fontWeight: 700,
-      color: "#1677ff"
-    }}
-  >
-     Họ và tên: {m.name}
-  </strong>
+                className="info-box-minato"
+                style={{
+                  background: "#fff",
+                  borderRadius: 12,
+                  padding: "14px 16px",
+                  border: "1px solid #eee",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: "#1677ff",
+                  }}
+                >
+                  Họ và tên: {m.name}
+                </strong>
 
-  <div
-    style={{
-      fontSize: 14,
-      fontWeight: 600,
-      color: "#52c41a",
-      padding: "6px 10px",
-      background: "#f6ffed",
-      borderRadius: 8,
-      border: "1px solid #b7eb8f"
-    }}
-  >
-    Số điện thoại: {m.phone}
-  </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#52c41a",
+                    padding: "6px 10px",
+                    background: "#f6ffed",
+                    borderRadius: 8,
+                    border: "1px solid #b7eb8f",
+                  }}
+                >
+                  Số điện thoại: {m.phone}
+                </div>
 
-  <div
-    style={{
-      fontSize: 14,
-      color: "#444",
-      padding: "6px 10px",
-      background: "#fafafa",
-      borderRadius: 8,
-      border: "1px solid #eee"
-    }}
-  >
-     Vị trí: {m.address}
-  </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: "#444",
+                    padding: "6px 10px",
+                    background: "#fafafa",
+                    borderRadius: 8,
+                    border: "1px solid #eee",
+                  }}
+                >
+                  Vị trí: {m.address}
+                </div>
 
-              <div className="rc-queue__tags">
-                <Tag color="red">{m.incident}</Tag>
+                <div className="rc-queue__tags">
+                  <Tag color="red">{m.incident}</Tag>
+                </div>
               </div>
-
             </div>
-            </div>
-
           ))
-
         )}
-
       </div>
-
     </aside>
-
   );
-
 }

@@ -136,7 +136,7 @@
   /* ACTIVE STEP */
   
   .rc-timeline__item.active .rc-timeline__icon{
-  background:#0ea5e9;
+  background:#0ee991;
   color:#fff;
   }
   
@@ -184,6 +184,7 @@
 
 .rc-timeline__content b{
   font-size:12px;
+  
 }
 
 /* LINE */
@@ -210,12 +211,12 @@
 /* ================= ACTIVE STEP ================= */
 
 .rc-timeline__item.active{
-  color:#0ea5e9;
+  color:#0ee97c;
   font-weight:700;
 }
 
 .rc-timeline__item.active .rc-timeline__icon{
-  background:#0ea5e9;
+  background:#0ee957;
   color:#ffffff;
   box-shadow:0 0 0 4px rgba(14,165,233,0.15);
 }
@@ -227,7 +228,7 @@
 }
 
 .rc-timeline__item.active + .rc-timeline__line{
-  background:#0ea5e9;
+  background:#0ee96d;
 }
 
 /* ================= CARD HEADER ================= */

@@ -23,39 +23,26 @@ function timeAgo(ts) {
   return new Date(ts).toLocaleDateString("vi-VN");
 }
 const getUrgencyColor = (id) => {
-  switch (id) {
-    case 1: return "red";     // Khẩn cấp
-    case 2: return "orange";  // ưu tiên
-    case 3: return "blue";    // Cần hỗ trợ
-    default: return "default";
-  }
+  const colors = [
+    "red",
+    "orange",
+    "green",
+    "blue",
+    "purple",
+    "cyan",
+    "gold",
+    "lime",
+    "magenta",
+    "volcano"
+  ];
+
+  return colors[(id - 1) % colors.length] || "default";
 };
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
-};
+
 
 /* ================= REQUEST TYPES ================= */
 
-const REQUEST_TYPES = [
-  "cứu hộ khẩn cấp",
-  "hỗ trợ cứu trợ",
-  "cứu hộ ngập lụt",
-  "cứu hộ lũ quét",
-  "cứu hộ sạt lở",
-  "hỗ trợ sơ tán",
-  "hỗ trợ y tế khẩn cấp",
-  "tiếp tế lương thực",
-  "tìm kiếm cứu nạn",
-  "cứu người mắc kẹt",
-  "đưa đến nơi trú ẩn"
-];
 
-const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
-  value: t,
-  label: t
-}));
 
 /* ================= CONVERT API ================= */
 
@@ -112,10 +99,7 @@ const convertApiToMission = (data = [], statuses = [], urgencyLevels = []) => {
 
         createdAt: new Date(item.createdAt).getTime(),
 
-        incident:
-          MAIN_INCIDENT_OPTIONS.find(
-            (o) => o.value === item.requestType
-          )?.label || item.requestType,
+        incident: item.requestType || "Không rõ",
 
           status: "completed",
           statusText:
@@ -124,7 +108,7 @@ const convertApiToMission = (data = [], statuses = [], urgencyLevels = []) => {
             : statusObj?.description || "Đã hoàn thành",
           statusId: item.statusId,
         images: images,
-        urgencyLevelName: urgencyObj?.levelName || "Không xác định",
+        urgencyLevelName: urgencyObj?.levelName,
         urgencyLevelId: item.urgencyLevelId,
         detailDescription: item.detailDescription,
         rescueTeamNote: item.rescueTeamNote,
@@ -206,7 +190,20 @@ export default function ListTeamSuccessful({ onSelectMission }) {
 
   }, [missions]);
 
+  const INCIDENT_OPTIONS = useMemo(() => {
 
+    const unique = [...new Set(
+      missions
+        .map(m => m.incident)
+        .filter(Boolean)
+    )];
+  
+    return unique.map(i => ({
+      label: i,
+      value: i
+    }));
+  
+  }, [missions]);
 
 
 
@@ -272,8 +269,8 @@ export default function ListTeamSuccessful({ onSelectMission }) {
     let list = [...missions];
   
     if (filters.requestType)
-      list = list.filter(m =>
-        m.incident?.toLowerCase().includes(filters.requestType.toLowerCase())
+      list = list.filter(
+        m => m.incident === filters.requestType
       );
       if (filters.status)
         list = list.filter(
@@ -285,7 +282,7 @@ export default function ListTeamSuccessful({ onSelectMission }) {
   
     if (filters.urgencyLevel)
       list = list.filter(
-        m => m.urgencyLevelName === filters.urgencyLevel
+        m => m.urgencyLevelId === filters.urgencyLevel
       );
   
     list.sort((a, b) => b.createdAt - a.createdAt);
@@ -347,15 +344,14 @@ export default function ListTeamSuccessful({ onSelectMission }) {
     style={{ width: "100%" }}
     options={[
       { label: "Tất cả", value: "" },
-      ...MAIN_INCIDENT_OPTIONS
+      ...INCIDENT_OPTIONS
     ]}
     optionFilterProp="label"
     onChange={(value) =>
-      setFilters({
-        requestType: value || "",
-        address: "",
-        urgencyLevel: ""
-      })
+      setFilters(prev => ({
+        ...prev,
+        requestType: value || ""
+      }))
     }
   />
 
@@ -388,8 +384,8 @@ export default function ListTeamSuccessful({ onSelectMission }) {
   options={[
     { label: "Tất cả", value: "" },
     ...urgencyLevels.map(u => ({
-      label: priorityTranslate[u.levelName] || u.levelName,
-      value: u.levelName
+      label: u.levelName,
+      value: u.urgencyLevelId
     }))
   ]}
   onChange={(value) =>

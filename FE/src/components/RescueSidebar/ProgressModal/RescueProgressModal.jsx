@@ -41,18 +41,25 @@ const getRequestTypeLabel = (value) => {
   return found ? found.label : value;
 };
 
-/* ================= PRIORITY ================= */
 
-const priorityTranslate = {
-  High: "Mức Độ Cao",
-  Medium: "Mức Độ Trung Bình",
-  Low: "Mức Độ Thấp"
-};
-const urgencyColor = {
-    High: "red",
-    Medium: "orange",
-    Low: "green"
+
+
+const getUrgencyColor = (id) => {
+  const map = {
+    1: "red",
+    2: "orange",
+    3: "green",
+    4: "volcano",
+    5: "blue",
+    6: "cyan",
+    7: "geekblue",
+    8: "purple",
+    9: "magenta",
+    10: "gold",
+    11: "lime"
   };
+  return map[id] || "blue";
+};
 /* ================= STATUS ================= */
 
 const STATUS_STEPS = [
@@ -134,7 +141,7 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
   
           AuthNotify.success("Thành công", "Đã xác nhận hoàn thành cứu hộ");
   
-          setIsConfirmed(true);        // ← quan trọng: ẩn nút
+          setIsConfirmed(true);    
   
           // Tùy chọn: reload data để đồng bộ (nếu cần)
           // const newData = await getRescueProgress(requestId);
@@ -165,10 +172,14 @@ const isButtonDisabled = isConfirmed;
     u => u.urgencyLevelId === data?.rescueRequest?.urgencyLevelId
   );
   
+  // const urgencyLabel =
+  //   priorityTranslate[urgency?.levelName] ||
+  //   urgency?.levelName ||
+  //   "Không xác định";
   const urgencyLabel =
-    priorityTranslate[urgency?.levelName] ||
-    urgency?.levelName ||
-    "Không xác định";
+  urgency?.levelName ||  
+
+  "Không xác định";
 
   /* ================= IMAGE ================= */
 
@@ -240,9 +251,21 @@ const isRejected =
 
           <div>
           
-            <Tag color={urgencyColor[urgency?.levelName]}>
-  {urgencyLabel}
-</Tag>
+
+          <div
+  style={{
+    display: "inline-block",
+    borderRadius: "20px",
+    overflow: "hidden"
+  }}
+>
+  <Tag
+    color={getUrgencyColor(urgency?.urgencyLevelId)}
+    style={{ fontSize: "20px", padding: "4px 12px" }}
+  >
+    {urgencyLabel}
+  </Tag>
+</div>
           </div>
 
         </header>
@@ -278,7 +301,7 @@ const isRejected =
 
       <div className="rp-icon">❌</div>
 
-      <div className="rp-text">
+      <div className="rp-text" style={{ color: "red"}} >
         TỪ CHỐI YÊU CẦU CỨU HỘ
       </div>
 
@@ -371,7 +394,14 @@ const isRejected =
                   )}
 
                 </section>
-                
+                {data.rescueRequest?.locationLat && (
+                  <section className="map-card">
+                    <iframe
+                      title="map"
+                      src={`https://www.google.com/maps?q=${data.rescueRequest.locationLat},${data.rescueRequest.locationLng}&z=15&output=embed`}
+                    />
+                  </section>
+                )}
 
               </div>
 
@@ -416,14 +446,7 @@ const isRejected =
 )}
 
                 </section>
-                {data.rescueRequest?.locationLat && (
-                  <section className="map-card">
-                    <iframe
-                      title="map"
-                      src={`https://www.google.com/maps?q=${data.rescueRequest.locationLat},${data.rescueRequest.locationLng}&z=15&output=embed`}
-                    />
-                  </section>
-                )}
+             
               </div>
 
             </div>

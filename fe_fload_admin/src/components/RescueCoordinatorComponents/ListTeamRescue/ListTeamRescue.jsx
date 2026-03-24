@@ -10,7 +10,7 @@ import {
   getPendingRescueRequests,
   getUrgencyLevels
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
-// import AuthNotify from "../../../utils/Common/AuthNotify";
+import AuthNotify from "../../../utils/Common/AuthNotify";
 import { getRequestStatuses } from "../../../../api/axios/Auth/authApi";
 import "./list-team-rescue-queue.css";
 
@@ -56,16 +56,12 @@ function parseVietnamTime(dateString) {
 
   if (!dateString) return Date.now();
 
-  /* nếu đã có timezone thì dùng luôn */
-
   if (
     dateString.includes("Z") ||
     dateString.includes("+")
   ) {
     return new Date(dateString).getTime();
   }
-
-  /* nếu chưa có timezone thì thêm +07:00 */
 
   return new Date(dateString + "+07:00").getTime();
 
@@ -85,40 +81,39 @@ const isNew = (verifiedAt) => {
 
 /* ================= INCIDENT ================= */
 
-const REQUEST_TYPES = [
-  "cứu hộ khẩn cấp",
-  "hỗ trợ cứu trợ",
-  "cứu hộ ngập lụt",
-  "cứu hộ lũ quét",
-  "cứu hộ sạt lở",
-  "hỗ trợ sơ tán",
-  "hỗ trợ y tế khẩn cấp",
-  "tiếp tế lương thực",
-  "tìm kiếm cứu nạn",
-  "cứu người mắc kẹt",
-  "đưa đến nơi trú ẩn"
-];
 
-const MAIN_INCIDENT_OPTIONS = REQUEST_TYPES.map(t => ({
-  value: t,
-  label: t
-}));
 
+
+
+const normalizeAddress = (address) => {
+  if (!address) return "";
+
+  return address
+    .replace(/^(Hẻm|Ngõ|Hẽm)\s*\d*\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+};
 /* ================= PRIORITY ================= */
 
-const priorityTranslate = {
-  "Khẩn cấp": "Khẩn cấp",
-  "ưu tiên": "ưu tiên",
-  "Cần hỗ trợ": "Cần hỗ trợ"
+
+const getUrgencyColor = (id) => {
+  const colors = [
+    "red",
+    "volcano",
+    "green",
+    "gold",
+    "lime",
+    "green",
+    "cyan",
+    "blue",
+    "geekblue",
+    "purple",
+    "magenta"
+  ];
+
+  return colors[(id - 1) % colors.length];
 };
-
-const URGENCY_OPTIONS = [
-  { label: "Tất cả", value: "" },
-  { label: "Khẩn cấp", value: "Khẩn cấp" },
-  { label: "Ưu tiên", value: "Ưu tiên" },
-  { label: "Cần hỗ trợ", value: "Cần hỗ trợ" }
-];
-
 /* ================= CONVERT API ================= */
 
 const convertApiToMission = (data = [], urgencyList = [], statuses = []) => {
@@ -134,11 +129,7 @@ statuses.forEach((s) => {
     levelMap[u.urgencyLevelId] = u;
   });
 
-  const levelColorMap = {
-    High: "urgent",
-    Medium: "medium",
-    Low: "low"
-  };
+
 
   return data.map((item) => {
 
@@ -164,17 +155,11 @@ statuses.forEach((s) => {
 
       verifiedAt: parseVietnamTime(item.verifiedAt),
 
-      level: levelColorMap[urgency?.levelName] || "medium",
+      level: getUrgencyColor(urgency?.urgencyLevelId),
+      urgencyLevelId: urgency?.urgencyLevelId,
+      urgency: urgency?.levelName || "Không xác định",
 
-      urgency:
-        priorityTranslate[urgency?.levelName] ||
-        urgency?.levelName ||
-        "Không xác định",
-
-      incident:
-        MAIN_INCIDENT_OPTIONS.find(
-          (o) => o.value === item.requestType
-        )?.label || item.requestType || "Không rõ",
+      incident: item.requestType || "Không rõ",
 
       sla: urgency?.slaMinutes || 0,
       statusText: statusMap[item.statusId]?.description || "",
@@ -194,8 +179,8 @@ export default function ListTeamRescue({ onSelectRequest }) {
   const [loading, setLoading] = useState(false);
   const [tabLoading, setTabLoading] = useState(null);
 
-  const [selectedId, setSelectedId] = useState(null);
-
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [urgencyLevels, setUrgencyLevels] = useState([]);
   const [, forceRender] = useState(0);
   const [currentTime, setCurrentTime] = useState("");
   const [statuses, setStatuses] = useState([]);
@@ -204,6 +189,17 @@ export default function ListTeamRescue({ onSelectRequest }) {
     address: "",
     urgency: ""
   });
+
+  const handleDispatchSuccess = (requestIds) => {
+
+    setRemovedRequests(prev => [
+      ...prev,
+      ...requestIds
+    ]);
+  
+    setSelectedRequests([]); // reset
+  
+  };
 
   useEffect(() => {
 
@@ -252,8 +248,11 @@ export default function ListTeamRescue({ onSelectRequest }) {
 const list = raw.filter(
   r => Number(r.statusId) === 2
 );
+const urgencyList = Array.isArray(urgencyRes)
+  ? urgencyRes
+  : urgencyRes?.data || [];
 
-      const urgencyList = urgencyRes || [];
+setUrgencyLevels(urgencyList); 
 
       setMissions(
         convertApiToMission(list, urgencyList, statuses)
@@ -277,19 +276,37 @@ const list = raw.filter(
     fetchData();
   }, []);
 
-  /* ================= ADDRESS OPTIONS ================= */
 
+
+
+
+  const URGENCY_OPTIONS = useMemo(() => {
+
+    const options = urgencyLevels.map((u) => ({
+      label: u.levelName,
+      value: u.levelName
+    }));
+  
+    return [
+      { label: "Tất cả", value: "" },
+      ...options
+    ];
+  
+  }, [urgencyLevels]);
+  /* ================= ADDRESS OPTIONS ================= */
   const ADDRESS_OPTIONS = useMemo(() => {
 
     const unique = [...new Set(
-      missions.map(m => m.address).filter(Boolean)
+      missions
+        .map(m => normalizeAddress(m.address))
+        .filter(Boolean)
     )];
-
+  
     return unique.map(addr => ({
       label: addr,
       value: addr
     }));
-
+  
   }, [missions]);
 
   /* ================= CHANGE TAB ================= */
@@ -359,6 +376,27 @@ const list = raw.filter(
     }
   }, [statuses]);
 
+
+
+
+  const INCIDENT_OPTIONS = useMemo(() => {
+
+    const unique = [...new Set(
+      missions
+        .map(m => m.incident)
+        .filter(Boolean)
+    )];
+  
+    return [
+      { label: "Tất cả", value: "" },
+      ...unique.map(i => ({
+        label: i,
+        value: i
+      }))
+    ];
+  
+  }, [missions]);
+
   /* ================= FILTER ================= */
 
   const filtered = useMemo(() => {
@@ -378,9 +416,12 @@ const list = raw.filter(
           m.incident?.toLowerCase()
           .includes(filters.requestType.toLowerCase())
         );
-
-      if (filters.address)
-        list = list.filter(m => m.address === filters.address);
+        if (filters.address)
+          list = list.filter(m =>
+            normalizeAddress(m.address)
+              .toLowerCase()
+              .includes(filters.address.toLowerCase())
+          );
 
       if (filters.urgency)
         list = list.filter(m => m.urgency === filters.urgency);
@@ -392,6 +433,7 @@ const list = raw.filter(
     return list;
 
   }, [missions, tab, filters]);
+  
 
   /* ================= UI ================= */
 
@@ -453,24 +495,21 @@ const list = raw.filter(
 
         <div className="rc-filter">
 
-          <Select
-            placeholder="Loại yêu cầu"
-            allowClear
-            showSearch
-            style={{ width: "100%" }}
-            options={[
-              { label: "Tất cả", value: "" },
-              ...MAIN_INCIDENT_OPTIONS
-            ]}
-            optionFilterProp="label"
-            value={filters.requestType || undefined}
-            onChange={(value) =>
-              setFilters(prev => ({
-                ...prev,
-                requestType: value || ""
-              }))
-            }
-          />
+<Select
+  placeholder="Loại yêu cầu"
+  allowClear
+  showSearch
+  style={{ width: "100%" }}
+  options={INCIDENT_OPTIONS}
+  optionFilterProp="label"
+  value={filters.requestType || undefined}
+  onChange={(value) =>
+    setFilters(prev => ({
+      ...prev,
+      requestType: value || ""
+    }))
+  }
+/>
 
           <Select
             placeholder="Địa chỉ"
@@ -536,13 +575,51 @@ const list = raw.filter(
             key={item.id}
             className={`ltr-queue__card 
             ltr-queue__card--${item.level}
-            ${selectedId === item.id ? "ltr-active" : ""}`}
+            ${selectedIds.includes(item.id)? "ltr-active" : ""}`}
             onClick={() => {
-          
-              setSelectedId(item.id);
-          
+
+              // check TRƯỚC khi setState
+              if (!selectedIds.includes(item.id) && selectedIds.length >= 5) {
+            
+                AuthNotify.warning(
+                  "Giới hạn lựa chọn",
+                  "Chỉ được chọn tối đa 5 yêu cầu!"
+                );
+            
+                return; // 
+              }
+            
+              setSelectedIds(prev => {
+
+                let updated;
+              
+                if (prev.includes(item.id)) {
+                  updated = prev.filter(id => id !== item.id);
+                } else {
+              
+                  if (prev.length >= 5) {
+                    AuthNotify.warning(
+                      "Giới hạn lựa chọn",
+                      "Chỉ được chọn tối đa 5 yêu cầu!"
+                    );
+                    return prev;
+                  }
+              
+                  updated = [...prev, item.id];
+                }
+              
+                // 🔥 lấy full object
+                const selectedItems = missions.filter(m =>
+                  updated.includes(m.id)
+                );
+              
+                onSelectRequest?.(selectedItems); // ✅ gửi array
+              
+                return updated;
+              });
+            
               onSelectRequest?.(item);
-          
+            
             }}
           >
 
@@ -566,13 +643,7 @@ const list = raw.filter(
 
 <Tag
   className="ltr-urgency-tag"
-  color={
-    item.level === "urgent"
-      ? "red"
-      : item.level === "medium"
-      ? "orange"
-      : "green"
-  }
+  color={getUrgencyColor(item.urgencyLevelId)}
 >
   {item.urgency}
 </Tag>
