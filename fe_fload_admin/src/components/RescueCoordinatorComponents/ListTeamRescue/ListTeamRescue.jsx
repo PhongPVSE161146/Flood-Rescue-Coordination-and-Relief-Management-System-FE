@@ -56,16 +56,12 @@ function parseVietnamTime(dateString) {
 
   if (!dateString) return Date.now();
 
-  /* nếu đã có timezone thì dùng luôn */
-
   if (
     dateString.includes("Z") ||
     dateString.includes("+")
   ) {
     return new Date(dateString).getTime();
   }
-
-  /* nếu chưa có timezone thì thêm +07:00 */
 
   return new Date(dateString + "+07:00").getTime();
 
@@ -256,7 +252,7 @@ const urgencyList = Array.isArray(urgencyRes)
   ? urgencyRes
   : urgencyRes?.data || [];
 
-setUrgencyLevels(urgencyList); // ✅ thêm dòng này
+setUrgencyLevels(urgencyList); 
 
       setMissions(
         convertApiToMission(list, urgencyList, statuses)

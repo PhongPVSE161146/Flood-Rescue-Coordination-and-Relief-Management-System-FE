@@ -42,7 +42,7 @@ export default function UserFormModal({
       open={open}
       onCancel={handleCancel}
       width={700}
-      destroyOnHidden   // ✅ thay destroyOnClose
+      destroyOnHidden   
       title={isEdit ? "Chỉnh sửa người dùng" : "Tạo người dùng"}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
@@ -59,7 +59,7 @@ export default function UserFormModal({
       ]}
     >
 
-      {/* truyền isEdit xuống form */}
+   
       <UserForm
         form={form}
         isEdit={isEdit}

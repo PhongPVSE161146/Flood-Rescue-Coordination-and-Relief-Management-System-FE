@@ -2,366 +2,250 @@ import { useEffect, useState } from "react";
 
 import {
   getAvailableRescueTeams,
-  getRescueTeamVehicles
+  getRescueTeamVehicles,
 } from "../../../../../api/axios/ManagerApi/rescueTeamApi";
 
-import {
-  getAllVehicles
-} from "../../../../../api/axios/ManagerApi/vehicleApi";
+import { getAllVehicles } from "../../../../../api/axios/ManagerApi/vehicleApi";
 
-import {
-  updateRescueAssignment
-} from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
+import { updateRescueAssignment } from "../../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import "./update-detail-team.css";
 
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
-export default function UpdateDetailTeam({
-  open,
-  onClose,
-  detail,
-  onSave
-}) {
+export default function UpdateDetailTeam({ open, onClose, detail, onSave }) {
+  const [teams, setTeams] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [allVehicles, setAllVehicles] = useState([]);
 
-  const [teams,setTeams] = useState([])
-  const [vehicles,setVehicles] = useState([])
-  const [allVehicles,setAllVehicles] = useState([])
+  const [teamId, setTeamId] = useState("");
+  const [vehicleId, setVehicleId] = useState("");
 
-  const [teamId,setTeamId] = useState("")
-  const [vehicleId,setVehicleId] = useState("")
-
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   /* ================= STATUS TEAM ================= */
 
-  const translateTeamStatus = (status)=>{
-
-    switch(status){
-
+  const translateTeamStatus = (status) => {
+    switch (status) {
       case "on duty":
-        return "🟢 Đang trực"
+        return "🟢 Đang trực";
 
       case "ready":
-        return "🟢 Sẵn sàng"
+        return "🟢 Sẵn sàng";
 
       case "busy":
-        return "🔴 Đang bận"
+        return "🔴 Đang bận";
 
       default:
-        return "Không rõ"
-
+        return "Không rõ";
     }
-
-  }
+  };
 
   /* ================= LOAD TEAM ================= */
 
-  useEffect(()=>{
+  useEffect(() => {
+    if (!open) return;
 
-    if(!open) return
+    const fetchTeams = async () => {
+      try {
+        const teamRes = await getAvailableRescueTeams();
 
-    const fetchTeams = async()=>{
+        const teamList = teamRes?.data || teamRes || [];
 
-      try{
-
-        const teamRes = await getAvailableRescueTeams()
-
-        const teamList =
-          teamRes?.data ||
-          teamRes ||
-          []
-
-        setTeams(teamList)
-
-      }catch(err){
-
-        console.error("Load teams error:",err)
-
+        setTeams(teamList);
+      } catch (err) {
+        console.error("Load teams error:", err);
       }
+    };
 
-    }
-
-    fetchTeams()
-
-  },[open])
+    fetchTeams();
+  }, [open]);
 
   /* ================= LOAD ALL VEHICLES ================= */
 
-  useEffect(()=>{
+  useEffect(() => {
+    if (!open) return;
 
-    if(!open) return
+    const fetchVehicles = async () => {
+      try {
+        const vehicleRes = await getAllVehicles();
 
-    const fetchVehicles = async()=>{
+        const list = vehicleRes?.data || vehicleRes || [];
 
-      try{
-
-        const vehicleRes = await getAllVehicles()
-
-        const list =
-          vehicleRes?.data ||
-          vehicleRes ||
-          []
-
-        setAllVehicles(list)
-
-      }catch(err){
-
-        console.error("Load vehicles error:",err)
-
+        setAllVehicles(list);
+      } catch (err) {
+        console.error("Load vehicles error:", err);
       }
+    };
 
-    }
-
-    fetchVehicles()
-
-  },[open])
+    fetchVehicles();
+  }, [open]);
 
   /* ================= SET DEFAULT DATA ================= */
 
-  useEffect(()=>{
-
-    if(detail){
-
-      setTeamId(Number(detail.rescueTeamId) || "")
-      setVehicleId(Number(detail.vehicleId) || "")
-
+  useEffect(() => {
+    if (detail) {
+      setTeamId(Number(detail.rescueTeamId) || "");
+      setVehicleId(Number(detail.vehicleId) || "");
     }
-
-  },[detail])
+  }, [detail]);
 
   /* ================= LOAD TEAM VEHICLES ================= */
 
-  useEffect(()=>{
-
-    if(!teamId) {
-
-      setVehicles([])
-      return
-
+  useEffect(() => {
+    if (!teamId) {
+      setVehicles([]);
+      return;
     }
 
-    const fetchTeamVehicles = async()=>{
+    const fetchTeamVehicles = async () => {
+      try {
+        const res = await getRescueTeamVehicles(teamId);
 
-      try{
-
-        const res = await getRescueTeamVehicles(teamId)
-
-        const teamVehicles =
-          res?.data?.items ||
-          []
+        const teamVehicles = res?.data?.items || [];
 
         const mapped = teamVehicles
-        .filter(v => v.isActive)
-        .map(tv =>{
+          .filter((v) => v.isActive)
+          .map((tv) => {
+            const vehicleDetail = allVehicles.find(
+              (v) => v.vehicleId === tv.vehicleId
+            );
 
-          const vehicleDetail =
-            allVehicles.find(
-              v => v.vehicleId === tv.vehicleId
-            )
+            return {
+              vehicleId: tv.vehicleId,
+              vehicleName: vehicleDetail?.vehicleName || `Xe ${tv.vehicleId}`,
+            };
+          });
 
-          return{
-
-            vehicleId:tv.vehicleId,
-            vehicleName:
-              vehicleDetail?.vehicleName ||
-              `Xe ${tv.vehicleId}`
-
-          }
-
-        })
-
-        setVehicles(mapped)
+        setVehicles(mapped);
 
         /* reset vehicle nếu team mới không có vehicle */
 
-        if(mapped.length === 0){
-
-          setVehicleId("")
-
+        if (mapped.length === 0) {
+          setVehicleId("");
         }
-
-      }catch(err){
-
-        console.error("Load team vehicles error:",err)
-
+      } catch (err) {
+        console.error("Load team vehicles error:", err);
       }
+    };
 
-    }
-
-    fetchTeamVehicles()
-
-  },[teamId,allVehicles])
+    fetchTeamVehicles();
+  }, [teamId, allVehicles]);
 
   /* ================= CHANGE TEAM ================= */
 
-  const handleChangeTeam = (value)=>{
-
-    setTeamId(Number(value))
-    setVehicleId("") // reset vehicle khi đổi team
-
-  }
+  const handleChangeTeam = (value) => {
+    setTeamId(Number(value));
+    setVehicleId(""); // reset vehicle khi đổi team
+  };
 
   /* ================= UPDATE ================= */
 
-  const handleSave = async()=>{
-
-    if(!teamId || !vehicleId){
-
+  const handleSave = async () => {
+    if (!teamId || !vehicleId) {
       AuthNotify.warning(
         "Thiếu thông tin",
         "Vui lòng chọn đội cứu hộ và phương tiện"
-      )
+      );
 
-      return
-
+      return;
     }
 
-    try{
-
-      setLoading(true)
+    try {
+      setLoading(true);
 
       const payload = {
+        rescueTeamId: Number(teamId),
+        vehicleId: Number(vehicleId),
+      };
 
-        rescueTeamId:Number(teamId),
-        vehicleId:Number(vehicleId)
-
-      }
-
-      await updateRescueAssignment(
-        detail.assignmentId,
-        payload
-      )
+      await updateRescueAssignment(detail.assignmentId, payload);
 
       AuthNotify.success(
         "Cập nhật thành công",
         "Đã thay đổi đội cứu hộ và phương tiện"
-      )
+      );
 
-      if(onSave){
-        onSave(payload)
+      if (onSave) {
+        onSave(payload);
       }
 
-      onClose()
-
-    }catch(err){
-
-      console.error("Update assignment error:",err)
+      onClose();
+    } catch (err) {
+      console.error("Update assignment error:", err);
 
       AuthNotify.error(
         "Cập nhật thất bại",
-        err?.response?.data?.message ||
-        "Không thể cập nhật đội cứu hộ"
-      )
-
-    }finally{
-
-      setLoading(false)
-
+        err?.response?.data?.message || "Không thể cập nhật đội cứu hộ"
+      );
+    } finally {
+      setLoading(false);
     }
+  };
 
-  }
+  if (!open) return null;
 
-  if(!open) return null
+  return (
+    <div className="udt-overlay">
+      <div className="udt-popup">
+        <h3>🚑 Cập nhật đội cứu hộ</h3>
 
-  return(
+        {/* TEAM */}
 
-<div className="udt-overlay">
+        <label>Đội cứu hộ</label>
 
-<div className="udt-popup">
+        <select
+          value={teamId}
+          disabled={loading}
+          onChange={(e) => handleChangeTeam(e.target.value)}
+        >
+          <option value="">Chọn đội cứu hộ</option>
 
-<h3>🚑 Cập nhật đội cứu hộ</h3>
+          {teams.map((team) => (
+            <option key={team.rescueTeamId} value={team.rescueTeamId}>
+              {team.teamName} - {translateTeamStatus(team.teamStatus)}
+            </option>
+          ))}
+        </select>
 
-{/* TEAM */}
+        {/* VEHICLE */}
 
-<label>Đội cứu hộ</label>
+        <label>Phương tiện</label>
 
-<select
-value={teamId}
-disabled={loading}
-onChange={(e)=>handleChangeTeam(e.target.value)}
->
+        <select
+          value={vehicleId}
+          disabled={loading || !teamId}
+          onChange={(e) => setVehicleId(Number(e.target.value))}
+        >
+          <option value="">Chọn phương tiện</option>
 
-<option value="">
-Chọn đội cứu hộ
-</option>
+          {vehicles.length === 0 && teamId && (
+            <option value="">Không có phương tiện</option>
+          )}
 
-{teams.map(team=>(
+          {vehicles.map((v) => (
+            <option key={v.vehicleId} value={v.vehicleId}>
+              {v.vehicleName}
+            </option>
+          ))}
+        </select>
 
-<option
-key={team.rescueTeamId}
-value={team.rescueTeamId}
->
+        {/* ACTION */}
 
-{team.teamName} - {translateTeamStatus(team.teamStatus)}
+        <div className="udt-actions">
+          <button className="btn-cancel" onClick={onClose} disabled={loading}>
+            Hủy
+          </button>
 
-</option>
-
-))}
-
-</select>
-
-{/* VEHICLE */}
-
-<label>Phương tiện</label>
-
-<select
-value={vehicleId}
-disabled={loading || !teamId}
-onChange={(e)=>setVehicleId(Number(e.target.value))}
->
-
-<option value="">
-Chọn phương tiện
-</option>
-
-{vehicles.length === 0 && teamId && (
-<option value="">
-Không có phương tiện
-</option>
-)}
-
-{vehicles.map(v=>(
-
-<option
-key={v.vehicleId}
-value={v.vehicleId}
->
-
-{v.vehicleName}
-
-</option>
-
-))}
-
-</select>
-
-{/* ACTION */}
-
-<div className="udt-actions">
-
-<button
-className="btn-cancel"
-onClick={onClose}
-disabled={loading}
->
-Hủy
-</button>
-
-<button
-className="btn-save"
-onClick={handleSave}
-disabled={loading || !teamId || !vehicleId}
->
-{loading ? "Đang cập nhật..." : "Lưu"}
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-  )
-
+          <button
+            className="btn-save"
+            onClick={handleSave}
+            disabled={loading || !teamId || !vehicleId}
+          >
+            {loading ? "Đang cập nhật..." : "Lưu"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

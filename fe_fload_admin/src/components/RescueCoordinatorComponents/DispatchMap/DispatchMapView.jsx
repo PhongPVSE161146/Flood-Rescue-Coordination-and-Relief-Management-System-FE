@@ -396,25 +396,7 @@ const provinceMap = useMemo(() => {
     r => r.id || r.requestId
   );
 
-  // if (!requests) {
 
-  //   return (
-  //     <div
-  //       style={{
-  //         height: "100%",
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //         fontSize: 22,
-  //         fontWeight: 600,
-  //         color: "#555"
-  //       }}
-  //     >
-  //       Chọn yêu cầu bên trái để xem chi tiết
-  //     </div>
-  //   );
-
-  // }
 
   return (
 
@@ -432,17 +414,7 @@ const provinceMap = useMemo(() => {
 
         </div>
 
-        {/* <div className="dispatch-header-right">
-
-          <div className="dispatch-user">
-            Họ Và Tên : {fullname}
-          </div>
-
-          <div className="dispatch-address">
-            📍 {address}
-          </div>
-
-        </div> */}
+     
 
       </header>
 

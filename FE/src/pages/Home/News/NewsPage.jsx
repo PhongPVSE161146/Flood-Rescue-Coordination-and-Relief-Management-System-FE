@@ -2,70 +2,53 @@ import "./NewsPage.css";
 import { useNavigate } from "react-router-dom";
 import newsData from "./datanews";
 
-
 const NewsPage = () => {
+  const navigate = useNavigate();
 
-const navigate = useNavigate();
+  const featured = newsData[0];
 
-const featured = newsData[0];
+  return (
+    <div className="news-page">
+      {/* FEATURED */}
 
-return(
+      <div
+        className="news-featured"
+        onClick={() => navigate(`/news/${featured.id}`)}
+      >
+        <img src={featured.image} alt="news" />
 
-<div className="news-page">
+        <div className="featured-overlay">
+          <h1>{featured.title}</h1>
 
-{/* FEATURED */}
+          <p>{featured.desc}</p>
 
-<div
-className="news-featured"
-onClick={()=>navigate(`/news/${featured.id}`)}
->
+          <span>{featured.date}</span>
+        </div>
+      </div>
 
-<img src={featured.image} alt="news"/>
+      {/* GRID */}
 
-<div className="featured-overlay">
+      <div className="news-grid">
+        {newsData.slice(1).map((news) => (
+          <div
+            key={news.id}
+            className="news-card"
+            onClick={() => navigate(`/news/${news.id}`)}
+          >
+            <img src={news.image} alt={news.title} />
 
-<h1>{featured.title}</h1>
+            <div className="news-card-content">
+              <h3>{news.title}</h3>
 
-<p>{featured.desc}</p>
+              <p>{news.desc}</p>
 
-<span>{featured.date}</span>
-
-</div>
-
-</div>
-
-{/* GRID */}
-
-<div className="news-grid">
-
-{newsData.slice(1).map(news=>(
-<div
-key={news.id}
-className="news-card"
-onClick={()=>navigate(`/news/${news.id}`)}
->
-
-<img src={news.image} alt={news.title}/>
-
-<div className="news-card-content">
-
-<h3>{news.title}</h3>
-
-<p>{news.desc}</p>
-
-<span>{news.date}</span>
-
-</div>
-
-</div>
-))}
-
-</div>
-
-</div>
-
-)
-
-}
+              <span>{news.date}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default NewsPage;
