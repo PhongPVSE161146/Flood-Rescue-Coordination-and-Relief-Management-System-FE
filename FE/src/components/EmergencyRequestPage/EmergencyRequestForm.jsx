@@ -3,7 +3,8 @@ import AuthNotify from "../../utils/Common/AuthNotify";
 import { PhoneOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import { LoadingOutlined } from "@ant-design/icons";
 import "../../pages/EmergencyRequest/EmergencyRequest.css";
-
+import { Tooltip } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -176,8 +177,13 @@ const EmergencyRequestForm = ({
 
         <div className="location-grid">
           <div className="location-left">
-            <label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
               ĐỊA CHỈ HIỆN TẠI <span className="required">*</span>
+              <Tooltip
+  title={`Nếu không lấy được địa chỉ hiện tại thì bạn có thể nhập tay vào ô trống bên dưới và ghi rõ địa chỉ chi tiết  `}
+>
+  <InfoCircleOutlined style={{ color: "#1890ff", cursor: "pointer" }} />
+</Tooltip>
             </label>
 
             <Input
@@ -258,13 +264,18 @@ const EmergencyRequestForm = ({
 
         <div className="form-row">
           <div>
-            <label>
-              SỐ LƯỢNG NGƯỜI GẶP NẠN <span className="required">*</span>
-            </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+  SỐ LƯỢNG NGƯỜI GẶP NẠN
+  <span className="required">*</span>
+  <Tooltip title="Nhập tổng số người đang gặp nạn để hệ thống ghi nhận diểm số. ">
+    <InfoCircleOutlined style={{ color: "#1890ff", cursor: "pointer" }} />
+  </Tooltip>
+ 
+</label>
 
             <InputNumber
   style={{ width: "100%" }}
-  placeholder="Nhập số lượng để được tính điểm mức độ"
+  placeholder="Nhập số người cần cứu hộ"
   min={0}
   status={errors.victimCount ? "error" : undefined}
   value={form.victimCount ?? undefined} // 👈 quan trọng
@@ -298,13 +309,16 @@ const EmergencyRequestForm = ({
           </div>
 
           <div>
-            <label>
-              DỤNG CỤ CỨU HỘ HIỆN CÓ <span className="required">*</span>
-            </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          DỤNG CỤ CỨU HỘ HIỆN CÓ
+  <span className="required">*</span>
+
+ 
+</label>
 
             <Input
               value={form.availableRescueTool}
-              placeholder="dánh giá  điểm nên bạn gi chi tiết ra"
+              placeholder="ghi chú dụng cụ cứu hộ hiện có cho đội cứu hộ biết"
               status={errors.availableRescueTool ? "error" : undefined}
               onChange={(e) => {
                 const value = e.target.value;
@@ -350,13 +364,20 @@ const EmergencyRequestForm = ({
           </div>
         </div>
 
-        <label>
-          NHU CẦU ĐẶC BIỆT <span className="required">*</span>
-        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        NHU CẦU ĐẶC BIỆT
+  <span className="required">*</span>
+  <Tooltip
+  title={`Nếu có những từ "người già", "trẻ em", "khuyết tật", sẽ được hệ thống ghi nhận số điểm `}
+>
+  <InfoCircleOutlined style={{ color: "#1890ff", cursor: "pointer" }} />
+</Tooltip>
+ 
+</label>
 
         <Input
           value={form.specialNeeds}
-          placeholder="Nhập rõ chi tiết nhu cầu đặc biệt ví dụ có người già... để tính được điểm mức độ"
+          placeholder="Nhập rõ chi tiết nhu cầu đặc biệt ví dụ có người già, trẻ em..."
           status={errors.specialNeeds ? "error" : undefined}
           onChange={(e) => {
             const value = e.target.value;
@@ -398,13 +419,22 @@ const EmergencyRequestForm = ({
           <p className="error-message">{errors.messages?.specialNeeds}</p>
         )}
 
-        <label>
-          MÔ TẢ CHI TIẾT <span className="required">*</span>
-        </label>
+<label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+MÔ TẢ CHI TIẾT
+  <span className="required">*</span>
+  <Tooltip
+  title={`Nếu có những từ "máu", "hấp hối", "chìm", "lũ quét", "sạt lở",
+"nguy kịch", "kẹt", "gãy xương", "bất tỉnh",
+"đói", "khát", "cô lập", "nước dâng", "hết lương", "lạnh" sẽ được  hệ thống ghi nhận số điểm `}
+>
+  <InfoCircleOutlined style={{ color: "#1890ff", cursor: "pointer" }} />
+</Tooltip>
+ 
+</label>
 
         <TextArea
           rows={4}
-          placeholder="Mô tả chi tiết tình trạng hiện trường, ví dụ: nước ngập đến đâu, có người mắc kẹt ở đâu, có nguy cơ sạt lở không... để tính điểm đánh giá cho mức độ ví dụ cao thấp hay trung bình"
+          placeholder="Mô tả chi tiết tình trạng hiện trường, ví dụ: nước ngập đến đâu, có người mắc kẹt ở đâu, có nguy cơ sạt lở không..."
           status={errors.detailDescription ? "error" : undefined}
           value={form.detailDescription}
           onChange={(e) => {
