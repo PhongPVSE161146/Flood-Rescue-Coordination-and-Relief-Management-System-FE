@@ -109,7 +109,7 @@ export const createInventoryTransaction = (data) => {
   return axiosInstance.post("/api/inventory-transactions", {
     warehouseId,
     transactionType: data.transactionType,
-    rescueRequestId: safeNumber(data.rescueRequestId) || 0,
+    rescueRequestId: safeNumber(data.rescueRequestId) || null,
     note: data.note || "",
     lines: Array.isArray(data.lines)
       ? data.lines

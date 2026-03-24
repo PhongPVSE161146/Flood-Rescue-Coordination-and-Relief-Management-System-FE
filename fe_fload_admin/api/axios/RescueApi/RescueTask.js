@@ -150,8 +150,8 @@ export const getPendingRescueRequests = async (params = {}) => {
 
   try {
 
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/RescueRequests`,
+    const response = await axiosInstance.get(
+      `/api/RescueRequests`,
       {
         params,
         headers: {

@@ -68,38 +68,37 @@ export default function DispatchMapView({ requests = [], onDispatchSuccess }) {
     firstRequest?.statusText || "Đang xử lý";
     /* ================= LOAD PROVINCES ================= */
 
-    useEffect(() => {
+  const fetchProvinces = async () => {
 
-      fetchProvinces();
-  
-    }, []);
-  
-    const fetchProvinces = async () => {
-  
-      try {
-  
-        const res = await getProvinces();
-  
-        const data = res?.data || res || [];
-  
-        setProvinces(data);
-  
-        const map = {};
-  
-        data.forEach((p) => {
-          map[p.id] = p.name;
-        });
-  
-     
-  
-      }
-      catch (err) {
-  
-        console.log("Load provinces error:", err);
-  
-      }
-  
-    };
+    try {
+
+      const res = await getProvinces();
+
+      const data = res?.data || res || [];
+
+      setProvinces(data);
+
+      const map = {};
+
+      data.forEach((p) => {
+        map[p.id] = p.name;
+      });
+
+
+    }
+    catch (err) {
+
+      console.log("Load provinces error:", err);
+
+    }
+
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProvinces();
+
+  }, []);
   
     /* ================= MAP AREA ID -> NAME ================= */
   
@@ -163,10 +162,11 @@ const provinceMap = useMemo(() => {
 
               }
 
-            } catch {}
+            } catch {
+              // ignore parse error
+            }
 
             return {
-
               id: team.rescueTeamId,
               name: team.teamName,
               status: team.teamStatus,

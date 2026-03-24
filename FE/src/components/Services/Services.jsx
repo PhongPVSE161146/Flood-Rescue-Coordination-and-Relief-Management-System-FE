@@ -58,7 +58,7 @@ export default function Services() {
         {services.map((item,index)=>(
           <div
             className="service-card"
-            key={index}
+            key={item.title}
             onClick={()=>setActive(item)}
           >
 
