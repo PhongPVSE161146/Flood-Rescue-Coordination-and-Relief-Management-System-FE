@@ -4,14 +4,13 @@ import { PhoneOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
+  getUrgencyLevels,
   verifyAndDispatchRescueRequest,
-  rejectRescueRequest,
-  getUrgencyLevels
+  rejectRescueRequest
 } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
 
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
-import MissionHistory from "../../Common/MissionHistory/MissionHistory";
 import "./MissionDetail.css";
 
 const IMAGE_BASE = "https://api-rescue.purintech.id.vn";
