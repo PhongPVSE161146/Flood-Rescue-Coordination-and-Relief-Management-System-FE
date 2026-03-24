@@ -282,7 +282,7 @@ const isRejected =
 
         {/* ================= ERROR ================= */}
         {error && (
-          <Alert type="error" message={error} showIcon />
+          <Alert type="error" description={error} showIcon />
         )}
 
         {/* ================= CONTENT ================= */}

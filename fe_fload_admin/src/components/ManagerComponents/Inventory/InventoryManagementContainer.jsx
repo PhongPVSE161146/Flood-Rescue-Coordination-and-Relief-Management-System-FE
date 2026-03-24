@@ -52,9 +52,10 @@ export default function InventoryManagementContainer() {
       const res = await getWarehouseInventory(warehouseId);
       setInventory(
         res.data.map((x, index) => ({
-          key: index,
+          key: `${warehouseId}-${x.reliefItemId || x.itemName || index}`,
           itemName: x.itemName,
           quantity: x.quantity,
+          reliefItemId: x.reliefItemId,
         }))
       );
     } catch {
@@ -357,7 +358,7 @@ export default function InventoryManagementContainer() {
         ]}
       />
 
-      <Drawer title={editingWarehouse ? "Edit Warehouse" : "Add Warehouse"} open={warehouseDrawer} onClose={() => setWarehouseDrawer(false)} width={420}>
+      <Drawer title={editingWarehouse ? "Edit Warehouse" : "Add Warehouse"} open={warehouseDrawer} onClose={() => setWarehouseDrawer(false)} size="large">
         <Form form={form} layout="vertical" onFinish={handleSaveWarehouse}>
           <Form.Item label="Warehouse Name" name="warehouseName" rules={[{ required: true }]}> <Input /> </Form.Item>
           <Form.Item label="Location Description" name="locationDescription" rules={[{ required: true }]}> <Input /> </Form.Item>
@@ -366,7 +367,7 @@ export default function InventoryManagementContainer() {
         </Form>
       </Drawer>
 
-      <Drawer title={editingItem ? "Edit Item" : "Add Item"} open={itemDrawer} onClose={() => setItemDrawer(false)} width={420}>
+      <Drawer title={editingItem ? "Edit Item" : "Add Item"} open={itemDrawer} onClose={() => setItemDrawer(false)} size="large">
         <Form form={itemForm} layout="vertical" onFinish={handleSaveItem}>
           <Form.Item label="Item Name" name="itemName" rules={[{ required: true }]}> <Input /> </Form.Item>
           <Form.Item label="Unit" name="unit" rules={[{ required: true }]}> <Input /> </Form.Item>

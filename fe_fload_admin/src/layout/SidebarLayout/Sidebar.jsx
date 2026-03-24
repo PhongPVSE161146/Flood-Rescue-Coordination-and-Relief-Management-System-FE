@@ -215,7 +215,7 @@ export default function Sidebar() {
       <nav className="sidebar-menu">
         {menus.map((item, index) => (
           <NavLink
-            key={index}
+            key={item.path}
             to={item.path}
             end={item.end}
             className={({ isActive }) => {
