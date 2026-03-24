@@ -16,6 +16,7 @@ import {
   CheckSquareOutlined,
   UsergroupAddOutlined,
   CarOutlined,
+  GiftOutlined,
 
   /* RESCUE */
   CarryOutOutlined,
@@ -163,7 +164,6 @@ export default function Sidebar() {
 
   const role = (sessionStorage.getItem("role") || "admin").toLowerCase();
 
-  const fullName = user.fullName || "Unknown User";
   const roleName = user.roleName || role;
 
   const menus = menuByRole[role] || [];
@@ -187,6 +187,7 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile();
   }, []);
 
@@ -214,7 +215,7 @@ export default function Sidebar() {
       <nav className="sidebar-menu">
         {menus.map((item, index) => (
           <NavLink
-            key={index}
+            key={item.path}
             to={item.path}
             end={item.end}
             className={({ isActive }) => {

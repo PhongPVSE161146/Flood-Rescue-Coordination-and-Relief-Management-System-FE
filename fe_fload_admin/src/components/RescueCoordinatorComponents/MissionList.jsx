@@ -85,7 +85,8 @@ const convertApiToMission = (data = [], statuses = []) => {
       }
 
       return {
-        id: item.rescueRequestId,
+        id: item.rescueRequestId || item.id,
+        rescueRequestId: item.rescueRequestId || item.id,
         name: item.fullName,
         phone: item.contactPhone,
         address: item.address,

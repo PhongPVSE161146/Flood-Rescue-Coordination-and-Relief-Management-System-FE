@@ -49,7 +49,6 @@ export default function TeamManagementList({
 
   const [expandedTeamId, setExpandedTeamId] = useState(null);
 
-  const [provinces, setProvinces] = useState([]);
   const [provinceMap, setProvinceMap] = useState({});
 
   /* PAGINATION */
@@ -67,23 +66,13 @@ export default function TeamManagementList({
       startIndex + pageSize
     );
 
-  /* ================= LOAD PROVINCES ================= */
-
-  useEffect(() => {
-
-    fetchProvinces();
-
-  }, []);
-
-  const fetchProvinces = async () => {
+  async function fetchProvinces() {
 
     try {
 
       const res = await getProvinces();
 
       const data = res?.data || res || [];
-
-      setProvinces(data);
 
       const map = {};
 
@@ -101,6 +90,14 @@ export default function TeamManagementList({
     }
 
   };
+
+  /* ================= LOAD PROVINCES ================= */
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProvinces();
+
+  }, []);
 
   /* ================= EXPAND MEMBERS ================= */
 

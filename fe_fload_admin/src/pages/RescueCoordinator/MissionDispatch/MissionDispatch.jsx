@@ -1,7 +1,8 @@
 import { useState } from "react";
-
 import MissionList from "../../../components/RescueCoordinatorComponents/MissionList";
 import MissionDetail from "../../../components/RescueCoordinatorComponents/Veryfi/MissionDetail";
+import { getRescueRequestById } from "../../../../api/axios/CoordinatorApi/RescueRequestApi";
+import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./rc-mission-dispatch.layout.css";
 
@@ -11,13 +12,27 @@ export default function MissionDispatch() {
   const [loading, setLoading] = useState(false);
 
   const handleSelectMission = async (mission) => {
-    setLoading(true);
+    const requestId = mission?.id || mission?.rescueRequestId;
 
-    // giả lập load API
-    setTimeout(() => {
+    if (!requestId) {
+      console.error("Missing ID:", mission);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+    
+      const data = await getRescueRequestById(requestId);
+    
+      setSelectedMission(data || mission);
+    } catch (error) {
+      console.error("Error fetching mission detail:", error);
+      AuthNotify.error("Không thể tải chi tiết yêu cầu");
+    
       setSelectedMission(mission);
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (

@@ -19,12 +19,7 @@ export default function UserTable({
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;
 
-  /* ================= FETCH PROVINCES ================= */
-  useEffect(() => {
-    fetchProvinces();
-  }, []);
-
-  const fetchProvinces = async () => {
+  async function fetchProvinces() {
     try {
       const res = await getProvinces();
       const data = res?.data || res || [];
@@ -34,6 +29,12 @@ export default function UserTable({
       setProvinces([]);
     }
   };
+
+  /* ================= FETCH PROVINCES ================= */
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProvinces();
+  }, []);
 
   /* ================= PROVINCE MAP ================= */
   const provinceMap = useMemo(() => {
