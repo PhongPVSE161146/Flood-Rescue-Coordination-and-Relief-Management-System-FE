@@ -125,7 +125,7 @@ export default function RescueOperationDetail({ assignmentId }) {
 
         status: statusMap[req?.requestStatusId],
         statusId: req?.requestStatusId,
-
+        urgencyScore: req?.urgencyScore,
         startTime: assignment.assignedAt,
         detailDescription: req?.detailDescription || "",
 
@@ -402,8 +402,22 @@ export default function RescueOperationDetail({ assignmentId }) {
 
             <p className="quote">{detail.detailDescription}</p>
           </section>
+          
           <section className="card">
-            <h4 className="card-title">6. NGUỒN LỰC</h4>
+
+<h4 className="card-title">
+  6. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{detail.urgencyScore}</p>
+
+</section>
+          <section className="card">
+            <h4 className="card-title">7. NGUỒN LỰC</h4>
 
             <div className="resource-grid">
               <div className="resource-item">
@@ -427,7 +441,7 @@ export default function RescueOperationDetail({ assignmentId }) {
           </section>
           {isRejected && (
             <section className="card">
-              <h4 className="card-title">7. LÝ DO TỪ CHỐI</h4>
+              <h4 className="card-title">8. LÝ DO TỪ CHỐI</h4>
 
               <p className="quote">{detail.rejectReason || "Không có lý do"}</p>
             </section>

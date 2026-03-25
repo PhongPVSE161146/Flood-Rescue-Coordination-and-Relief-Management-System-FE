@@ -110,7 +110,7 @@ export default function RescueMissionComplete() {
 
         team: teamMap[assignment.rescueTeamId] || "Không rõ",
         vehicle: vehicleMap[assignment.vehicleId] || "Không rõ",
-
+        urgencyScore: req?.urgencyScore,
         assignmentStatus: assignment.assignmentStatus,
 
         fullname: req?.fullName || req?.fullname || "Không rõ",
@@ -392,27 +392,40 @@ export default function RescueMissionComplete() {
  
          {/* RIGHT */}
          <div className="rc-op-col">
-     {/* Đội */}
+     {/* Đội */}      <section className="card">
+
+<h4 className="card-title">
+  4. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{detail.urgencyScore}</p>
+
+</section>
+
      <section className="rc-op-card">
-     <h4 className="card-title">4. THÔNG ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
+     <h4 className="card-title">5. THÔNG ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
              <p>Tên đội: {detail.team}</p>
              <p>Tên phương tiện: {detail.vehicle}</p>
            </section>
  
            {/* Mô tả */}
            <section className="rc-op-card">
-           <h4 className="card-title">5.  THÔNG TIN CHI TIẾT</h4>
+           <h4 className="card-title">6.  THÔNG TIN CHI TIẾT</h4>
              <p>{detail.detailDescription}</p>
            </section>
  
            {/* Ghi chú */}
            <section className="rc-op-card">
-           <h4 className="card-title">6. GHI CHÚ ĐỘI CỨU HỘ</h4>
+           <h4 className="card-title">7. GHI CHÚ ĐỘI CỨU HỘ</h4>
              <p>{detail.rescueTeamNote}</p>
            </section>
  
            <section className="card">
-           <h4 className="card-title">7. HÌNH ẢNH THỰC TẾ </h4>
+           <h4 className="card-title">8. HÌNH ẢNH THỰC TẾ </h4>
  
                    {images?.length > 0 ? (
                      <Image.PreviewGroup>

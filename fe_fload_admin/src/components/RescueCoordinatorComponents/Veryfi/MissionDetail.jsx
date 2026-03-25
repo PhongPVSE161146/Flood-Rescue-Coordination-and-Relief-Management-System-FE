@@ -354,13 +354,26 @@ const [rejectLoading, setRejectLoading] = useState(false);
             <p>{mission.specialNeeds}</p>
 
           </section>
+          <section className="card">
+
+<h4 className="card-title">
+  3. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{mission.urgencyScore}</p>
+
+</section>
 
           {/* DESCRIPTION */}
 
           <section className="card">
 
             <h4 className="card-title">
-              3. TÌNH TRẠNG KHẨN CẤP
+              4. TÌNH TRẠNG KHẨN CẤP
             </h4>
 
             <label>GHI CHÚ</label>
@@ -381,7 +394,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
     <section className="rc-op-card">
 
 <h4 className="card-title">
-4. VỊ TRÍ HIỆN TẠI
+5. VỊ TRÍ HIỆN TẠI
 <span className="rc-online">● TRỰC TUYẾN</span>
 </h4>
 
@@ -407,7 +420,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card">
 
 <h4 className="card-title">
-  5. HÌNH ẢNH HIỆN TRƯỜNG
+  6. HÌNH ẢNH HIỆN TRƯỜNG
 </h4>
 
 <div className="image-grid">
@@ -456,7 +469,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card rc-priority-card">
 
 <h4 className="card-title">
-  6. PHÂN LOẠI ƯU TIÊN
+  7. PHÂN LOẠI ƯU TIÊN
 </h4>
 
 {/* LÝ DO ĐỀ XUẤT */}
@@ -518,7 +531,7 @@ const [rejectLoading, setRejectLoading] = useState(false);
           <section className="card">
 
             <h4 className="card-title">
-              7. GHI CHÚ XÁC MINH
+              8. GHI CHÚ XÁC MINH
             </h4>
 
             <Input.TextArea
