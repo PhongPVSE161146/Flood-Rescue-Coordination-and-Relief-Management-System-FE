@@ -227,6 +227,7 @@ export default function MissionListRescue() {
                 {getInitials(m.name)}
               </div>
               <div>
+              {/* <h4>Mã nhiệm vụ: #{m.id}</h4> */}
                 <h4>Họ tên: {m.name}</h4>
                 <span className="rm-phone">SĐT: {m.phone}</span>
               </div>
