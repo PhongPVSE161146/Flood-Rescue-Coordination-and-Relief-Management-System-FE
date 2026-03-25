@@ -1,11 +1,17 @@
 # -Flood-Rescue-Coordination-and-Relief-Management-System-FE
 
+
+link web của nhóm : https://cuuhoswp.netlify.app/
+link hệ thống quản lý của nhóm: https://hethongcuhoswp.netlify.app/
+
+
+
 lệnh chạy 
 npm run dev
 
 
 
-Hướng dẫn cách deploy lên netlyfy
+Hướng dẫn cách deploy lên netlìy
 
 #1 nếu dã cấu hình rôi dùng lệnh 
 
@@ -36,6 +42,10 @@ sau đó build lại lệnh (npm run build)
  5. Deploy lần đầu
  netlify deploy --prod
  note: Sau đó site sẽ được deploy và bạn sẽ nhận được URL 
+
+
+
+
 
 
 
