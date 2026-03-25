@@ -134,7 +134,7 @@ const provinceMap = useMemo(() => {
 
         const availableTeams =
         teams.filter(
-          t => t.teamStatus?.toLowerCase().trim() === "on duty"
+          t => t.teamStatus?.toLowerCase().trim() === "onduty"
         );
 
         const mapped = await Promise.all(

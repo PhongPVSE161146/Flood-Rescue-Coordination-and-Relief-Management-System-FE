@@ -119,7 +119,7 @@ export default function CreateTeamModal({
 
         /* STATUS MẶC ĐỊNH */
 
-        rcStatus: "on duty"
+        rcStatus: "onduty"
 
       });
 

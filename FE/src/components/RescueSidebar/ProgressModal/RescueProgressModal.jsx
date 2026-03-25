@@ -81,7 +81,7 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const navigate = useNavigate();
   const [note, setNote] = useState("");
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  // const [isConfirmed, setIsConfirmed] = useState(false);
   
   /* ================= API ================= */
 
@@ -114,7 +114,9 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
     fetchData();
 
   }, [open, requestId]);
+
   const handleConfirmComplete = () => {
+    
     let tempNote = "";
   
     AntModal.confirm({
@@ -133,32 +135,45 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
       onOk: async () => {
         try {
           setConfirmLoading(true);
-  
+      
           await completeRescueRequest(
             requestId,
             tempNote.trim() || "Đã hoàn thành cứu trợ"
           );
-  
+      
           AuthNotify.success("Thành công", "Đã xác nhận hoàn thành cứu hộ");
-  
-          setIsConfirmed(true);    
-  
-          // Tùy chọn: reload data để đồng bộ (nếu cần)
-          // const newData = await getRescueProgress(requestId);
-          // setData(newData);
-  
+      
+          onClose(); // đóng modal
+
+          setTimeout(() => {
+            navigate("/map");
+          
+            // 🔥 reload sau khi navigate
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          
+          }, 200);
+      
         } catch (err) {
           AuthNotify.error("Thất bại", err.message || "Có lỗi xảy ra");
         } finally {
           setConfirmLoading(false);
         }
-      },
+      }
     });
   };
-  const shouldShowConfirmButton = 
-  data?.assignment?.assignmentStatus?.trim().toUpperCase() === "COMPLETED";
-
-const isButtonDisabled = isConfirmed;
+  const statusId = Number(data?.rescueRequest?.statusId);
+  const progressCode = data?.currentProgressCode;
+  
+  // 🔥 chỉ hiện khi:
+  // - đã tới bước COMPLETED
+  // - và chưa confirm (statusId = 4)
+  const shouldShowConfirmButton =
+    progressCode === "COMPLETED" && statusId === 4;
+  
+  // 🔥 disable khi đã confirm
+  const isButtonDisabled = statusId === 5;
 
   /* ================= STEP ================= */
 
@@ -172,10 +187,6 @@ const isButtonDisabled = isConfirmed;
     u => u.urgencyLevelId === data?.rescueRequest?.urgencyLevelId
   );
   
-  // const urgencyLabel =
-  //   priorityTranslate[urgency?.levelName] ||
-  //   urgency?.levelName ||
-  //   "Không xác định";
   const urgencyLabel =
   urgency?.levelName ||  
 

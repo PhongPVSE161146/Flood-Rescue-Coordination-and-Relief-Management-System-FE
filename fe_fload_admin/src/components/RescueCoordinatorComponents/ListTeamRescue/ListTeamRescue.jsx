@@ -579,11 +579,11 @@ setUrgencyLevels(urgencyList);
             onClick={() => {
 
               // check TRƯỚC khi setState
-              if (!selectedIds.includes(item.id) && selectedIds.length >= 5) {
+              if (!selectedIds.includes(item.id) && selectedIds.length >= 100) {
             
                 AuthNotify.warning(
                   "Giới hạn lựa chọn",
-                  "Chỉ được chọn tối đa 5 yêu cầu!"
+                  "Chỉ được chọn tối đa 100 yêu cầu!"
                 );
             
                 return; // 
@@ -597,10 +597,10 @@ setUrgencyLevels(urgencyList);
                   updated = prev.filter(id => id !== item.id);
                 } else {
               
-                  if (prev.length >= 5) {
+                  if (prev.length >= 100) {
                     AuthNotify.warning(
                       "Giới hạn lựa chọn",
-                      "Chỉ được chọn tối đa 5 yêu cầu!"
+                      "Chỉ được chọn tối đa 100 yêu cầu!"
                     );
                     return prev;
                   }
