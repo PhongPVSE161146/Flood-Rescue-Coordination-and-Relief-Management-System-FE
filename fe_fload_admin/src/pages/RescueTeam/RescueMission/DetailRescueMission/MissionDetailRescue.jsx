@@ -111,7 +111,7 @@ export default function MissionDetailRescue() {
           rescueTeamNote: req?.rescueTeamNote || "Không có",
 
           urgency: urgencyText,
-
+          urgencyScore: req?.urgencyScore,
           status: assignment.assignmentStatus,
 
           team:
@@ -272,11 +272,20 @@ export default function MissionDetailRescue() {
             <p>Tên phương tiện: {detail.vehicle}</p>
           </div>
 
-          <div className="md-card">
-            <h4 className="card-title">4. Mô tả sự cố chi tiết</h4>
+        
+          <section className="card">
 
-            <p className="md-description">{detail.detailDescription}</p>
-          </div>
+<h4 className="card-title">
+  4. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{detail.urgencyScore}</p>
+
+</section>
 
           <section className="md-media">
             <h4 className="card-title">5. Hình ảnh hiện trường</h4>
@@ -300,8 +309,13 @@ export default function MissionDetailRescue() {
         {/* RIGHT */}
 
         <main className="md-right">
+        <div className="md-card">
+            <h4 className="card-title">6. Mô tả sự cố chi tiết</h4>
+
+            <p className="md-description">{detail.detailDescription}</p>
+          </div>
           <div className="md-card">
-            <h4 className="card-title">6. Nguồn lực & mô tả</h4>
+            <h4 className="card-title">7. Nguồn lực & mô tả</h4>
 
             <div className="md-rescue-info">
               <div className="md-info">

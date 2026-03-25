@@ -336,20 +336,32 @@ export default function RescueReportDetail({ mission }) {
               <b>Địa chỉ:</b> {request.address}
             </p>
           </section>
-
           <section className="card">
-            <h4 className="card-title">2. YÊU CẦU</h4>
+
+<h4 className="card-title">
+  2. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{request.urgencyScore}</p>
+
+</section>
+          <section className="card">
+            <h4 className="card-title">3. LOẠI YÊU CẦU</h4>
             <p>
               <b>Loại yêu cầu:</b> {request.requestType}
             </p>
           </section>
           <section className="card">
-            <h4 className="card-title">3. MÔ TẢ CHI TIẾT</h4>
+            <h4 className="card-title">4. MÔ TẢ CHI TIẾT</h4>
             <p>{request.detailDescription}</p>
           </section>
 
           <section className="card">
-            <h4 className="card-title">4. NGUỒN LỰC</h4>
+            <h4 className="card-title">5. NGUỒN LỰC</h4>
 
             <div className="resource-grid">
               <div className="resource-item">
@@ -374,7 +386,7 @@ export default function RescueReportDetail({ mission }) {
 
           {/* IMAGE */}
           <section className="card">
-            <h4 className="card-title">5. HÌNH ẢNH THỰC TẾ</h4>
+            <h4 className="card-title">6. HÌNH ẢNH THỰC TẾ</h4>
 
             {images.length > 0 ? (
               <Image.PreviewGroup>
@@ -388,7 +400,7 @@ export default function RescueReportDetail({ mission }) {
           </section>
           <section className="rc-op-card">
             <h4 className="card-title">
-              6. VỊ TRÍ HIỆN TẠI
+              7. VỊ TRÍ HIỆN TẠI
               <span className="rc-online">● TRỰC TUYẾN</span>
             </h4>
 
@@ -407,7 +419,7 @@ export default function RescueReportDetail({ mission }) {
         <div className="right-col">
           {/* TEAM */}
           <section className="card">
-            <h4 className="card-title">7. ĐỘI CỨU HỘ</h4>
+            <h4 className="card-title">8. ĐỘI CỨU HỘ</h4>
             <p>
               <b>Tên:</b> {assignment?.rescueTeam?.teamName}
             </p>
@@ -421,7 +433,7 @@ export default function RescueReportDetail({ mission }) {
 
           {/* MEMBERS */}
           <section className="card">
-            <h4 className="card-title">8. THÀNH VIÊN CỨU HỘ</h4>
+            <h4 className="card-title">9. THÀNH VIÊN CỨU HỘ</h4>
 
             {!Array.isArray(teamMembers) || teamMembers.length === 0 ? (
               <p>Không có thành viên</p>
@@ -460,7 +472,7 @@ export default function RescueReportDetail({ mission }) {
 
           {/* VEHICLE */}
           <section className="card">
-            <h4 className="card-title">9. PHƯƠNG TIỆN</h4>
+            <h4 className="card-title">10. PHƯƠNG TIỆN</h4>
             <p>
               <b>Tên:</b> {assignment?.vehicle?.vehicleName}
             </p>
@@ -474,7 +486,7 @@ export default function RescueReportDetail({ mission }) {
 
           {/* STATUS */}
           <section className="card">
-            <h4 className="card-title">10. HỆ THỐNG GHI NHẬN</h4>
+            <h4 className="card-title">11. HỆ THỐNG GHI NHẬN</h4>
 
             <p>
               <b>Xác minh:</b> {data.isVerified ? "✔️" : "❌"}

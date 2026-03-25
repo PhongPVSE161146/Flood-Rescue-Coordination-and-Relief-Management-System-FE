@@ -90,7 +90,7 @@ const convertApiToMission = (data = [], statuses = [], urgencyLevels = []) => {
         name: item.fullName,
         phone: item.contactPhone,
         address: item.address,
-
+        urgencyScore: item.urgencyScore,
         lat: item.locationLat,
         lng: item.locationLng,
 

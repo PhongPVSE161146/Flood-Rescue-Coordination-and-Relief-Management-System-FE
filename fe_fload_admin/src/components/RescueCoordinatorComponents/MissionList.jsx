@@ -103,7 +103,7 @@ const convertApiToMission = (data = [], statuses = []) => {
 
         status: "pending",
         statusText: statusObj?.description || "Đang xử lý",
-
+        urgencyScore:item.urgencyScore,
         images: images,
 
         urgencyLevelId: item.urgencyLevelId,
