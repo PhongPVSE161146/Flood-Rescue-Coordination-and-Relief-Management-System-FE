@@ -4,21 +4,49 @@ import { Spin, Tag, Divider, Button } from "antd";
 
 import {
   getDistributionById,
-  getAllRescueTeams
+  getAllRescueTeams,
+  getPeriodicAidCampaignById,
 } from "../../../../../api/axios/RescueApi/RescueTask";
 
 import "./DistributionDetail.css";
 
 export default function DistributionDetail() {
-
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [campaign, setCampaign] = useState(null);
   const [teamMap, setTeamMap] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  /* ================= LOAD ================= */
+  /* ================= STATUS ================= */
+
+  const normalizeStatus = (status) => {
+    const map = {
+      "đang chờ": "pending",
+      "đã nhận": "accepted",
+      "hoàn thành": "completed",
+      "từ chối": "rejected",
+    };
+
+    return map[status?.toLowerCase()] || status?.toLowerCase();
+  };
+
+  const renderStatus = (status) => {
+    const map = {
+      pending: { color: "gold", text: "🟡 Chờ xác nhận" },
+      accepted: { color: "blue", text: "🔵 Đã nhận nhiệm vụ" },
+      completed: { color: "green", text: "✔ Hoàn thành nhiệm vụ" },
+      rejected: { color: "red", text: "❌ Đã từ chối nhiệm vụ" },
+    };
+
+    const key = normalizeStatus(status);
+    const s = map[key] || { color: "default", text: status };
+
+    return <Tag color={s.color}>{s.text}</Tag>;
+  };
+
+  /* ================= LOAD DATA ================= */
 
   const fetchDetail = async () => {
     try {
@@ -26,21 +54,58 @@ export default function DistributionDetail() {
 
       const [detail, teamRes] = await Promise.all([
         getDistributionById(id),
-        getAllRescueTeams()
+        getAllRescueTeams(),
       ]);
 
-      // map team
-      const teams = teamRes?.data?.items || [];
+      /* ===== DEBUG (QUAN TRỌNG) ===== */
+      console.log("TEAM RES:", teamRes);
+
+      /* ===== CAMPAIGN ===== */
+      const campaignId = detail.campaignId || detail.campaignID;
+
+      if (campaignId) {
+        const campaignData = await getPeriodicAidCampaignById(campaignId);
+        setCampaign(campaignData);
+      }
+
+      /* ===== TEAM MAP FIX CHUẨN ===== */
+      // handle mọi kiểu API trả về
+      const teams =
+        teamRes?.items ||
+        teamRes?.data?.items ||
+        teamRes?.data ||
+        teamRes ||
+        [];
+
       const map = {};
-      teams.forEach(t => {
-        map[t.rcid] = t.rcName;
+
+      teams.forEach((t) => {
+        const teamId =
+          t.rcid ||
+          t.rcId ||
+          t.rescueTeamId ||
+          t.teamId ||
+          t.id;
+
+        const teamName =
+          t.rcName ||
+          t.teamName ||
+          t.name ||
+          t.rescueTeamName;
+
+        if (teamId) {
+          map[String(teamId)] = teamName;
+        }
       });
+
+      console.log("TEAM MAP:", map);
+      console.log("RESCUE TEAM ID:", detail.rescueTeamId);
 
       setTeamMap(map);
       setData(detail);
 
     } catch (err) {
-      console.error(err);
+      console.error("FETCH DETAIL ERROR:", err);
     } finally {
       setLoading(false);
     }
@@ -49,20 +114,6 @@ export default function DistributionDetail() {
   useEffect(() => {
     fetchDetail();
   }, [id]);
-
-  /* ================= STATUS ================= */
-
-  const renderStatus = (status) => {
-    const map = {
-      pending: { color: "gold", text: "Đang chờ" },
-      completed: { color: "green", text: "Hoàn thành" },
-    };
-
-    const s = status?.toLowerCase();
-    const d = map[s] || { color: "default", text: status };
-
-    return <Tag color={d.color}>{d.text}</Tag>;
-  };
 
   /* ================= UI ================= */
 
@@ -78,51 +129,77 @@ export default function DistributionDetail() {
     return <p style={{ textAlign: "center" }}>Không có dữ liệu</p>;
   }
 
+  const teamName =
+    teamMap[String(data.rescueTeamId)] ||
+    teamMap[data.rescueTeamId];
+
   return (
     <div className="detail-page">
 
+      {/* HEADER */}
       <div className="detail-header">
+        <Button onClick={() => navigate(-1)}>← Quay lại</Button>
 
-        <Button onClick={() => navigate(-1)}>
-          ← Quay lại
-        </Button>
-
-        <h2>Chi tiết cứu trợ #{data.distributionId}</h2>
+        <h2>Chi tiết cứu trợ: #{data.distributionId}</h2>
 
         {renderStatus(data.status)}
-
       </div>
 
       <Divider />
 
+      {/* MAIN */}
       <div className="detail-box">
 
         <div className="detail-row">
-          <span>🎯 Chiến dịch</span>
-          <b>{data.campaignId}</b>
+          <span>Tên chiến dịch</span>
+          <b>{campaign?.campaignName || "—"}</b>
         </div>
 
         <div className="detail-row">
-          <span>🚑 Đội</span>
+          <span> Khu vực</span>
+          <b>{campaign?.areaName || "—"}</b>
+        </div>
+
+        <div className="detail-row">
+          <span> Thời gian</span>
           <b>
-            {teamMap[data.rescueTeamId] ||
-              `Team ${data.rescueTeamId}`}
+            {campaign
+              ? `Tháng ${campaign.month} / ${campaign.year}`
+              : "—"}
           </b>
         </div>
 
         <div className="detail-row">
-          <span>⏱ Thời gian</span>
+          <span> Người tạo chiến dịch</span>
+          <b>{campaign?.adminName || "—"}</b>
+        </div>
+
+        <div className="detail-row">
+          <span> Thời gian tạo chiến dịch</span>
           <b>
-            {new Date(data.distributedAt).toLocaleString("vi-VN")}
+            {campaign?.createdAt
+              ? new Date(campaign.createdAt).toLocaleString("vi-VN")
+              : "—"}
           </b>
         </div>
+
+        {/* 🔥 TEAM FIXED */}
+        <div className="detail-row">
+          <span>Tên đội </span>
+          <b>
+            {teamName || `Team ${data.rescueTeamId}`}
+          </b>
+        </div>
+
+       
 
       </div>
 
       <Divider />
 
+      {/* NOTE */}
       <div className="detail-note-box">
-        <h3>📝 Ghi chú</h3>
+        <h3> Ghi chú</h3>
         <p>{data.note || "Không có ghi chú"}</p>
       </div>
 

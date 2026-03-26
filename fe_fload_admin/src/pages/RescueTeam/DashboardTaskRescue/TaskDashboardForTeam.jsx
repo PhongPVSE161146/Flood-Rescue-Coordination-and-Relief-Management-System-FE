@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Card, Row, Col, Progress, Tag,Pagination,Spin } from "antd";
-import { BarChartOutlined } from "@ant-design/icons";
 import "./TaskDashboardForTeam.css"
 import {
   getAllAssignments,
