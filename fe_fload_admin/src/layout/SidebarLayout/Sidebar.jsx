@@ -21,7 +21,7 @@ import {
   /* RESCUE */
   CarryOutOutlined,
   HistoryOutlined,
-  MessageOutlined,
+  AlertOutlined,
   UserOutlined,
 
   /* COORDINATOR */
@@ -124,7 +124,7 @@ const menuByRole = {
 
   rescueteam: [
     {
-      label: "Nhiệm vụ",
+      label: "Nhiệm vụ cứu hộ",
       icon: <CarryOutOutlined />,
       path: "/rescueTeam",
       end: true,
@@ -140,15 +140,16 @@ const menuByRole = {
       icon: <HistoryOutlined />,
       path: "/rescueTeam/history",
     },
-    // {
-    //   label: "Tin nhắn",
-    //   icon: <MessageOutlined />,
-    //   path: "/rescueTeam/messages"
-    // },
+  
     {
       label: "Thành Viên Đội",
       icon: <UserOutlined />,
       path: "/rescueTeam/list-member",
+    },
+    {
+      label: "Nhiệm Vụ Cứu Trợ",
+      icon: <AlertOutlined />,
+      path: "/rescueTeam/cuu-tro"
     },
   ],
 };

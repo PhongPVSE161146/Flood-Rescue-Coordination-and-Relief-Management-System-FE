@@ -259,3 +259,55 @@ export const completeRescueAssignment = async (assignmentId) => {
   }
 
 };
+/* ================= GET ALL DISTRIBUTIONS ================= */
+
+export const getAllDistributions = async () => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/periodic-aid-distributions"
+    );
+
+    return response.data;
+
+  } 
+  catch (error) {
+
+    console.error("Lỗi lấy distributions:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách cứu trợ"
+    );
+
+  }
+
+};
+/* ================= GET DISTRIBUTION DETAIL ================= */
+
+export const getDistributionById = async (id) => {
+
+  try {
+
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-distributions/${id}`
+    );
+
+    return response.data;
+
+  } 
+  catch (error) {
+
+    console.error("Lỗi lấy chi tiết distribution:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải chi tiết cứu trợ"
+    );
+
+  }
+
+};

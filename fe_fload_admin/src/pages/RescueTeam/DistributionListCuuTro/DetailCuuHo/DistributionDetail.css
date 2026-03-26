@@ -1,0 +1,41 @@
+.detail-page {
+    padding: 20px;
+    background: #f5f7fb;
+    min-height: 100vh;
+  }
+  
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .detail-header h2 {
+    margin: 0;
+    flex: 1;
+  }
+  
+  .detail-box {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .detail-row {
+    display: flex;
+
+    margin-bottom: 12px;
+  }
+  
+  .detail-note-box {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .detail-loading {
+    height: 60vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }

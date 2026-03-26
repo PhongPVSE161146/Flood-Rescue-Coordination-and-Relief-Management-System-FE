@@ -31,8 +31,8 @@ import MissionHistory from "../pages/RescueTeam/RescueMissionHistory/MissionHist
 import MissionInProgress from "../pages/RescueTeam/RescueMissionProgress/MissionInProgress";
 import RescueMissionComplete from "../pages/RescueTeam/MissionComplete/RescueMissionComplete";
 import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/TeamMembersMisionList";
-
-
+import DistributionListRescue from "../pages/RescueTeam/DistributionListCuuTro/DistributionListRescue";
+import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
 export default function AppRoutes() {
   const isAuth = sessionStorage.getItem("isAuth") === "true";
    const role    = sessionStorage.getItem("role");
@@ -112,7 +112,9 @@ export default function AppRoutes() {
         <Route path="history/:id" element={<RescueMissionComplete />} />
         <Route path="/rescueTeam/dangcuho/:id" element={<MissionInProgress />} />
         <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />
-       
+        <Route path="/rescueTeam/cuu-tro" element={<DistributionListRescue />} />
+        <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
+        
       </Route>
 
       {/* ================= ROOT ================= */}
