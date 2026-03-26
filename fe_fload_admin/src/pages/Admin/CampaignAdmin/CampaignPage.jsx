@@ -75,14 +75,31 @@ export default function CampaignPage() {
 
   const renderStatus = (status) => {
     const map = {
-      pending: { text: "Đang chờ", color: "gold" },
-      active: { text: "Đang diễn ra", color: "blue" },
+      // 🔥 REQUEST / TASK STATUS
+      accepted: { text: "Đã nhận", color: "blue" },
+      rejected: { text: "Từ chối", color: "red" },
+      "in progress": { text: "Đang thực hiện", color: "processing" },
       completed: { text: "Hoàn thành", color: "green" },
-    
+  
+      // 🔥 fallback thêm (nếu API khác)
+      pending: { text: "Đang chờ", color: "gold" },
+      active: { text: "Đang hoạt động", color: "blue" },
+      ready: { text: "Sẵn sàng", color: "green" },
+  
+      // 🔥 nếu API trả tiếng Việt
+      "đã nhận": { text: "Đã nhận", color: "blue" },
+      "từ chối": { text: "Từ chối", color: "red" },
+      "đang thực hiện": { text: "Đang thực hiện", color: "processing" },
+      "hoàn thành": { text: "Hoàn thành", color: "green" },
     };
   
-    const key = status?.toLowerCase();
-    const s = map[key] || { text: status, color: "default" };
+    // 🔥 normalize chống lỗi API
+    const key = status?.toLowerCase()?.trim();
+  
+    const s = map[key] || {
+      text: status || "Không rõ",
+      color: "default",
+    };
   
     return <Tag color={s.color}>{s.text}</Tag>;
   };
@@ -109,10 +126,7 @@ export default function CampaignPage() {
         </span>
       ),
     },
-    {
-      title: "Khu vực",
-      dataIndex: "areaName",
-    },
+   
     {
       title: "Thời gian",
       render: (_, record) =>
@@ -204,10 +218,18 @@ export default function CampaignPage() {
 
       {/* CREATE */}
       <CreateCampaign
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
-        onSuccess={fetchData}
-      />
+  open={openCreate}
+  onClose={() => setOpenCreate(false)}
+  onSuccess={(newItem) => {
+    if (!newItem) {
+      fetchData(); // fallback
+      return;
+    }
+
+    // 🔥 đưa item mới lên đầu
+    setList(prev => [newItem, ...prev]);
+  }}
+/>
 
       {/* EDIT */}
       <EditCampaign

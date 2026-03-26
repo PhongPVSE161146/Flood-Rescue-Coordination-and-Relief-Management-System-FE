@@ -7,12 +7,15 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
 
   /* ================= GET ADMIN ================= */
 
-  const getAdminId = () => {
-    const user =
-      JSON.parse(localStorage.getItem("user")) ||
-      JSON.parse(sessionStorage.getItem("user"));
-
-    return user?.userId || user?.id || 0;
+  const getAdmin = () => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem("user")) ||
+        JSON.parse(sessionStorage.getItem("user"))
+      );
+    } catch {
+      return null;
+    }
   };
 
   /* ================= SUBMIT ================= */
@@ -21,27 +24,63 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
     try {
       const values = await form.validateFields();
 
+      const admin = getAdmin();
+
+      if (!admin) {
+        AuthNotify.error("Không xác định được admin");
+        return;
+      }
+
       const payload = {
-        campaignName: values.campaignName,
+        campaignName: values.campaignName?.trim(),
         month: Number(values.month),
         year: Number(values.year),
         status: values.status || "pending",
-
-        // 🔥 QUAN TRỌNG
-        createdByAdminId: getAdminId(),
+        createdByAdminId: Number(admin.userId || admin.id),
       };
 
-      await createAidCampaign(payload);
+      console.log("🚀 PAYLOAD:", payload);
+
+      const res = await createAidCampaign(payload);
 
       AuthNotify.success("Tạo thành công");
 
       form.resetFields();
       onClose();
-      onSuccess();
+
+      /* ================= FIX DATA TRẢ VỀ ================= */
+
+      const newItem = {
+        ...(res?.data || res),
+
+        campaignName: payload.campaignName,
+        month: payload.month,
+        year: payload.year,
+        status: payload.status,
+
+        createdByAdminId: payload.createdByAdminId,
+
+        // 🔥 HIỂN THỊ NGƯỜI TẠO
+        adminName:
+          admin.fullName ||
+          admin.name ||
+          admin.username ||
+          "Admin",
+
+        // 🔥 thời gian fallback
+        createdAt: new Date().toISOString(),
+      };
+
+      // 🔥 ĐẨY LÊN ĐẦU LIST
+      onSuccess?.(newItem);
 
     } catch (err) {
-      console.error(err);
-      AuthNotify.error("Tạo thất bại");
+      console.error("❌ CREATE CAMPAIGN ERROR:", err);
+
+      AuthNotify.error(
+        err?.response?.data?.message ||
+        "Tạo thất bại"
+      );
     }
   };
 
@@ -56,18 +95,22 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
         onClose();
       }}
       onOk={handleSubmit}
+      okText="Tạo"
+      cancelText="Hủy"
       destroyOnClose
     >
       <Form form={form} layout="vertical">
 
+        {/* NAME */}
         <Form.Item
           name="campaignName"
           label="Tên chiến dịch"
           rules={[{ required: true, message: "Nhập tên chiến dịch" }]}
         >
-          <Input />
+          <Input placeholder="Nhập tên chiến dịch" />
         </Form.Item>
 
+        {/* MONTH */}
         <Form.Item
           name="month"
           label="Tháng"
@@ -76,6 +119,7 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
           <Input type="number" min={1} max={12} />
         </Form.Item>
 
+        {/* YEAR */}
         <Form.Item
           name="year"
           label="Năm"
@@ -84,17 +128,19 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
           <Input type="number" />
         </Form.Item>
 
+        {/* STATUS */}
         <Form.Item
           name="status"
           label="Trạng thái"
-          initialValue="pending"
+          
         >
           <Select
-            options={[
-              { value: "pending", label: "Chờ" },
-              { value: "active", label: "Đang diễn ra" },
-              { value: "completed", label: "Hoàn thành" },
-            ]}
+           options={[
+            { value: "accepted", label: "🔵 Đã nhận" },
+          
+            { value: "in progress", label: "🟡 Đang thực hiện" },
+           
+          ]}
           />
         </Form.Item>
 

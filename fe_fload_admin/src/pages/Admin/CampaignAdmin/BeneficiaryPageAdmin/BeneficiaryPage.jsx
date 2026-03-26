@@ -1,17 +1,33 @@
 import { useEffect, useState } from "react";
-import { Table, Tag, message } from "antd";
+import {
+  Table,
+  Button,
+  Popconfirm,
+  message,
+  Tag
+} from "antd";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { getBeneficiariesByCampaign } from "../../../../../api/axios/AdminApi/suplyingApi";
+import {
+  getBeneficiariesByCampaign,
+  deleteBeneficiary
+} from "../../../../../api/axios/AdminApi/suplyingApi";
+
+import CreateBeneficiary from "../../../../components/AdminComponents/AidSupplyCamping/CreateBenefitSuply/CreateBeneficiary";
+import EditBeneficiary from "../../../../components/AdminComponents/AidSupplyCamping/EditBenefitSuply/EditBeneficiary";
 
 import "./BeneficiaryPage.css";
 
 export default function BeneficiaryPage() {
-  const { id } = useParams(); // campaignId
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [openCreate, setOpenCreate] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selected, setSelected] = useState(null);
 
   /* ================= LOAD ================= */
 
@@ -29,8 +45,7 @@ export default function BeneficiaryPage() {
 
       setList(data);
 
-    } catch (err) {
-      console.error(err);
+    } catch {
       message.error("Lỗi tải dữ liệu");
     } finally {
       setLoading(false);
@@ -41,16 +56,56 @@ export default function BeneficiaryPage() {
     fetchData();
   }, [id]);
 
+  /* ================= DELETE ================= */
+
+  const handleDelete = async (record) => {
+    try {
+      const bid = record.id || record.beneficiaryId;
+
+      await deleteBeneficiary(bid);
+
+      setList(prev =>
+        prev.filter(x => (x.id || x.beneficiaryId) !== bid)
+      );
+
+      message.success("Đã xóa");
+
+    } catch {
+      message.error("Xóa thất bại");
+    }
+  };
+
   /* ================= STATUS ================= */
 
   const renderStatus = (status) => {
     const map = {
-      pending: "gold",
-      approved: "green",
-      rejected: "red",
+      // 🔥 REQUEST / TASK STATUS
+      accepted: { text: "Đã nhận", color: "blue" },
+      rejected: { text: "Từ chối", color: "red" },
+      "in progress": { text: "Đang thực hiện", color: "processing" },
+      completed: { text: "Hoàn thành", color: "green" },
+  
+      // 🔥 fallback thêm (nếu API khác)
+      pending: { text: "Đang chờ", color: "gold" },
+      active: { text: "Đang hoạt động", color: "blue" },
+      ready: { text: "Sẵn sàng", color: "green" },
+  
+      // 🔥 nếu API trả tiếng Việt
+      "đã nhận": { text: "Đã nhận", color: "blue" },
+      "từ chối": { text: "Từ chối", color: "red" },
+      "đang thực hiện": { text: "Đang thực hiện", color: "processing" },
+      "hoàn thành": { text: "Hoàn thành", color: "green" },
     };
-
-    return <Tag color={map[status] || "default"}>{status}</Tag>;
+  
+    // 🔥 normalize chống lỗi API
+    const key = status?.toLowerCase()?.trim();
+  
+    const s = map[key] || {
+      text: status || "Không rõ",
+      color: "default",
+    };
+  
+    return <Tag color={s.color}>{s.text}</Tag>;
   };
 
   /* ================= TABLE ================= */
@@ -86,12 +141,29 @@ export default function BeneficiaryPage() {
       render: renderStatus,
     },
     {
-      title: "Ngày chọn",
-      dataIndex: "selectedAt",
-      render: (date) =>
-        date
-          ? new Date(date).toLocaleString("vi-VN")
-          : "—",
+      title: "Hành động",
+      render: (_, record) => (
+        <div
+          style={{ display: "flex", gap: 8 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            onClick={() => {
+              setSelected(record);
+              setOpenEdit(true);
+            }}
+          >
+            Sửa
+          </Button>
+
+          <Popconfirm
+            title="Xóa?"
+            onConfirm={() => handleDelete(record)}
+          >
+            <Button danger>Xóa</Button>
+          </Popconfirm>
+        </div>
+      ),
     },
   ];
 
@@ -104,20 +176,29 @@ export default function BeneficiaryPage() {
       <div className="header">
 
         <div className="left">
-          <button
+
+          {/* 🔥 BACK */}
+          <Button
             className="btn-back"
             onClick={() => navigate(-1)}
           >
             ← Quay lại
-          </button>
+          </Button>
 
-          <h2>Danh sách người nhận</h2>
+          <div>
+            <h2>Danh sách người nhận</h2>
+
+            {/* 🔥 COUNT */}
+            <span className="count">
+              {list.length} người
+            </span>
+          </div>
+
         </div>
 
-        {/* 🔥 COUNT */}
-        <div className="count-box">
-          {list.length} người
-        </div>
+        <Button type="primary" onClick={() => setOpenCreate(true)}>
+          + Thêm
+        </Button>
 
       </div>
 
@@ -128,10 +209,26 @@ export default function BeneficiaryPage() {
         dataSource={list}
         loading={loading}
         pagination={{
-          pageSize: 8,
+          pageSize: 6,
           showSizeChanger: true,
           showTotal: (total) => `Tổng ${total} người`,
         }}
+      />
+
+      {/* CREATE */}
+      <CreateBeneficiary
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        campaignId={id}
+        onSuccess={fetchData}
+      />
+
+      {/* EDIT */}
+      <EditBeneficiary
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        data={selected}
+        onSuccess={fetchData}
       />
 
     </div>

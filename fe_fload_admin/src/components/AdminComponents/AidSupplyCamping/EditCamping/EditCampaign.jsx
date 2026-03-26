@@ -51,14 +51,15 @@ export default function EditCampaign({ open, onClose, data, onSuccess }) {
         </Form.Item>
 
         <Form.Item name="status" label="Trạng thái">
-          <Select
-            options={[
-              { value: "pending", label: "Chờ" },
-              { value: "active", label: "Đang diễn ra" },
-              { value: "completed", label: "Hoàn thành" },
-            ]}
-          />
-        </Form.Item>
+  <Select
+    options={[
+      { value: "accepted", label: "🔵 Đã nhận" },
+      { value: "rejected", label: "🔴 Từ chối" },
+      { value: "in progress", label: "🟡 Đang thực hiện" },
+      { value: "completed", label: "🟢 Hoàn thành" },
+    ]}
+  />
+</Form.Item>
 
       </Form>
     </Modal>
