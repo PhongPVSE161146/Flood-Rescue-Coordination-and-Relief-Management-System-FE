@@ -16,9 +16,7 @@ import {
 } from "antd";
 
 import {
-  ToolOutlined,
-  StopOutlined,
-  CheckCircleOutlined,
+
   MoreOutlined,
   SearchOutlined
 } from "@ant-design/icons";
@@ -29,7 +27,7 @@ import {
   updateVehicle,
   deleteVehicle,
 } from "../../../../api/axios/ManagerApi/vehicleApi";
-
+import AuthNotify from "../../../utils/Common/AuthNotify";
 
 
 export default function VehicleManagementContainer() {
@@ -86,20 +84,35 @@ export default function VehicleManagementContainer() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-
+  
+      // 🔥 chuẩn hóa payload
+      const payload = {
+        vehicleName: values.vehicleName,
+        vehicleType: values.vehicleType,
+        vehicleLocation: values.vehicleLocation,
+        vehicleStatus: values.vehicleStatus,
+      };
+  
       if (editingVehicle) {
-        await updateVehicle(editingVehicle.id, values);
-        message.success("Cập nhật vehicle thành công");
+        const id = editingVehicle.id || editingVehicle.vehicleId;
+  
+        await updateVehicle(id, payload);
+  
+        AuthNotify.success("Cập nhật phương tiện thành công");
       } else {
-        await createVehicle(values);
-        message.success("Tạo vehicle thành công");
+        await createVehicle(payload);
+        AuthNotify.success("Tạo phương tiện thành công");
       }
-
+  
       setModalVisible(false);
+      setEditingVehicle(null);
+      form.resetFields();
+  
       loadVehicles();
-
-    } catch {
-      message.error("Lưu thất bại");
+  
+    } catch (err) {
+      console.error(err);
+      AuthNotify.error("Lưu thất bại");
     }
   };
 
@@ -107,7 +120,15 @@ export default function VehicleManagementContainer() {
 
   const handleEdit = (vehicle) => {
     setEditingVehicle(vehicle);
-    form.setFieldsValue(vehicle);
+  
+    // 🔥 map field chắc chắn đúng
+    form.setFieldsValue({
+      vehicleName: vehicle.vehicleName,
+      vehicleType: vehicle.vehicleType,
+      vehicleLocation: vehicle.vehicleLocation,
+      vehicleStatus: vehicle.vehicleStatus,
+    });
+  
     setModalVisible(true);
   };
 
@@ -115,17 +136,32 @@ export default function VehicleManagementContainer() {
 
   const handleDelete = (vehicle) => {
     Modal.confirm({
-      title: "Xóa vehicle?",
+      title: "Xóa phương tiện?",
       content: vehicle.vehicleName,
+      okText: "Xóa",
+      cancelText: "Hủy",
       okType: "danger",
+  
       async onOk() {
-        await deleteVehicle(vehicle.id);
-        message.success("Đã xóa");
-        loadVehicles();
+        try {
+          const id = vehicle.id || vehicle.vehicleId;
+  
+          await deleteVehicle(id);
+  
+          AuthNotify.success("Đã xóa phương tiện");
+  
+          // 🔥 update UI ngay (không cần reload)
+          setVehicleList(prev =>
+            prev.filter(v => (v.id || v.vehicleId) !== id)
+          );
+  
+        } catch (err) {
+          console.error(err);
+          AuthNotify.error("Xóa thất bại");
+        }
       },
     });
   };
-
   /* ================= STATUS ================= */
 
   const getStatusTag = (status) => {

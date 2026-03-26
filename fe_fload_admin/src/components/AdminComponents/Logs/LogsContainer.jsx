@@ -1,136 +1,174 @@
 import { useEffect, useState } from "react";
-import { Button, Table, Tag, Space, message, Spin, Input } from "antd";
+import {
+  Table,
+  Tag,
+  Space,
+  message,
+  Spin,
+  Input
+} from "antd";
 import { getAllRequestLogs } from "../../../../api/axios/RequestLogs/requestLogsApi";
-import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
-import "../../../pages/Admin/Logs/Logs.css";
+import { SearchOutlined } from "@ant-design/icons";
 
 export default function LogsContainer() {
   const [logs, setLogs] = useState([]);
+  const [filteredLogs, setFilteredLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [requestId, setRequestId] = useState("");
 
-  const fetchLogs = async (id = "") => {
-    // Require rescueRequestId to fetch logs
-    if (!id || id.trim() === "") {
-      message.warning("Vui lòng nhập Rescue Request ID");
-      setLogs([]);
-      return;
-    }
+  const [keyword, setKeyword] = useState(""); // search text
+  const [requestId, setRequestId] = useState(""); // search theo yêu cầu
 
+  /* ================= LOAD ALL ================= */
+
+  const fetchLogs = async () => {
     try {
       setLoading(true);
-      const data = await getAllRequestLogs(Number(id));
-      setLogs(Array.isArray(data) ? data : []);
-      if (Array.isArray(data) && data.length === 0) {
-        message.info("Không có nhật ký cho yêu cầu này");
-      }
+
+      const data = await getAllRequestLogs();
+
+      const list =
+        data?.items ||
+        data?.data ||
+        data ||
+        [];
+
+      setLogs(list);
+      setFilteredLogs(list);
+
     } catch (error) {
-      console.error("Fetch logs failed:", error);
-      message.error("Không thể tải nhật ký hệ thống");
-      setLogs([]);
+      console.error(error);
+      message.error("Không thể tải logs");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Don't fetch on initial load - require user input
+    fetchLogs();
   }, []);
+
+  /* ================= FILTER ================= */
+
+  useEffect(() => {
+    let result = [...logs];
+
+    // 🔥 filter theo requestId
+    if (requestId) {
+      result = result.filter((log) =>
+        String(log.rescueRequestId).includes(requestId)
+      );
+    }
+
+    // 🔥 filter theo keyword
+    if (keyword) {
+      const key = keyword.toLowerCase();
+
+      result = result.filter((log) =>
+        log.action?.toLowerCase().includes(key) ||
+        log.performedByName?.toLowerCase().includes(key) ||
+        log.performedByRole?.toLowerCase().includes(key)
+      );
+    }
+
+    setFilteredLogs(result);
+
+  }, [keyword, requestId, logs]);
+
+  /* ================= TABLE ================= */
 
   const columns = [
     {
       title: "ID",
-      dataIndex: "id",
-      key: "id",
+      dataIndex: "logId",
       width: 80
     },
     {
-      title: "Yêu cầu ID",
+      title: "Yêu cầu",
       dataIndex: "rescueRequestId",
-      key: "rescueRequestId",
-      width: 120,
       render: (id) => <Tag color="blue">REQ-{id}</Tag>
     },
     {
       title: "Hành động",
       dataIndex: "action",
-      key: "action",
       render: (text) => <strong>{text}</strong>
     },
     {
       title: "Người thực hiện",
-      dataIndex: "performedBy",
-      key: "performedBy",
-      render: (user) => <span>User ID: {user}</span>
+      render: (_, r) => (
+        <div>
+          <b>{r.performedByName}</b>
+          <div style={{ fontSize: 12, color: "#888" }}>
+            {r.performedByRole}
+          </div>
+        </div>
+      )
     },
     {
       title: "Thời gian",
       dataIndex: "createdAt",
-      key: "createdAt",
-      render: (t) => t ? new Date(t).toLocaleString() : "N/A"
+      render: (t) =>
+        t ? new Date(t).toLocaleString("vi-VN") : "N/A"
     },
   ];
 
+  /* ================= UI ================= */
+
   return (
     <div className="logs-page">
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", background: "#fff", padding: "20px", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+
+      {/* HEADER */}
+      <div className="page-header">
+
         <div>
-          <h2 style={{ margin: 0, fontSize: "24px", fontWeight: 700 }}>Nhật ký yêu cầu cứu hộ</h2>
-          <p style={{ margin: "4px 0 0 0", color: "#64748b" }}>Lịch sử hoạt động và log audit cho các yêu cầu cứu hộ trong hệ thống</p>
+          <h2>Nhật ký hệ thống</h2>
+          <p>Tổng {filteredLogs.length} log</p>
         </div>
 
-        <div className="page-actions">
-          <Space size="middle">
-            <Input
-              placeholder="Nhập Rescue Request ID để xem logs"
-              value={requestId}
-              onChange={(e) => setRequestId(e.target.value)}
-              prefix={<SearchOutlined />}
-              style={{ width: 280 }}
-              onPressEnter={() => fetchLogs(requestId)}
-              allowClear
-            />
-            <Button
-              type="primary"
-              icon={<ReloadOutlined />}
-              onClick={() => fetchLogs(requestId)}
-              loading={loading}
-              disabled={!requestId || requestId.trim() === ""}
-              size="large"
-            >
-              Tìm kiếm
-            </Button>
-          </Space>
-        </div>
+        <Space>
+
+          {/* 🔥 SEARCH REQUEST ID */}
+          <Input
+            placeholder="Tìm theo Request ID"
+            value={requestId}
+            onChange={(e) => setRequestId(e.target.value)}
+            style={{ width: 180 }}
+            allowClear
+          />
+
+          {/* 🔥 SEARCH TEXT */}
+          <Input
+            placeholder="Tìm hành động / người..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            prefix={<SearchOutlined />}
+            style={{ width: 260 }}
+            allowClear
+          />
+
+        </Space>
       </div>
 
-      <div className="logs-table" style={{ background: "#fff", borderRadius: "12px", padding: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
-        {logs.length === 0 && !loading && requestId === "" && (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "#999" }}>
-            <p style={{ fontSize: "16px", marginBottom: "10px" }}>📝 Nhập Rescue Request ID để xem nhật ký hoạt động</p>
-            <p style={{ fontSize: "14px", color: "#ccc" }}>Dữ liệu sẽ hiển thị sau khi bạn nhập ID và bấm tìm kiếm</p>
+      {/* TABLE */}
+      <div className="logs-table">
+
+        {loading ? (
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <Spin />
           </div>
-        )}
-        {logs.length === 0 && !loading && requestId !== "" && (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "#999" }}>
-            <p style={{ fontSize: "16px" }}>Không có nhật ký cho Rescue Request ID: <strong>{requestId}</strong></p>
-          </div>
-        )}
-        {logs.length > 0 && (
+        ) : (
           <Table
-            rowKey="id"
-            dataSource={logs}
+            rowKey="logId"
+            dataSource={filteredLogs}
             columns={columns}
-            loading={loading}
-            pagination={{ pageSize: 10, showSizeChanger: true }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng ${total} log`,
+            }}
             bordered
           />
         )}
-        {loading && logs.length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px" }}>
-            <Spin />
-          </div>
-        )}
+
       </div>
     </div>
   );

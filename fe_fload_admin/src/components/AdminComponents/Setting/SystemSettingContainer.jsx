@@ -281,14 +281,14 @@ export default function SystemSettingContainer() {
         <div className="urgency-management">
           <Card
             title="Danh sách Cấp độ Khẩn cấp"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-                setEditingUrgency(null);
-                setIsUrgencyModalVisible(true);
-              }}>
-                THÊM CẤP ĐỘ
-              </Button>
-            }
+            // extra={
+            //   <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+            //     setEditingUrgency(null);
+            //     setIsUrgencyModalVisible(true);
+            //   }}>
+            //     THÊM CẤP ĐỘ
+            //   </Button>
+            // }
           >
             <Table
               dataSource={urgencyLevels}

@@ -1,7 +1,7 @@
 import "./MissionHistory.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Pagination } from "antd";
+import { Pagination,Spin} from "antd";
 
 import {
   getAllAssignments,
@@ -180,13 +180,18 @@ export default function MissionHistory() {
       {/* HEADER */}
       <div className="rm-header-fixed">
         <h3>Lịch sử hoàn thành nhiệm vụ</h3>
-        <span>{missions.length} nhiệm vụ</span>
+        <span style={{color:"white", fontSize: 20}}>{missions.length} nhiệm vụ</span>
       </div>
 
       {/* LIST */}
       <div className="rm-list-scroll">
 
-        {loading && <p className="rm-loading">Đang tải...</p>}
+      {loading && (
+  <div className="rm-loading">
+    <Spin size="large" />
+    <p>Đang tải...</p>
+  </div>
+)}
 
         {!loading && missions.length === 0 && (
           <p className="rm-empty">Không có nhiệm vụ</p>

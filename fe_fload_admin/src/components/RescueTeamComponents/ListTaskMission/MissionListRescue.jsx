@@ -1,7 +1,7 @@
 import "./MissionListRescue.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Pagination } from "antd";
+import { Pagination, Spin } from "antd";
 
 import {
   getAllAssignments,
@@ -124,6 +124,7 @@ export default function MissionListRescue() {
         .filter(a => a.rescueTeamId === myTeamId)
         .filter(a => a.assignmentStatus !== "COMPLETED")
         .filter(a => a.assignmentStatus !== "REJECTED")
+        .filter(a => a.assignmentStatus !== "PENDING")
         .sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
 
       const mapped = await Promise.all(
@@ -207,12 +208,17 @@ export default function MissionListRescue() {
 
       <div className="rm-header-fixed">
         <h3>Nhiệm vụ của tôi</h3>
-        <span>{missions.length} nhiệm vụ</span>
+        <span style={{color:"white", fontSize: 20}}>{missions.length} nhiệm vụ</span>
       </div>
 
       <div className="rm-list-scroll">
 
-        {loading && <p className="rm-loading">Đang tải...</p>}
+      {loading && (
+  <div className="rm-loading">
+    <Spin size="large" />
+    <p>Đang tải...</p>
+  </div>
+)}
 
         {!loading && missions.length === 0 && (
           <p className="rm-empty">Không có nhiệm vụ</p>

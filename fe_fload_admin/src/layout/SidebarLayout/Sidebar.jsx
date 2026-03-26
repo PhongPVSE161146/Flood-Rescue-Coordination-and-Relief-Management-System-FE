@@ -9,6 +9,7 @@ import {
   SettingOutlined,
   SafetyOutlined,
   FileTextOutlined,
+  DeploymentUnitOutlined,
 
   /* MANAGER */
   AppstoreOutlined,
@@ -21,7 +22,7 @@ import {
   /* RESCUE */
   CarryOutOutlined,
   HistoryOutlined,
-  MessageOutlined,
+  AlertOutlined,
   UserOutlined,
 
   /* COORDINATOR */
@@ -29,6 +30,7 @@ import {
   GlobalOutlined,
   AimOutlined,
   BarChartOutlined,
+
 } from "@ant-design/icons";
 
 import { useState, useEffect } from "react";
@@ -62,6 +64,11 @@ const menuByRole = {
       icon: <SafetyOutlined />,
       path: "/admin/permissions",
     },
+    {
+      label: "Chiến dịch cứu trợ",
+      icon: <DeploymentUnitOutlined />,
+      path: "/admin/chien-dich-cuu-tro",
+    },
   ],
 
   manager: [
@@ -85,6 +92,16 @@ const menuByRole = {
       label: "Phê duyệt",
       icon: <CheckSquareOutlined />,
       path: "/manager/approve",
+    },
+    {
+      label: "Kế hoạch cứu trợ",
+      icon: <DeploymentUnitOutlined />,
+      path: "/manager/ke-hoach-cuu-tro",
+    },
+    {
+      label: "Phân đội cứu trợ",
+      icon: <UsergroupAddOutlined />,
+      path: "/manager/team-cuu-tro",
     },
     {
       label: "Đội cứu hộ",
@@ -115,16 +132,16 @@ const menuByRole = {
       icon: <BarChartOutlined />,
       path: "/coordinator/reports",
     },
-    // {
-    //   label: "Tài nguyên",
-    //   icon: <AppstoreOutlined />,
-    //   path: "/coordinator/resources",
-    // },
+ 
   ],
 
   rescueteam: [
+
+   
+
+   
     {
-      label: "Nhiệm vụ",
+      label: "Nhiệm vụ cứu hộ",
       icon: <CarryOutOutlined />,
       path: "/rescueTeam",
       end: true,
@@ -136,19 +153,25 @@ const menuByRole = {
       isDynamic: true,
     },
     {
-      label: "Lịch sử",
+      label: "Lịch sử hoàn thành",
       icon: <HistoryOutlined />,
       path: "/rescueTeam/history",
     },
-    // {
-    //   label: "Tin nhắn",
-    //   icon: <MessageOutlined />,
-    //   path: "/rescueTeam/messages"
-    // },
+  
     {
       label: "Thành Viên Đội",
       icon: <UserOutlined />,
       path: "/rescueTeam/list-member",
+    },
+    {
+      label: "Nhiệm Vụ Cứu Trợ",
+      icon: <AlertOutlined />,
+      path: "/rescueTeam/cuu-tro"
+    },
+    {
+      label: "Thống kê nhiệm vụ",
+      icon: <BarChartOutlined />,
+      path: "/rescueTeam/dashboard-task",
     },
   ],
 };

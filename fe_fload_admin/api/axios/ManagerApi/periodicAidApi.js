@@ -1,210 +1,279 @@
 import axiosInstance from "../../axiosInstance";
 
-const safeNumber = (value) => {
-  if (value === undefined || value === null || value === "") return null;
-  const num = Number(value);
-  return isNaN(num) ? null : num;
+/* ================= GET SUPPLY PLANS BY CAMPAIGN ================= */
+
+export const getSupplyPlansByCampaign = async (campaignId) => {
+  try {
+    if (!campaignId) {
+      throw new Error("campaignId không hợp lệ");
+    }
+
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-supply-plans/by-campaign/${campaignId}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET SUPPLY PLANS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách kế hoạch cấp phát"
+    );
+
+  }
+};
+/* ================= UPDATE SUPPLY PLAN ================= */
+
+export const updateSupplyPlan = async (id, data) => {
+  try {
+
+    if (!id) {
+      throw new Error("ID không hợp lệ");
+    }
+
+    const payload = {
+      plannedQuantity: Number(data.plannedQuantity),
+      approvedQuantity: Number(data.approvedQuantity),
+      warehouseId: Number(data.warehouseId),
+    };
+
+    const response = await axiosInstance.put(
+      `/api/periodic-aid-supply-plans/${id}`,
+      payload
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("UPDATE SUPPLY PLAN ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể cập nhật kế hoạch cấp phát"
+    );
+
+  }
+};
+/* ================= DELETE SUPPLY PLAN ================= */
+
+export const deleteSupplyPlan = async (id) => {
+  try {
+
+    if (!id) {
+      throw new Error("ID không hợp lệ");
+    }
+
+    const response = await axiosInstance.delete(
+      `/api/periodic-aid-supply-plans/${id}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("DELETE SUPPLY PLAN ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể xóa kế hoạch cấp phát"
+    );
+
+  }
 };
 
-/* =========================================================
-   ================ PeriodicAidCampaigns ===================
-   ========================================================= */
 
-export const getAllPeriodicAidCampaigns = () => {
-  return axiosInstance.get("/api/PeriodicAidCampaigns");
+/* ================= CREATE SUPPLY PLAN ================= */
+
+export const createSupplyPlan = async (data) => {
+  try {
+
+    const payload = {
+      campaignId: Number(data.campaignId),
+      reliefItemId: Number(data.reliefItemId),
+
+      plannedQuantity: Number(data.plannedQuantity || 0),
+      approvedQuantity: Number(data.approvedQuantity || 0),
+
+      createdByManagerId: Number(data.createdByManagerId),
+    };
+
+    const response = await axiosInstance.post(
+      "/api/periodic-aid-supply-plans",
+      payload
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("CREATE SUPPLY PLAN ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tạo kế hoạch cấp phát"
+    );
+
+  }
+};
+/* ================= GET ALL RELIEF ITEMS ================= */
+
+export const getAllReliefItems = async () => {
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/relief-items"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RELIEF ITEMS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách vật phẩm"
+    );
+
+  }
 };
 
-export const getPeriodicAidCampaignById = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.get(`/api/PeriodicAidCampaigns/${safeId}`);
+export const getAllWarehouses = async () => {
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/relief-warehouses"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET WAREHOUSES ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách kho"
+    );
+
+  }
+};
+export const getAllDistributions = async () => {
+  try {
+    const res = await axiosInstance.get(
+      "/api/periodic-aid-distributions"
+    );
+
+    return res?.data;
+  } catch (err) {
+    console.error("GET DISTRIBUTIONS ERROR:", err);
+    throw err;
+  }
+};
+export const createDistribution = async (payload) => {
+  try {
+    const res = await axiosInstance.post(
+      "/api/periodic-aid-distributions",
+      payload
+    );
+
+    return res?.data || res;
+  } catch (err) {
+    console.error("CREATE DISTRIBUTION ERROR:", err);
+    throw err;
+  }
+};
+export const updateDistribution = async (id, payload) => {
+  try {
+    const res = await axiosInstance.put(
+      `/api/periodic-aid-distributions/${id}`,
+      payload
+    );
+
+    return res?.data || res;
+  } catch (err) {
+    console.error("UPDATE DISTRIBUTION ERROR:", err);
+    throw err;
+  }
+};
+export const deleteDistribution = async (id) => {
+  try {
+    const res = await axiosInstance.delete(
+      `/api/periodic-aid-distributions/${id}`
+    );
+
+    return res?.data || res;
+  } catch (err) {
+    console.error("DELETE DISTRIBUTION ERROR:", err);
+    throw err;
+  }
+};
+export const getAllRescueTeams = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/api/RescueTeams"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RESCUE TEAMS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách đội cứu trợ"
+    );
+  }
 };
 
-export const createPeriodicAidCampaign = (data) => {
-  return axiosInstance.post("/api/PeriodicAidCampaigns", {
-    campaignName: data.campaignName || "",
-    month: safeNumber(data.month),
-    year: safeNumber(data.year),
-    areaId: safeNumber(data.areaId),
-    status: data.status || "Pending",
-    createdByAdminId: safeNumber(data.createdByAdminId)
-  });
+export const getAllAidCampaigns = async () => {
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/PeriodicAidCampaigns"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET ALL AID CAMPAIGNS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách chiến dịch cứu trợ"
+    );
+
+  }
 };
+export const getAvailableRescueTeams = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/api/RescueTeams/available"
+    );
 
-export const updatePeriodicAidCampaign = (id, data) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.put(`/api/PeriodicAidCampaigns/${safeId}`, {
-    campaignName: data.campaignName || "",
-    month: safeNumber(data.month),
-    year: safeNumber(data.year),
-    areaId: safeNumber(data.areaId),
-    status: data.status || "Pending"
-  });
-};
+    return response.data;
 
-export const deletePeriodicAidCampaign = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.delete(`/api/PeriodicAidCampaigns/${safeId}`);
-};
+  } catch (error) {
+    console.error("GET AVAILABLE RESCUE TEAMS ERROR:", error);
 
-/* =========================================================
-   ============== PeriodicAidBeneficiaries =================
-   ========================================================= */
-
-export const getBeneficiariesByCampaign = (campaignId) => {
-  const safeId = safeNumber(campaignId);
-  return axiosInstance.get(`/api/periodic-aid-beneficiaries/by-campaign/${safeId}`);
-};
-
-export const getBeneficiaryById = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.get(`/api/periodic-aid-beneficiaries/${safeId}`);
-};
-
-export const createBeneficiary = (data) => {
-  return axiosInstance.post("/api/periodic-aid-beneficiaries", {
-    campaignId: safeNumber(data.campaignId),
-    citizenUserId: safeNumber(data.citizenUserId) || null,
-    fullName: data.fullName || "",
-    phone: data.phone || "",
-    address: data.address || "",
-    areaId: safeNumber(data.areaId) || null,
-    householdSize: safeNumber(data.householdSize) || 0,
-    targetGroup: data.targetGroup || "",
-    priorityLevel: safeNumber(data.priorityLevel) || 0,
-    status: data.status || "",
-    selectedByAdminId: safeNumber(data.selectedByAdminId) || null,
-    selectedAt: data.selectedAt || new Date().toISOString()
-  });
-};
-
-export const updateBeneficiary = (id, data) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.put(`/api/periodic-aid-beneficiaries/${safeId}`, {
-    fullName: data.fullName || "",
-    phone: data.phone || "",
-    address: data.address || "",
-    areaId: safeNumber(data.areaId) || null,
-    householdSize: safeNumber(data.householdSize) || 0,
-    targetGroup: data.targetGroup || "",
-    priorityLevel: safeNumber(data.priorityLevel) || 0,
-    status: data.status || "",
-    selectedByAdminId: safeNumber(data.selectedByAdminId) || null,
-    selectedAt: data.selectedAt || new Date().toISOString()
-  });
-};
-
-export const deleteBeneficiary = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.delete(`/api/periodic-aid-beneficiaries/${safeId}`);
-};
-
-/* =========================================================
-   ================ PeriodicAidSupplyPlans =================
-   ========================================================= */
-
-export const getSupplyPlansByCampaign = (campaignId) => {
-  const safeId = safeNumber(campaignId);
-  return axiosInstance.get(`/api/periodic-aid-supply-plans/by-campaign/${safeId}`);
-};
-
-export const getSupplyPlanById = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.get(`/api/periodic-aid-supply-plans/${safeId}`);
-};
-
-export const createSupplyPlan = (data) => {
-  return axiosInstance.post("/api/periodic-aid-supply-plans", {
-    campaignId: safeNumber(data.campaignId),
-    reliefItemId: safeNumber(data.reliefItemId),
-    plannedQuantity: safeNumber(data.plannedQuantity) || 0,
-    approvedQuantity: safeNumber(data.approvedQuantity) || 0,
-    createdByManagerId: safeNumber(data.createdByManagerId)
-  });
-};
-
-export const updateSupplyPlan = (id, data) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.put(`/api/periodic-aid-supply-plans/${safeId}`, {
-    plannedQuantity: safeNumber(data.plannedQuantity) || 0,
-    approvedQuantity: safeNumber(data.approvedQuantity) || 0
-  });
-};
-
-export const deleteSupplyPlan = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.delete(`/api/periodic-aid-supply-plans/${safeId}`);
-};
-
-/* =========================================================
-   ================ PeriodicAidDistributions ===============
-   ========================================================= */
-
-export const getDistributionsByCampaign = (campaignId) => {
-  const safeId = safeNumber(campaignId);
-  return axiosInstance.get(`/api/periodic-aid-distributions/by-campaign/${safeId}`);
-};
-
-export const getDistributionById = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.get(`/api/periodic-aid-distributions/${safeId}`);
-};
-
-export const createDistribution = (data) => {
-  return axiosInstance.post("/api/periodic-aid-distributions", {
-    campaignId: safeNumber(data.campaignId) || 0,
-    rescueTeamId: safeNumber(data.rescueTeamId) || 0,
-    distributedAt: data.distributedAt || new Date().toISOString(),
-    status: data.status || "",
-    note: data.note || ""
-  });
-};
-
-export const updateDistribution = (id, data) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.put(`/api/periodic-aid-distributions/${safeId}`, {
-    distributedAt: data.distributedAt || new Date().toISOString(),
-    status: data.status || "",
-    note: data.note || ""
-  });
-};
-
-export const deleteDistribution = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.delete(`/api/periodic-aid-distributions/${safeId}`);
-};
-
-/* =========================================================
-   ============= PeriodicAidDistributionDetails ============
-   ========================================================= */
-
-export const getDistributionDetailsByDistribution = (distributionId) => {
-  const safeId = safeNumber(distributionId);
-  return axiosInstance.get(`/api/periodic-aid-distribution-details/by-distribution/${safeId}`);
-};
-
-export const getDistributionDetailById = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.get(`/api/periodic-aid-distribution-details/${safeId}`);
-};
-
-export const createDistributionDetail = (data) => {
-  return axiosInstance.post("/api/periodic-aid-distribution-details", {
-    distributionId: safeNumber(data.distributionId),
-    beneficiaryId: safeNumber(data.beneficiaryId),
-    status: data.status || "",
-    note: data.note || ""
-  });
-};
-
-export const updateDistributionDetail = (id, data) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.put(`/api/periodic-aid-distribution-details/${safeId}`, {
-    status: data.status || "",
-    note: data.note || ""
-  });
-};
-
-export const deleteDistributionDetail = (id) => {
-  const safeId = safeNumber(id);
-  return axiosInstance.delete(`/api/periodic-aid-distribution-details/${safeId}`);
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách đội cứu hộ đang hoạt động"
+    );
+  }
 };
