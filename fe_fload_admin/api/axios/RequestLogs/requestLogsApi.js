@@ -9,7 +9,7 @@ import axiosInstance from "../../axiosInstance";
 export const getAllRequestLogs = async (rescueRequestId) => {
   try {
     const params = rescueRequestId ? { rescueRequestId } : {};
-    const response = await axiosInstance.get("/api/request-logs", { params });
+    const response = await axiosInstance.get("/api/request-logs/all", { params });
     return response.data;
   } catch (error) {
     console.error("Error fetching request logs:", error);

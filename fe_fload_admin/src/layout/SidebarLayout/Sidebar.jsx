@@ -9,6 +9,7 @@ import {
   SettingOutlined,
   SafetyOutlined,
   FileTextOutlined,
+  DeploymentUnitOutlined,
 
   /* MANAGER */
   AppstoreOutlined,
@@ -61,6 +62,11 @@ const menuByRole = {
       label: "Phân quyền nâng cao",
       icon: <SafetyOutlined />,
       path: "/admin/permissions",
+    },
+    {
+      label: "Chiến dịch cứu trợ",
+      icon: <DeploymentUnitOutlined />,
+      path: "/admin/chien-dich-cuu-tro",
     },
   ],
 

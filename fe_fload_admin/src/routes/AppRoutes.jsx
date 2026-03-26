@@ -8,15 +8,15 @@ import UserManagement from "../pages/Admin/UserRoleManagement/UserManagement";
 import SystemSetting from "../pages/Admin/Setting/SystemSetting";
 import Logs from "../pages/Admin/Logs/LogsChange";
 import Permissions from "../pages/Admin/Permissions/Permissions";
-
-
+import CampaignPage from "../pages/Admin/CampaignAdmin/CampaignPage";
+import BeneficiaryPage from "../pages/Admin/CampaignAdmin/BeneficiaryPageAdmin/BeneficiaryPage";
 /* ================= MANAGER ================= */
 import DashboardOverview from "../pages/Manager/Dashboard/DashboardOverview";
 import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
 import Approve from "../pages/Manager/Approval/ApprovalManagement";
 import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
-import PeriodicAid from "../pages/Manager/PeriodicAid/PeriodicAidManagement";
+// import PeriodicAid from "../pages/Manager/PeriodicAid/PeriodicAidManagement";
 
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
@@ -67,6 +67,10 @@ export default function AppRoutes() {
         <Route path="settings" element={<SystemSetting />} />
         <Route path="logs" element={<Logs />} />
         <Route path="permissions" element={<Permissions />} />
+        <Route path="chien-dich-cuu-tro" element={<CampaignPage />} />
+        <Route path="chien-dich-cuu-tro/:id" element={<BeneficiaryPage />} />
+        
+        
       </Route>
 
       {/* ================= MANAGER ================= */}
