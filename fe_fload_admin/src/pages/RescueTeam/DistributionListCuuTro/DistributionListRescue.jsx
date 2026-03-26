@@ -1,6 +1,6 @@
 import "./DistributionListRescue.css";
 import { useEffect, useState } from "react";
-import { Pagination } from "antd";
+import { Pagination, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   getRescueTeamMembers,
@@ -123,7 +123,12 @@ export default function DistributionListRescue() {
 
       <div className="rm-list-scroll">
 
-        {loading && <p className="rm-loading">Đang tải...</p>}
+      {loading && (
+  <div className="rm-loading">
+    <Spin size="large" />
+    <p>Đang tải...</p>
+  </div>
+)}
 
         {!loading && list.length === 0 && (
           <p className="rm-empty">Không có dữ liệu</p>

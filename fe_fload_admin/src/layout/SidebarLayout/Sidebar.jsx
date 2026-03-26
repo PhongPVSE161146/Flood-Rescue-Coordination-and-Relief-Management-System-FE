@@ -115,14 +115,14 @@ const menuByRole = {
       icon: <BarChartOutlined />,
       path: "/coordinator/reports",
     },
-    // {
-    //   label: "Tài nguyên",
-    //   icon: <AppstoreOutlined />,
-    //   path: "/coordinator/resources",
-    // },
+ 
   ],
 
   rescueteam: [
+
+   
+
+   
     {
       label: "Nhiệm vụ cứu hộ",
       icon: <CarryOutOutlined />,
@@ -150,6 +150,11 @@ const menuByRole = {
       label: "Nhiệm Vụ Cứu Trợ",
       icon: <AlertOutlined />,
       path: "/rescueTeam/cuu-tro"
+    },
+    {
+      label: "Thống kê nhiệm vụ",
+      icon: <BarChartOutlined />,
+      path: "/rescueTeam/dashboard-task",
     },
   ],
 };

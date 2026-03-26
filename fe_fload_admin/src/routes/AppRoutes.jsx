@@ -33,6 +33,10 @@ import RescueMissionComplete from "../pages/RescueTeam/MissionComplete/RescueMis
 import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/TeamMembersMisionList";
 import DistributionListRescue from "../pages/RescueTeam/DistributionListCuuTro/DistributionListRescue";
 import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
+import TaskDashboard from "../pages/RescueTeam/DashboardTaskRescue/TaskDashboardForTeam";
+
+
+
 export default function AppRoutes() {
   const isAuth = sessionStorage.getItem("isAuth") === "true";
    const role    = sessionStorage.getItem("role");
@@ -114,9 +118,9 @@ export default function AppRoutes() {
         <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />
         <Route path="/rescueTeam/cuu-tro" element={<DistributionListRescue />} />
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
-        
+        <Route path="dashboard-task" element={<TaskDashboard />} />
       </Route>
-
+      
       {/* ================= ROOT ================= */}
       <Route
         path="/"
