@@ -118,7 +118,7 @@ export default function DistributionListRescue() {
 
       <div className="rm-header-fixed">
         <h3>Danh sách cứu trợ</h3>
-        <span>{list.length} đợt</span>
+        <span style={{color:"white", fontSize: 20}}>{list.length} đợt</span>
       </div>
 
       <div className="rm-list-scroll">

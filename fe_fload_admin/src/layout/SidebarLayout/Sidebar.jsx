@@ -136,7 +136,7 @@ const menuByRole = {
       isDynamic: true,
     },
     {
-      label: "Lịch sử",
+      label: "Lịch sử hoàn thành",
       icon: <HistoryOutlined />,
       path: "/rescueTeam/history",
     },

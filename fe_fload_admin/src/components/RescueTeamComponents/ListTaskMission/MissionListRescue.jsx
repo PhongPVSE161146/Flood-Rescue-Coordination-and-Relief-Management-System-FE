@@ -208,7 +208,7 @@ export default function MissionListRescue() {
 
       <div className="rm-header-fixed">
         <h3>Nhiệm vụ của tôi</h3>
-        <span>{missions.length} nhiệm vụ</span>
+        <span style={{color:"white", fontSize: 20}}>{missions.length} nhiệm vụ</span>
       </div>
 
       <div className="rm-list-scroll">
