@@ -16,8 +16,8 @@ import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
 import Approve from "../pages/Manager/Approval/ApprovalManagement";
 import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
-// import PeriodicAid from "../pages/Manager/PeriodicAid/PeriodicAidManagement";
-
+import CampaignPageManagerSuply from "../pages/Manager/CompaningManagerMent/CampaignPageManagerSuply";
+import SupplyPlanPage from "../pages/Manager/CompaningManagerMent/SuplyPlanPageDeatilManager/SupplyPlanPage";
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
 import DispatchMapPage from "../pages/RescueCoordinator/DispatchMapPage/DispatchMapPage";
@@ -87,7 +87,8 @@ export default function AppRoutes() {
         <Route path="inventory" element={<Inventory />} />
         <Route path="approve" element={<Approve />} />
         <Route path="rescue-team" element={<ManagerRescueTeam />} />
-        
+        <Route path="ke-hoach-cuu-tro" element={<CampaignPageManagerSuply />} />
+        <Route path="ke-hoach-cuu-tro/:id" element={<SupplyPlanPage />} />
       </Route>
 
       {/* ================= COORDINATOR ================= */}

@@ -93,6 +93,11 @@ const menuByRole = {
       path: "/manager/approve",
     },
     {
+      label: "Kế hoạch cứu trợ",
+      icon: <DeploymentUnitOutlined />,
+      path: "/manager/ke-hoach-cuu-tro",
+    },
+    {
       label: "Đội cứu hộ",
       icon: <UsergroupAddOutlined />,
       path: "/manager/rescue-team",
