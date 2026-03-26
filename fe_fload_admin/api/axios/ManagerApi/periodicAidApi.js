@@ -168,3 +168,112 @@ export const getAllWarehouses = async () => {
 
   }
 };
+export const getAllDistributions = async () => {
+  try {
+    const res = await axiosInstance.get(
+      "/api/periodic-aid-distributions"
+    );
+
+    return res?.data;
+  } catch (err) {
+    console.error("GET DISTRIBUTIONS ERROR:", err);
+    throw err;
+  }
+};
+export const createDistribution = async (payload) => {
+  try {
+    const res = await axiosInstance.post(
+      "/api/periodic-aid-distributions",
+      payload
+    );
+
+    return res?.data || res;
+  } catch (err) {
+    console.error("CREATE DISTRIBUTION ERROR:", err);
+    throw err;
+  }
+};
+export const updateDistribution = async (id, payload) => {
+  try {
+    const res = await axiosInstance.put(
+      `/api/periodic-aid-distributions/${id}`,
+      payload
+    );
+
+    return res?.data || res;
+  } catch (err) {
+    console.error("UPDATE DISTRIBUTION ERROR:", err);
+    throw err;
+  }
+};
+export const deleteDistribution = async (id) => {
+  try {
+    const res = await axiosInstance.delete(
+      `/api/periodic-aid-distributions/${id}`
+    );
+
+    return res?.data || res;
+  } catch (err) {
+    console.error("DELETE DISTRIBUTION ERROR:", err);
+    throw err;
+  }
+};
+export const getAllRescueTeams = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/api/RescueTeams"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RESCUE TEAMS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách đội cứu trợ"
+    );
+  }
+};
+
+export const getAllAidCampaigns = async () => {
+  try {
+
+    const response = await axiosInstance.get(
+      "/api/PeriodicAidCampaigns"
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET ALL AID CAMPAIGNS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách chiến dịch cứu trợ"
+    );
+
+  }
+};
+export const getAvailableRescueTeams = async () => {
+  try {
+    const response = await axiosInstance.get(
+      "/api/RescueTeams/available"
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.error("GET AVAILABLE RESCUE TEAMS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách đội cứu hộ đang hoạt động"
+    );
+  }
+};

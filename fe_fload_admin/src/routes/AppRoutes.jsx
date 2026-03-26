@@ -18,6 +18,8 @@ import Approve from "../pages/Manager/Approval/ApprovalManagement";
 import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
 import CampaignPageManagerSuply from "../pages/Manager/CompaningManagerMent/CampaignPageManagerSuply";
 import SupplyPlanPage from "../pages/Manager/CompaningManagerMent/SuplyPlanPageDeatilManager/SupplyPlanPage";
+import DistributionPage from "../pages/Manager/PlanDistributionManager/DistributionPage";
+
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
 import DispatchMapPage from "../pages/RescueCoordinator/DispatchMapPage/DispatchMapPage";
@@ -89,6 +91,8 @@ export default function AppRoutes() {
         <Route path="rescue-team" element={<ManagerRescueTeam />} />
         <Route path="ke-hoach-cuu-tro" element={<CampaignPageManagerSuply />} />
         <Route path="ke-hoach-cuu-tro/:id" element={<SupplyPlanPage />} />
+        <Route path="team-cuu-tro" element={<DistributionPage />} />
+        
       </Route>
 
       {/* ================= COORDINATOR ================= */}

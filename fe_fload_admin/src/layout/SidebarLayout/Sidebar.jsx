@@ -30,6 +30,7 @@ import {
   GlobalOutlined,
   AimOutlined,
   BarChartOutlined,
+
 } from "@ant-design/icons";
 
 import { useState, useEffect } from "react";
@@ -96,6 +97,11 @@ const menuByRole = {
       label: "Kế hoạch cứu trợ",
       icon: <DeploymentUnitOutlined />,
       path: "/manager/ke-hoach-cuu-tro",
+    },
+    {
+      label: "Phân đội cứu trợ",
+      icon: <UsergroupAddOutlined />,
+      path: "/manager/team-cuu-tro",
     },
     {
       label: "Đội cứu hộ",
