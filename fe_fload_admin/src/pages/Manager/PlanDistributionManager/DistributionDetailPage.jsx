@@ -7,6 +7,8 @@ import {
   getBeneficiaryById
 } from "../../../../api/axios/ManagerApi/periodicAidApi";
 
+import { getAllAidCampaigns } from "../../../../api/axios/AdminApi/suplyingApi";
+
 import EditDistributionDetail from "../../../components/ManagerComponents/DistributionPlanModal/EditDistributionDetailPlan/EditDistributionDetail";
 
 export default function DistributionDetailPage() {
@@ -15,9 +17,12 @@ export default function DistributionDetailPage() {
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [campaignName, setCampaignName] = useState("");
 
   const [openEdit, setOpenEdit] = useState(false);
   const [selected, setSelected] = useState(null);
+
+  const normalize = (res) => res?.items || res?.data || res || [];
 
   /* ================= LOAD ================= */
 
@@ -25,9 +30,28 @@ export default function DistributionDetailPage() {
     try {
       setLoading(true);
 
+      // 🔥 1. lấy distribution details
       const res = await getDistributionDetailsByDistribution(id);
-      const data = res?.items || res?.data || res || [];
+      const data = normalize(res);
 
+      // 🔥 2. lấy campaignId từ data (QUAN TRỌNG)
+      const campaignId = data[0]?.campaignId;
+
+      console.log("📌 campaignId từ distribution:", campaignId);
+
+      // 🔥 3. gọi campaign API
+      const campaignRes = await getAllAidCampaigns();
+      const campaigns = normalize(campaignRes);
+
+      const found = campaigns.find(
+        c => c.campaignID == campaignId || c.id == campaignId
+      );
+
+      setCampaignName(
+        found?.campaignName || `Chiến dịch #${campaignId || id}`
+      );
+
+      // 🔥 4. enrich beneficiary
       const enriched = await Promise.all(
         data.map(async (item) => {
           try {
@@ -51,7 +75,8 @@ export default function DistributionDetailPage() {
 
       setList(enriched);
 
-    } catch {
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi tải chi tiết");
     } finally {
       setLoading(false);
@@ -135,19 +160,18 @@ export default function DistributionDetailPage() {
       title: "Hành động",
       render: (_, record) => {
         const isCompleted = record.status?.toLowerCase() === "completed";
-    
+
         return (
           <Button
             type="primary"
             size="small"
-            disabled={isCompleted} // 🔥 disable
+            disabled={isCompleted}
             style={{
-              opacity: isCompleted ? 0.5 : 1, // 🔥 làm mờ
+              opacity: isCompleted ? 0.5 : 1,
               cursor: isCompleted ? "not-allowed" : "pointer",
             }}
             onClick={() => {
-              if (isCompleted) return; // 🔒 chặn click luôn
-    
+              if (isCompleted) return;
               setSelected(record);
               setOpenEdit(true);
             }}
@@ -178,7 +202,13 @@ export default function DistributionDetailPage() {
         </span>
       </div>
 
-      <h2>Chi tiết phân phối #{id}</h2>
+      {/* 🔥 HEADER FIX ĐÚNG */}
+      <h2>
+        📦 Chi tiết phân phối -{" "}
+        <span style={{ color: "#1677ff" }}>
+          {campaignName}
+        </span>
+      </h2>
 
       <Table
         rowKey="detailId"
@@ -192,7 +222,6 @@ export default function DistributionDetailPage() {
         }}
       />
 
-      {/* 🔥 MODAL */}
       <EditDistributionDetail
         open={openEdit}
         onClose={() => setOpenEdit(false)}

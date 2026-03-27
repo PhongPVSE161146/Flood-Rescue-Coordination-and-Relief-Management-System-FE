@@ -1,4 +1,4 @@
-import { Modal, Form, Input, InputNumber, Button, Select, message } from "antd";
+import { Modal, Form, Input, InputNumber, Button, Select } from "antd";
 import { useState, useEffect } from "react";
 
 import {
@@ -7,7 +7,9 @@ import {
   getPendingRescueRequests,
   getAllReliefItems,
 } from "../../../../api/axios/ManagerApi/inventoryApi";
+
 import AuthNotify from "../../../utils/Common/AuthNotify";
+
 export default function CreateTransactionModal({ open, onClose, onSuccess }) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -20,6 +22,7 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
   const normalize = (res) => {
     if (Array.isArray(res)) return res;
     if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res?.items)) return res.items;
     return [];
   };
 
@@ -38,36 +41,59 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
         getAllReliefItems(),
       ]);
 
-      setWarehouses(normalize(whRes));
-      setRequests(normalize(rqRes));
-      setItems(normalize(itemRes));
+      const wh = normalize(whRes);
+      const rq = normalize(rqRes);
+      const it = normalize(itemRes);
+
+      console.log("🏬 Warehouses:", wh);
+      console.log("🆘 Requests:", rq);
+      console.log("📦 Items:", it);
+
+      setWarehouses(wh);
+      setRequests(rq);
+      setItems(it);
     } catch (err) {
       console.error(err);
       AuthNotify.error("Load dữ liệu thất bại");
     }
   };
 
+  /* ================= BUILD LABEL REQUEST ================= */
+  const buildRequestLabel = (r) => {
+    return (
+      r.fullName ||
+      r.beneficiaryName ||
+      r.receiverName ||
+      r.userName ||
+      r.createdByName ||
+      `Request #${r.rescueRequestId}`
+    );
+  };
   /* ================= SUBMIT ================= */
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
 
-      await createInventoryTransaction({
-        warehouseId: values.warehouseId,
+      const payload = {
+        warehouseId: Number(values.warehouseId),
         transactionType: values.transactionType,
-        rescueRequestId: values.rescueRequestId,
+        rescueRequestId: Number(values.rescueRequestId),
         note: values.note,
         lines: [
           {
-            reliefItemId: values.reliefItemId,
-            quantity: values.quantity,
+            reliefItemId: Number(values.reliefItemId),
+            quantity: Number(values.quantity),
           },
         ],
-      });
+      };
+
+      console.log("🚀 PAYLOAD:", payload);
+
+      await createInventoryTransaction(payload);
 
       AuthNotify.success("Tạo giao dịch thành công");
 
-      onSuccess();
+      onSuccess?.();
       onClose();
       form.resetFields();
     } catch (err) {
@@ -76,12 +102,13 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
       const msg =
         err?.response?.data?.message || "Tạo thất bại";
 
-        AuthNotify.error(msg);
+      AuthNotify.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================= UI ================= */
   return (
     <Modal
       open={open}
@@ -90,15 +117,17 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
       footer={null}
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        
+
         {/* WAREHOUSE */}
         <Form.Item
           name="warehouseId"
           label="Kho"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "Chọn kho" }]}
         >
           <Select
             placeholder="Chọn kho"
+            showSearch
+            optionFilterProp="label"
             options={warehouses.map((w) => ({
               label: w.warehouseName,
               value: w.warehouseId,
@@ -110,7 +139,7 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
         <Form.Item
           name="transactionType"
           label="Loại giao dịch"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "Chọn loại giao dịch" }]}
         >
           <Select
             placeholder="Chọn loại"
@@ -121,31 +150,36 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
           />
         </Form.Item>
 
-        {/* RESCUE REQUEST */}
+        {/* 🔥 RESCUE REQUEST FIXED */}
         <Form.Item
           name="rescueRequestId"
           label="Yêu cầu cứu trợ"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "Chọn yêu cầu cứu trợ" }]}
         >
           <Select
             placeholder="Chọn request"
+            showSearch
+            allowClear
+            optionFilterProp="label"
             options={requests.map((r) => ({
-              label: `Request #${r.rescueRequestId}`,
               value: r.rescueRequestId,
+              label: buildRequestLabel(r),
             }))}
           />
         </Form.Item>
 
-        {/* ITEM (API) 🔥 */}
+        {/* ITEM */}
         <Form.Item
           name="reliefItemId"
           label="Hàng hóa"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "Chọn hàng hóa" }]}
         >
           <Select
             placeholder="Chọn item"
+            showSearch
+            optionFilterProp="label"
             options={items.map((i) => ({
-              label: `${i.itemName} (${i.unit})`,
+              label: `${i.itemName}${i.unit ? ` (${i.unit})` : ""}`,
               value: i.reliefItemId,
             }))}
           />
@@ -155,19 +189,29 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
         <Form.Item
           name="quantity"
           label="Số lượng"
-          rules={[{ required: true }]}
+          rules={[{ required: true, message: "Nhập số lượng" }]}
         >
-          <InputNumber style={{ width: "100%" }} />
+          <InputNumber
+            style={{ width: "100%" }}
+            min={1}
+            max={1000000}
+          />
         </Form.Item>
 
         {/* NOTE */}
         <Form.Item name="note" label="Ghi chú">
-          <Input />
+          <Input placeholder="Nhập ghi chú..." />
         </Form.Item>
 
-        <Button htmlType="submit" type="primary" loading={loading} block>
+        <Button
+          htmlType="submit"
+          type="primary"
+          loading={loading}
+          block
+        >
           Tạo giao dịch
         </Button>
+
       </Form>
     </Modal>
   );

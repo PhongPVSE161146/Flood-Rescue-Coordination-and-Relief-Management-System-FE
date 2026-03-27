@@ -46,7 +46,7 @@ export default function EditDistribution({ open, onClose, data, onSuccess }) {
             options={[
               { value: "pending", label: "Đang chờ" },
               { value: "accepted", label: "Đã nhận" },
-              { value: "in progress", label: "Đang phát" },
+              { value: "in progress", label: "Đang thực hiện" },
               { value: "completed", label: "Hoàn thành" },
             ]}
           />
