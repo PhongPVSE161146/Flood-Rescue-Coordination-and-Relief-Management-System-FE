@@ -262,3 +262,12 @@
   align-items: center;
   gap: 6px;
 }
+.status-badge.completed {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.status-badge.rejected {
+  background: #fff1f0;
+  color: #ff4d4f;
+}

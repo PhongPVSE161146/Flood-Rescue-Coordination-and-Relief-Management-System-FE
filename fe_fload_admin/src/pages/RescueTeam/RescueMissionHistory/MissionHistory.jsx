@@ -1,7 +1,7 @@
 import "./MissionHistory.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Pagination,Spin} from "antd";
+import { Pagination, Spin } from "antd";
 
 import {
   getAllAssignments,
@@ -13,7 +13,14 @@ import {
 /* ================= STATUS ================= */
 
 const STATUS_MAP = {
-  COMPLETED: { label: "✅ Hoàn thành nhiệm vụ" }
+  COMPLETED: {
+    label: "✅ Hoàn thành nhiệm vụ",
+    class: "completed"
+  },
+  REJECTED: {
+    label: "❌ Từ chối nhiệm vụ",
+    class: "rejected"
+  }
 };
 
 export default function MissionHistory() {
@@ -58,9 +65,7 @@ export default function MissionHistory() {
   /* ================= FIND TEAM ================= */
 
   const findMyTeamId = async (teams, userId) => {
-
     for (const team of teams) {
-
       try {
         const res = await getRescueTeamMembers(team.rcid);
         const data = res?.data;
@@ -71,20 +76,15 @@ export default function MissionHistory() {
 
         if (isMember) return team.rcid;
 
-      } catch {
-        console.warn("Lỗi team:", team.rcid);
-      }
+      } catch {}
     }
-
     return null;
   };
 
   /* ================= LOAD DATA ================= */
 
   const fetchAssignments = async () => {
-
     try {
-
       setLoading(true);
 
       if (!user?.userId) return;
@@ -99,7 +99,6 @@ export default function MissionHistory() {
       const teams = teamRes?.data?.items || [];
       const vehicles = vehicleRes?.data || [];
 
-      /* MAP */
       const vehicleMap = {};
       vehicles.forEach(v => {
         vehicleMap[v.vehicleId] = v.vehicleName;
@@ -110,7 +109,6 @@ export default function MissionHistory() {
         teamMap[t.rcid] = t.rcName;
       });
 
-      /* FIND TEAM */
       const myTeamId = await findMyTeamId(teams, user.userId);
 
       if (!myTeamId) {
@@ -118,16 +116,17 @@ export default function MissionHistory() {
         return;
       }
 
-      /* FILTER + SORT */
+      /* 🔥 FIX: LẤY CẢ COMPLETED + REJECTED */
       const myAssignments = assignments
         .filter(a => a.rescueTeamId === myTeamId)
-        .filter(a => a.assignmentStatus === "COMPLETED")
+        .filter(a =>
+          a.assignmentStatus === "COMPLETED" ||
+          a.assignmentStatus === "REJECTED"
+        )
         .sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
 
-      /* MAP DATA */
       const mapped = await Promise.all(
         myAssignments.map(async (a) => {
-
           const req = await getRequestById(a.rescueRequestId);
 
           return {
@@ -142,7 +141,6 @@ export default function MissionHistory() {
               ? new Date(a.assignedAt).toLocaleString("vi-VN")
               : "Chưa có"
           };
-
         })
       );
 
@@ -159,12 +157,9 @@ export default function MissionHistory() {
     fetchAssignments();
   }, []);
 
-  /* 🔥 RESET PAGE */
   useEffect(() => {
     setCurrentPage(1);
   }, [missions]);
-
-  /* ================= PAGINATION ================= */
 
   const paginatedMissions = missions.slice(
     (currentPage - 1) * pageSize,
@@ -174,88 +169,84 @@ export default function MissionHistory() {
   /* ================= UI ================= */
 
   return (
-
     <section className="rm-container">
 
-      {/* HEADER */}
       <div className="rm-header-fixed">
-        <h3>Lịch sử hoàn thành nhiệm vụ</h3>
-        <span style={{color:"white", fontSize: 20}}>{missions.length} nhiệm vụ</span>
+        <h3>Lịch sử nhiệm vụ</h3>
+        <span style={{ color: "white", fontSize: 20 }}>
+          {missions.length} nhiệm vụ
+        </span>
       </div>
 
-      {/* LIST */}
       <div className="rm-list-scroll">
 
-      {loading && (
-  <div className="rm-loading">
-    <Spin size="large" />
-    <p>Đang tải...</p>
-  </div>
-)}
+        {loading && (
+          <div className="rm-loading">
+            <Spin size="large" />
+            <p>Đang tải...</p>
+          </div>
+        )}
 
         {!loading && missions.length === 0 && (
           <p className="rm-empty">Không có nhiệm vụ</p>
         )}
 
-        {paginatedMissions.map(m => (
+        {paginatedMissions.map(m => {
 
-          <div key={m.id} className="rm-card">
+          const statusInfo = STATUS_MAP[m.status];
 
-            {/* TOP */}
-            <div className="rm-top">
-              <div className="rm-avatar">
-                {getInitials(m.name)}
+          return (
+            <div key={m.id} className="rm-card">
+
+              <div className="rm-top">
+                <div className="rm-avatar">
+                  {getInitials(m.name)}
+                </div>
+                <div>
+                  <h4>Họ tên: {m.name}</h4>
+                  <span className="rm-phone">SĐT: {m.phone}</span>
+                </div>
               </div>
-              <div>
-                <h4>Họ tên: {m.name}</h4>
-                <span className="rm-phone">SĐT: {m.phone}</span>
+
+              <div className="rm-address">
+                Địa chỉ: {m.address}
               </div>
-            </div>
 
-            {/* ADDRESS */}
-            <div className="rm-address">
-              Địa chỉ: {m.address}
-            </div>
-
-            {/* INFO */}
-            <div className="rm-info">
-              <div className="rm-tag team">
-              Tên đội cứu hộ: {m.team}
+              <div className="rm-info">
+                <div className="rm-tag team">
+                  Tên đội cứu hộ: {m.team}
+                </div>
+                <div className="rm-tag vehicle">
+                  Tên phương tiện: {m.vehicle}
+                </div>
               </div>
-              <div className="rm-tag vehicle">
-              Tên phương tiện: {m.vehicle}
+
+              <div className="rm-meta">
+                <span className={`status-badge ${statusInfo?.class}`}>
+                  {statusInfo?.label}
+                </span>
+                <span className="time">
+                  ⏱ {m.time}
+                </span>
               </div>
+
+              <div className="rm-actions">
+                <button
+                  className="btn-accept view-mode"
+                  onClick={() =>
+                    navigate(`/rescueTeam/history/${m.id}`)
+                  }
+                >
+                  Xem lịch sử
+                </button>
+              </div>
+
             </div>
-
-            {/* STATUS */}
-            <div className="rm-meta">
-              <span className="status-badge completed">
-                {STATUS_MAP[m.status]?.label}
-              </span>
-              <span className="time">
-                ⏱Phân công lúc: {m.time}
-              </span>
-            </div>
-
-            {/* ACTION */}
-            <div className="rm-actions">
-              <button
-                className="btn-accept view-mode"
-                onClick={() =>
-                  navigate(`/rescueTeam/history/${m.id}`)
-                }
-              >
-                 Xem lịch sử
-              </button>
-            </div>
-
-          </div>
-
-        ))}
+          );
+        })}
 
       </div>
 
-      {/* PAGINATION */}
       {missions.length > pageSize && (
         <div style={{ marginTop: 16, textAlign: "center" }}>
           <Pagination
@@ -269,6 +260,5 @@ export default function MissionHistory() {
       )}
 
     </section>
-
   );
 }
