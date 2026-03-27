@@ -22,7 +22,7 @@ import {
   
     return (
       <div className="dashboard-card">
-        <div className="dashboard-title">Xu hướng Cứu Hộ</div>
+        <div className="dashboard-title">Thống kê Cứu Hộ</div>
   
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={formatData}>

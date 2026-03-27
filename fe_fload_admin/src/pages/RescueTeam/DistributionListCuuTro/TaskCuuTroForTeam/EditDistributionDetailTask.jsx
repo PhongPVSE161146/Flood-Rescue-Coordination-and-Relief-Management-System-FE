@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { updateDistributionDetail } from "../../../../../api/axios/ManagerApi/periodicAidApi";
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
-export default function EditDistributionDetail({
+export default function EditDistributionDetailTask({
   open,
   onClose,
   data,
@@ -72,10 +72,10 @@ export default function EditDistributionDetail({
         >
           <Select
             options={[
-              { value: "accepted", label: "Đã nhận" },
+            
               { value: "in progress", label: "Đang phát" },
               { value: "completed", label: "Hoàn thành" },
-              { value: "rejected", label: "Từ chối" },
+          
             ]}
           />
         </Form.Item>

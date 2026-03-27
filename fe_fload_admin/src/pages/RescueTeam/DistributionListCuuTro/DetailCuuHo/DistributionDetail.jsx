@@ -155,10 +155,10 @@ export default function DistributionDetail() {
           <b>{campaign?.campaignName || "—"}</b>
         </div>
 
-        <div className="detail-row">
+        {/* <div className="detail-row">
           <span> Khu vực</span>
           <b>{campaign?.areaName || "—"}</b>
-        </div>
+        </div> */}
 
         <div className="detail-row">
           <span> Thời gian</span>

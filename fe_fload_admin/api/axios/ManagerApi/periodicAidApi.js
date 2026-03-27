@@ -30,34 +30,32 @@ export const getSupplyPlansByCampaign = async (campaignId) => {
 
 export const updateSupplyPlan = async (id, data) => {
   try {
+    if (!id) throw new Error("ID không hợp lệ");
 
-    if (!id) {
-      throw new Error("ID không hợp lệ");
-    }
-
+    // 🔥 lọc payload sạch
     const payload = {
-      plannedQuantity: Number(data.plannedQuantity),
-      approvedQuantity: Number(data.approvedQuantity),
-      warehouseId: Number(data.warehouseId),
+      plannedQuantity: data.plannedQuantity,
+      approvedQuantity: data.approvedQuantity,
+      warehouseId: data.warehouseId,
     };
 
-    const response = await axiosInstance.put(
+    console.log("📦 UPDATE SUPPLY PLAN:", payload);
+
+    const res = await axiosInstance.put(
       `/api/periodic-aid-supply-plans/${id}`,
       payload
     );
 
-    return response.data;
+    return res.data;
 
   } catch (error) {
-
-    console.error("UPDATE SUPPLY PLAN ERROR:", error);
+    console.error("❌ UPDATE ERROR:", error);
 
     throw new Error(
       error.response?.data?.message ||
       error.message ||
       "Không thể cập nhật kế hoạch cấp phát"
     );
-
   }
 };
 /* ================= DELETE SUPPLY PLAN ================= */
@@ -93,6 +91,10 @@ export const deleteSupplyPlan = async (id) => {
 
 export const createSupplyPlan = async (data) => {
   try {
+    const warehouseId = Number(data.warehouseId);
+    if (!Number.isFinite(warehouseId) || warehouseId <= 0) {
+      throw new Error("warehouseId không hợp lệ");
+    }
 
     const payload = {
       campaignId: Number(data.campaignId),
@@ -102,6 +104,7 @@ export const createSupplyPlan = async (data) => {
       approvedQuantity: Number(data.approvedQuantity || 0),
 
       createdByManagerId: Number(data.createdByManagerId),
+      warehouseId,
     };
 
     const response = await axiosInstance.post(

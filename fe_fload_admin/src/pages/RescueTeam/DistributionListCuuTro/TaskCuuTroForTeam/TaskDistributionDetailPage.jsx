@@ -5,11 +5,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   getDistributionDetailsByDistribution,
   getBeneficiaryById
-} from "../../../../api/axios/ManagerApi/periodicAidApi";
+} from "../../../../../api/axios/ManagerApi/periodicAidApi";
+import EditDistributionDetailTask from "./EditDistributionDetailTask"
 
-import EditDistributionDetail from "../../../components/ManagerComponents/DistributionPlanModal/EditDistributionDetailPlan/EditDistributionDetail";
-
-export default function DistributionDetailPage() {
+export default function TaskDistributionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -132,31 +131,31 @@ export default function DistributionDetailPage() {
       dataIndex: "note",
     },
     {
-      title: "Hành động",
-      render: (_, record) => {
-        const isCompleted = record.status?.toLowerCase() === "completed";
-    
-        return (
-          <Button
-            type="primary"
-            size="small"
-            disabled={isCompleted} // 🔥 disable
-            style={{
-              opacity: isCompleted ? 0.5 : 1, // 🔥 làm mờ
-              cursor: isCompleted ? "not-allowed" : "pointer",
-            }}
-            onClick={() => {
-              if (isCompleted) return; // 🔒 chặn click luôn
-    
-              setSelected(record);
-              setOpenEdit(true);
-            }}
-          >
-            Sửa
-          </Button>
-        );
+        title: "Hành động",
+        render: (_, record) => {
+          const isCompleted = record.status?.toLowerCase() === "completed";
+      
+          return (
+            <Button
+              type="primary"
+              size="small"
+              disabled={isCompleted} // 🔥 disable
+              style={{
+                opacity: isCompleted ? 0.5 : 1, // 🔥 làm mờ
+                cursor: isCompleted ? "not-allowed" : "pointer",
+              }}
+              onClick={() => {
+                if (isCompleted) return; // 🔒 chặn click luôn
+      
+                setSelected(record);
+                setOpenEdit(true);
+              }}
+            >
+              Sửa
+            </Button>
+          );
+        },
       },
-    },
   ];
 
   /* ================= UI ================= */
@@ -193,7 +192,7 @@ export default function DistributionDetailPage() {
       />
 
       {/* 🔥 MODAL */}
-      <EditDistributionDetail
+      <EditDistributionDetailTask
         open={openEdit}
         onClose={() => setOpenEdit(false)}
         data={selected}

@@ -42,7 +42,7 @@ import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/Te
 import DistributionListRescue from "../pages/RescueTeam/DistributionListCuuTro/DistributionListRescue";
 import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
 import TaskDashboard from "../pages/RescueTeam/DashboardTaskRescue/TaskDashboardForTeam";
-
+import TaskDistributionDetailPage from "../pages/RescueTeam/DistributionListCuuTro/TaskCuuTroForTeam/TaskDistributionDetailPage";
 
 
 export default function AppRoutes() {
@@ -136,6 +136,8 @@ export default function AppRoutes() {
         <Route path="/rescueTeam/cuu-tro" element={<DistributionListRescue />} />
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
         <Route path="dashboard-task" element={<TaskDashboard />} />
+        <Route path="/rescueTeam/chi-tiet-tro/:id" element={<TaskDistributionDetailPage />} />
+     
       </Route>
       
       {/* ================= ROOT ================= */}

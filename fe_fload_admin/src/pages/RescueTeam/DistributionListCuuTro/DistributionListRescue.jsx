@@ -1,6 +1,6 @@
 import "./DistributionListRescue.css";
 import { useEffect, useState } from "react";
-import { Pagination, Spin } from "antd";
+import { Pagination, Spin, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   getRescueTeamMembers,
@@ -133,7 +133,7 @@ setCampaignMap(cmap);
       if (actionType === "Accepted") {
         AuthNotify.success("Đã nhận nhiệm vụ");
   
-        navigate(`/rescueTeam/cuu-tro/${selectedId}`);
+        navigate(`/rescueTeam/chi-tiet-tro/${selectedId}`);
         return;
       }
   
@@ -170,15 +170,23 @@ setCampaignMap(cmap);
   );
 
   /* ================= STATUS ================= */
-  const getStatus = (s) => {
+  const renderStatus = (status) => {
     const map = {
-      pending: "🟡 Chờ xác nhận",
-      accepted: "🔵 Đã nhận nhiệm vụ",
-      completed: "✔ Hoàn thành nhiệm vụ",
-      rejected: "❌ Đã từ chối nhiệm vụ",
+      pending: { text: "Đang chờ", color: "gold" },
+      accepted: { text: "Đã nhận", color: "blue" },
+      "in progress": { text: "Đang phát", color: "processing" },
+      completed: { text: "Hoàn thành", color: "green" },
+      rejected: { text: "Từ chối", color: "red" },
     };
   
-    return map[s?.toLowerCase()] || s;
+    const key = status?.toLowerCase()?.trim();
+  
+    const s = map[key] || {
+      text: status || "Không xác định",
+      color: "default",
+    };
+  
+    return <Tag color={s.color}>{s.text}</Tag>;
   };
 
   /* ================= UI ================= */
@@ -227,12 +235,12 @@ setCampaignMap(cmap);
                     Tên chiến dịch: {campaign?.campaignName || `Chiến dịch ${item.campaignId}`}
                   </h4>
   
-                  <div className="rm-campaign-info">
+                  {/* <div className="rm-campaign-info">
                     <span>
                       Khu vực: {campaign?.areaName || "Không rõ khu vực"}
                     </span>
                    
-                  </div>
+                  </div> */}
                   <div className="rm-campaign-info">
   <span className="rm-date">
     Lịch: {campaign
@@ -259,7 +267,7 @@ setCampaignMap(cmap);
   <span className="rm-status-label">Trạng thái:</span>
 
   <span className={`status-badge ${item.status?.toLowerCase()}`}>
-    {getStatus(item.status)}
+  {renderStatus(item.status)}
   </span>
 </div>
   
@@ -310,7 +318,7 @@ setCampaignMap(cmap);
                     minWidth: "120px"
                   }}
                   onClick={() =>
-                    navigate(`/rescueTeam/cuu-tro/${item.distributionId}`)
+                    navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`)
                   }
                 >
                   {item.status?.toLowerCase() === "accepted"

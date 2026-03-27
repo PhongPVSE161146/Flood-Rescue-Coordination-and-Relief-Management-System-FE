@@ -169,15 +169,7 @@ export default function SystemSettingContainer() {
           >
             Sửa
           </Button>
-          <Popconfirm
-            title="Xóa cấp độ này?"
-            description="Bạn có chắc chắn muốn xóa cấp độ khẩn cấp này không?"
-            onConfirm={() => handleDeleteUrgency(record.urgencyLevelId)}
-            okText="Xóa"
-            cancelText="Hủy"
-          >
-            <Button type="link" danger>Xóa</Button>
-          </Popconfirm>
+         
         </Space>
       ),
     },
