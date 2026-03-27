@@ -312,19 +312,21 @@ setCampaignMap(cmap);
   
                 {/* RIGHT */}
                 <button
-                  className="rm-btn-detail"
-                  style={{
-                    whiteSpace: "nowrap",
-                    minWidth: "120px"
-                  }}
-                  onClick={() =>
-                    navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`)
-                  }
-                >
-                  {item.status?.toLowerCase() === "accepted"
-                    ? "Xem quá trình →"
-                    : "Xem chi tiết →"}
-                </button>
+  className="rm-btn-detail"
+  style={{
+    whiteSpace: "nowrap",
+    minWidth: "120px"
+  }}
+  onClick={() =>
+    item.status?.toLowerCase() === "accepted"
+      ? navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`) // 👉 xem quá trình
+      : navigate(`/rescueTeam/cuu-tro/${item.distributionId}`) // 👉 xem chi tiết
+  }
+>
+  {item.status?.toLowerCase() === "accepted"
+    ? "Xem quá trình →"
+    : "Xem chi tiết →"}
+</button>
   
               </div>
   
