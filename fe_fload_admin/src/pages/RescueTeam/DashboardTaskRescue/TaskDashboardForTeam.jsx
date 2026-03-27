@@ -144,138 +144,155 @@ export default function TaskDashboardForTeam() {
   /* ================= UI ================= */
 
   return (
-    <div className="dashboard-container">
+<div className="task-dashboard">
   
-      {loading ? (
-        <div className="loading-full">
-          <Spin size="large" />
-          <p>Đang tải dữ liệu...</p>
-        </div>
-      ) : (
-        <>
-          <h2 className="dashboard-title">
-            📊 Thống Kê Nhiệm Vụ (Đội cứu hộ của các thành viên trong 1 đội )
-          </h2>
-  
-          {/* ===== SUMMARY ===== */}
-          <Row gutter={16}>
-            <Col span={6}>
-              <Card
-                onClick={() => setFilter("all")}
-                className={`dashboard-card ${filter === "all" ? "active" : ""}`}
-              >
-                <h3>Tổng nhiệm vụ</h3>
-                <h1>{total}</h1>
-              </Card>
-            </Col>
-  
-            <Col span={6}>
-              <Card
-                onClick={() => setFilter("accepted")}
-                className={`dashboard-card ${filter === "accepted" ? "active" : ""}`}
-              >
-                <h3>Đã nhận</h3>
-                <h1>{accepted}</h1>
-              </Card>
-            </Col>
-  
-            <Col span={6}>
-              <Card
-                onClick={() => setFilter("completed")}
-                className={`dashboard-card ${filter === "completed" ? "active" : ""}`}
-              >
-                <h3>Hoàn thành</h3>
-                <h1>{completed}</h1>
-              </Card>
-            </Col>
-  
-            <Col span={6}>
-              <Card
-                onClick={() => setFilter("rejected")}
-                className={`dashboard-card ${filter === "rejected" ? "active" : ""}`}
-              >
-                <h3>Từ chối</h3>
-                <h1>{rejected}</h1>
-              </Card>
-            </Col>
-          </Row>
-  
-          {/* ===== PROGRESS ===== */}
-          <Row gutter={16} className="progress-row">
-            <Col span={8}>
-              <Card className="progress-card">
-                <h3>Đã nhận</h3>
-                <Progress percent={percent(accepted)} />
-              </Card>
-            </Col>
-  
-            <Col span={8}>
-              <Card className="progress-card">
-                <h3>Hoàn thành</h3>
-                <Progress percent={percent(completed)} />
-              </Card>
-            </Col>
-  
-            <Col span={8}>
-              <Card className="progress-card">
-                <h3>Từ chối</h3>
-                <Progress percent={percent(rejected)} />
-              </Card>
-            </Col>
-          </Row>
-  
-          {/* ===== LIST ===== */}
-          <Row className="list-row">
-            <Col span={24}>
-              <Card title="📋 Danh sách nhiệm vụ">
-  
-                <div className="task-list">
-                  {paginatedData.map((item) => (
-                    <div key={item.id} className="task-item">
-                      <div>
-                        <b className="task-name">
-                         Mã nhiệm vụ: #{item.id} 
-                        </b>
-                        <div className="task-sub">Họ và tên: {item.name}</div>
-                        <div className="task-sub">SĐT: {item.phone}</div>
-                        <div className="task-sub">Địa chỉ: {item.address}</div>
-                        <div className="task-sub">⏱Thời gian phân công: {item.time}</div>
-                      </div>
-  
-                      <div
-                        style={{
-                          color:
-                            item.status === "accepted"
-                              ? "#1677ff"
-                              : item.status === "completed"
-                              ? "#52c41a"
-                              : "#ff4d4f",
-                          fontWeight: 500
-                        }}
-                      >
-                        {mapStatusVN(item.status)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-  
-                {filteredData.length > pageSize && (
-                  <div className="pagination-wrap">
-                    <Pagination
-                      current={currentPage}
-                      pageSize={pageSize}
-                      total={filteredData.length}
-                      onChange={setCurrentPage}
-                    />
-                  </div>
-                )}
-  
-              </Card>
-            </Col>
-          </Row>
-        </>
-      )}
-  
+  {loading ? (
+    <div className="task-dashboard__loading">
+      <Spin size="large" />
+      <p>Đang tải dữ liệu...</p>
     </div>
+  ) : (
+    <>
+      <h2 className="task-dashboard__title">
+        📊 Thống Kê Nhiệm Vụ (Đội cứu hộ của các thành viên trong 1 đội )
+      </h2>
+
+      {/* ===== SUMMARY ===== */}
+      <Row gutter={16}>
+        <Col span={6}>
+          <Card
+            onClick={() => setFilter("all")}
+            className={`task-dashboard__card ${
+              filter === "all" ? "task-dashboard__card--active" : ""
+            }`}
+          >
+            <h3>Tổng nhiệm vụ</h3>
+            <h1>{total}</h1>
+          </Card>
+        </Col>
+
+        <Col span={6}>
+          <Card
+            onClick={() => setFilter("accepted")}
+            className={`task-dashboard__card ${
+              filter === "accepted" ? "task-dashboard__card--active" : ""
+            }`}
+          >
+            <h3>Đã nhận</h3>
+            <h1>{accepted}</h1>
+          </Card>
+        </Col>
+
+        <Col span={6}>
+          <Card
+            onClick={() => setFilter("completed")}
+            className={`task-dashboard__card ${
+              filter === "completed" ? "task-dashboard__card--active" : ""
+            }`}
+          >
+            <h3>Hoàn thành</h3>
+            <h1>{completed}</h1>
+          </Card>
+        </Col>
+
+        <Col span={6}>
+          <Card
+            onClick={() => setFilter("rejected")}
+            className={`task-dashboard__card ${
+              filter === "rejected" ? "task-dashboard__card--active" : ""
+            }`}
+          >
+            <h3>Từ chối</h3>
+            <h1>{rejected}</h1>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* ===== PROGRESS ===== */}
+      <Row gutter={16} className="task-dashboard__progress-row">
+        <Col span={8}>
+          <Card className="task-dashboard__progress-card">
+            <h3>Đã nhận</h3>
+            <Progress percent={percent(accepted)} />
+          </Card>
+        </Col>
+
+        <Col span={8}>
+          <Card className="task-dashboard__progress-card">
+            <h3>Hoàn thành</h3>
+            <Progress percent={percent(completed)} />
+          </Card>
+        </Col>
+
+        <Col span={8}>
+          <Card className="task-dashboard__progress-card">
+            <h3>Từ chối</h3>
+            <Progress percent={percent(rejected)} />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* ===== LIST ===== */}
+      <Row className="task-dashboard__list-row">
+        <Col span={24}>
+          <Card title="📋 Danh sách nhiệm vụ">
+
+            <div className="task-dashboard__list">
+              {paginatedData.map((item) => (
+                <div key={item.id} className="task-dashboard__item">
+                  <div>
+                    <b className="task-dashboard__name">
+                      Mã nhiệm vụ: #{item.id}
+                    </b>
+
+                    <div className="task-dashboard__sub">
+                      Họ và tên: {item.name}
+                    </div>
+
+                    <div className="task-dashboard__sub">
+                      SĐT: {item.phone}
+                    </div>
+
+                    <div className="task-dashboard__sub">
+                      Địa chỉ: {item.address}
+                    </div>
+
+                    <div className="task-dashboard__sub">
+                      ⏱Thời gian phân công: {item.time}
+                    </div>
+                  </div>
+
+                  <div
+                    className={`task-dashboard__status ${
+                      item.status === "accepted"
+                        ? "task-dashboard__status--accepted"
+                        : item.status === "completed"
+                        ? "task-dashboard__status--completed"
+                        : "task-dashboard__status--rejected"
+                    }`}
+                  >
+                    {mapStatusVN(item.status)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredData.length > pageSize && (
+              <div className="task-dashboard__pagination">
+                <Pagination
+                  current={currentPage}
+                  pageSize={pageSize}
+                  total={filteredData.length}
+                  onChange={setCurrentPage}
+                />
+              </div>
+            )}
+
+          </Card>
+        </Col>
+      </Row>
+    </>
+  )}
+</div>
   );
 }
