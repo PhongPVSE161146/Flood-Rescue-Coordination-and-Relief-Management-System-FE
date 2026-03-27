@@ -1,157 +1,149 @@
-import { useEffect, useState } from "react";
-import { Button, message } from "antd";
+// import { useEffect, useState } from "react";
+// import { Button, message } from "antd";
 
-import {
-  getInventoryTransactions,
-  confirmInventoryTransaction,
-} from "../../../../api/axios/ManagerApi/inventoryApi";
+// import {
+//   getInventoryTransactions,
+//   confirmInventoryTransaction,
+// } from "../../../../api/axios/ManagerApi/inventoryApi";
 
-import "../../../pages/Manager/Approval/ApprovalManagement.css";
+// import "../../../pages/Manager/Approval/ApprovalManagement.css";
 
-export default function ApprovalManagementContainer() {
-  const [transactions, setTransactions] = useState([]);
-  const [filter, setFilter] = useState("pending");
+// export default function ApprovalManagementContainer() {
+//   const [transactions, setTransactions] = useState([]);
+//   const [filter, setFilter] = useState("pending");
 
-  async function loadTransactions() {
-    try {
-      const res = await getInventoryTransactions();
+//   /* ================= LOAD DATA ================= */
 
-      const outTransactions = res.data
-        .filter((t) => t.transactionType === "OUT")
-        .map((t) => ({
-          ...t,
-          id: t.id || t.transactionId,
-        }));
+//   async function loadTransactions() {
+//     try {
+//       const res = await getInventoryTransactions();
 
-      setTransactions(outTransactions);
-    } catch {
-      message.error("Load transactions thất bại");
-    }
-  };
+//       // ✅ res là array luôn
+//       const outTransactions = (res || [])
+//         .filter((t) => t.transactionType === "OUT")
+//         .map((t) => ({
+//           ...t,
+//           id: t.transactionId, // ✅ fix id
+//         }));
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadTransactions();
-  }, []);
+//       setTransactions(outTransactions);
+//     } catch (err) {
+//       console.error(err);
+//       message.error("Load transactions thất bại");
+//     }
+//   }
 
-  /* ================= FILTER ================= */
+//   useEffect(() => {
+//     loadTransactions();
+//   }, []);
 
-  const pending = transactions.filter(
-    (t) => !t.confirmedAt && !t.confirmed_at
-  );
+//   /* ================= FILTER ================= */
 
-  const confirmed = transactions.filter(
-    (t) => t.confirmedAt || t.confirmed_at
-  );
+//   const pending = transactions.filter((t) => !t.confirmedAt);
 
-  const displayData = filter === "pending" ? pending : confirmed;
+//   const confirmed = transactions.filter((t) => t.confirmedAt);
 
-  /* ================= CONFIRM ================= */
+//   const displayData = filter === "pending" ? pending : confirmed;
 
-  const handleConfirm = async (id) => {
-    try {
-      await confirmInventoryTransaction(id);
+//   /* ================= CONFIRM ================= */
 
-      message.success("Dispatch thành công");
+//   const handleConfirm = async (id) => {
+//     try {
+//       await confirmInventoryTransaction(id);
+//       message.success("Dispatch thành công");
+//       loadTransactions();
+//     } catch (err) {
+//       console.error(err);
+//       message.error("Confirm thất bại");
+//     }
+//   };
 
-      loadTransactions();
-    } catch {
-      message.error("Confirm thất bại");
-    }
-  };
+//   /* ================= RENDER ================= */
 
-  return (
-    <div className="dispatch-page">
-      {/* ================= TABLE ================= */}
+//   return (
+//     <div className="dispatch-page">
+//       <div className="dispatch-table">
+//         <div className="table-header">
+//           <h3>Dispatch Approval</h3>
 
-      <div className="dispatch-table">
+//           <div className="filter">
+//             <Button
+//               type={filter === "pending" ? "primary" : "default"}
+//               onClick={() => setFilter("pending")}
+//             >
+//               Pending ({pending.length})
+//             </Button>
 
-        <div className="table-header">
-          <h3>Dispatch Approval</h3>
+//             <Button
+//               type={filter === "confirmed" ? "primary" : "default"}
+//               onClick={() => setFilter("confirmed")}
+//             >
+//               Confirmed ({confirmed.length})
+//             </Button>
+//           </div>
+//         </div>
 
-          <div className="filter">
-            <Button
-              type={filter === "pending" ? "primary" : "default"}
-              onClick={() => setFilter("pending")}
-            >
-              Pending ({pending.length})
-            </Button>
+//         {/* HEAD */}
+//         <div className="table-head">
+//           <span>Transaction</span>
+//           <span>Warehouse</span>
+//           <span>Type</span>
+//           <span>Items</span>
+//           <span>Status</span>
+//           <span>Action</span>
+//         </div>
 
-            <Button
-              type={filter === "confirmed" ? "primary" : "default"}
-              onClick={() => setFilter("confirmed")}
-            >
-              Confirmed ({confirmed.length})
-            </Button>
-          </div>
-        </div>
+//         {/* ROW */}
+//         {displayData.map((t) => (
+//           <div className="table-row" key={t.id}>
+//             <div className="row-cell">
+//               <strong>#{t.id}</strong>
+//               <p>Request: {t.rescueRequestId || "-"}</p>
+//             </div>
 
-        {/* ================= TABLE HEAD ================= */}
+//             <div className="row-cell">
+//               <strong>WH-{t.warehouseId}</strong>
+//             </div>
 
-        <div className="table-head">
-          <span>Transaction</span>
-          <span>Warehouse</span>
-          <span>Type</span>
-          <span>Items</span>
-          <span>Status</span>
-          <span>Action</span>
-        </div>
+//             <div className="row-cell">
+//               <strong>{t.transactionType}</strong>
+//             </div>
 
-        {/* ================= ROW ================= */}
+//             {/* ✅ FIX ITEMS UI */}
+//             <div className="row-cell item">
+//               {t.lines?.map((l, i) => (
+//                 <p key={i}>
+//                   {l.itemName} - {l.quantity} {l.unit}
+//                 </p>
+//               ))}
+//             </div>
 
-        {displayData.map((t) => (
-          <div className="table-row" key={t.id}>
-            <div className="row-cell">
-              <strong>#{t.id}</strong>
-              <p>Request: {t.rescueRequestId}</p>
-            </div>
+//             <div className="row-cell">
+//               {t.confirmedAt ? (
+//                 <strong style={{ color: "#22c55e" }}>Confirmed</strong>
+//               ) : (
+//                 <strong style={{ color: "#f97316" }}>Pending</strong>
+//               )}
+//             </div>
 
-            <div className="row-cell">
-              <strong>{t.warehouseId}</strong>
-            </div>
+//             <div className="row-cell actions">
+//               {!t.confirmedAt && (
+//                 <Button
+//                   type="primary"
+//                   onClick={() => handleConfirm(t.id)}
+//                 >
+//                   Confirm
+//                 </Button>
+//               )}
+//             </div>
+//           </div>
+//         ))}
 
-            <div className="row-cell">
-              <strong>{t.transactionType}</strong>
-            </div>
-
-            <div className="row-cell item">
-              <div>
-                {t.lines?.map((l, i) => (
-                  <p key={i}>
-                    Item {l.reliefItemId} - Qty: {l.quantity}
-                  </p>
-                ))}
-              </div>
-            </div>
-
-            <div className="row-cell">
-              {t.confirmedAt || t.confirmed_at ? (
-                <strong style={{ color: "#22c55e" }}>Confirmed</strong>
-              ) : (
-                <strong style={{ color: "#f97316" }}>Pending</strong>
-              )}
-            </div>
-
-            <div className="row-cell actions">
-              {!t.confirmedAt && !t.confirmed_at && (
-                <Button
-                  type="primary"
-                  onClick={() => handleConfirm(t.id)}
-                >
-                  Confirm
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {/* ================= FOOTER ================= */}
-
-        <div className="table-footer">
-          <span>Total: {displayData.length}</span>
-        </div>
-
-      </div>
-    </div>
-  );
-}
+//         {/* FOOTER */}
+//         <div className="table-footer">
+//           <span>Total: {displayData.length}</span>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }

@@ -1,5 +1,5 @@
 import axiosInstance from "../../axiosInstance";
-
+import axios from "axios";
 /* ================= SAFE NUMBER ================= */
 
 const safeNumber = (value) => {
@@ -138,4 +138,34 @@ export const getWarehouseInventory = (warehouseId) => {
   return axiosInstance.get(
     `/api/relief-warehouses/${safeId}/inventory`
   );
+};
+export const getPendingRescueRequests = async (params = {}) => {
+
+  try {
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/RescueRequests`,
+      {
+        params,
+        headers: {
+          Accept: "application/json"
+        }
+      }
+    );
+
+    return response.data;
+
+  }
+  catch (error) {
+
+    console.error("Lỗi lấy RescueRequests:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải danh sách RescueRequests"
+    );
+
+  }
+
 };
