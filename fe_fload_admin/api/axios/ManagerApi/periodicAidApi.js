@@ -321,3 +321,36 @@ export const getBeneficiaryById = async (beneficiaryId) => {
     );
   }
 };
+/* ================= UPDATE DISTRIBUTION DETAIL ================= */
+
+export const updateDistributionDetail = async (id, data) => {
+  try {
+
+    if (!id) {
+      throw new Error("ID không hợp lệ");
+    }
+
+    const payload = {
+      status: data.status,
+      note: data.note || "",
+    };
+
+    const response = await axiosInstance.put(
+      `/api/periodic-aid-distribution-details/${id}`,
+      payload
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("UPDATE DISTRIBUTION DETAIL ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể cập nhật chi tiết phân phối"
+    );
+
+  }
+};

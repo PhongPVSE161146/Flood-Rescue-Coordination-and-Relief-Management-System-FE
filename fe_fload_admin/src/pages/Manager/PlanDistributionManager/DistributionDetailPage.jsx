@@ -7,12 +7,17 @@ import {
   getBeneficiaryById
 } from "../../../../api/axios/ManagerApi/periodicAidApi";
 
+import EditDistributionDetail from "../../../components/ManagerComponents/DistributionPlanModal/EditDistributionDetailPlan/EditDistributionDetail";
+
 export default function DistributionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [openEdit, setOpenEdit] = useState(false);
+  const [selected, setSelected] = useState(null);
 
   /* ================= LOAD ================= */
 
@@ -23,7 +28,6 @@ export default function DistributionDetailPage() {
       const res = await getDistributionDetailsByDistribution(id);
       const data = res?.items || res?.data || res || [];
 
-      // 🔥 gọi thêm beneficiary
       const enriched = await Promise.all(
         data.map(async (item) => {
           try {
@@ -40,18 +44,14 @@ export default function DistributionDetailPage() {
               priorityLevel: b?.priorityLevel,
             };
           } catch {
-            return {
-              ...item,
-              fullName: "Không rõ",
-            };
+            return { ...item, fullName: "Không rõ" };
           }
         })
       );
 
       setList(enriched);
 
-    } catch (err) {
-      console.error(err);
+    } catch {
       message.error("Lỗi tải chi tiết");
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export default function DistributionDetailPage() {
     fetchData();
   }, [id]);
 
-  /* ================= STATUS ================= */
+  /* ================= RENDER ================= */
 
   const renderStatus = (status) => {
     const map = {
@@ -98,10 +98,7 @@ export default function DistributionDetailPage() {
       3: { text: "Thấp", color: "green" },
     };
 
-    const p = map[level] || {
-      text: level,
-      color: "default",
-    };
+    const p = map[level] || { text: level };
 
     return <Tag color={p.color}>{p.text}</Tag>;
   };
@@ -109,33 +106,14 @@ export default function DistributionDetailPage() {
   /* ================= TABLE ================= */
 
   const columns = [
+    { title: "ID", dataIndex: "detailId", width: 80 },
+    { title: "Người nhận", dataIndex: "fullName" },
+    { title: "SĐT", dataIndex: "phone" },
+    { title: "Địa chỉ", dataIndex: "address" },
+    { title: "Số người", dataIndex: "householdSize" },
+    { title: "Nhóm", dataIndex: "targetGroup" },
     {
-      title: "ID",
-      dataIndex: "detailId",
-      width: 80,
-    },
-    {
-      title: "Người nhận",
-      dataIndex: "fullName",
-    },
-    {
-      title: "SĐT",
-      dataIndex: "phone",
-    },
-    {
-      title: "Địa chỉ",
-      dataIndex: "address",
-    },
-    {
-      title: "Số người",
-      dataIndex: "householdSize",
-    },
-    {
-      title: "Nhóm",
-      dataIndex: "targetGroup",
-    },
-    {
-      title: "Mức ưu tiên",
+      title: "Ưu tiên",
       dataIndex: "priorityLevel",
       render: renderPriority,
     },
@@ -153,6 +131,21 @@ export default function DistributionDetailPage() {
       title: "Ghi chú",
       dataIndex: "note",
     },
+    {
+      title: "Hành động",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          onClick={() => {
+            setSelected(record);
+            setOpenEdit(true);
+          }}
+        >
+          Sửa
+        </Button>
+      ),
+    },
   ];
 
   /* ================= UI ================= */
@@ -160,7 +153,6 @@ export default function DistributionDetailPage() {
   return (
     <div style={{ padding: 20 }}>
 
-      {/* HEADER */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
@@ -170,17 +162,13 @@ export default function DistributionDetailPage() {
           ← Quay lại
         </Button>
 
-        {/* 🔥 COUNT */}
         <span style={{ fontWeight: 600 }}>
           Tổng: {list.length} người
         </span>
       </div>
 
-      <h2 style={{ marginBottom: 16 }}>
-        Chi tiết phân phối #{id}
-      </h2>
+      <h2>Chi tiết phân phối #{id}</h2>
 
-      {/* TABLE */}
       <Table
         rowKey="detailId"
         columns={columns}
@@ -191,6 +179,14 @@ export default function DistributionDetailPage() {
           showSizeChanger: true,
           showTotal: (total) => `Tổng ${total} người`,
         }}
+      />
+
+      {/* 🔥 MODAL */}
+      <EditDistributionDetail
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        data={selected}
+        onSuccess={fetchData}
       />
 
     </div>
