@@ -6,7 +6,7 @@ import {
   getAvailableRescueTeams,
   getAllAidCampaigns
 } from "../../../../../api/axios/ManagerApi/periodicAidApi";
-
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 export default function CreateDistribution({ open, onClose, onSuccess }) {
   const [form] = Form.useForm();
 
@@ -14,13 +14,18 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  /* ================= HELPER ================= */
+
   const normalize = (res) =>
     res?.items || res?.data || res || [];
 
   /* ================= LOAD ================= */
 
   useEffect(() => {
-    if (open) loadData();
+    if (open) {
+      form.resetFields(); // 🔥 reset form mỗi lần mở
+      loadData();
+    }
   }, [open]);
 
   const loadData = async () => {
@@ -34,11 +39,16 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
 
       setCampaigns(normalize(campRes));
 
-      const teamData = normalize(teamRes).filter(t => t.isAvailable);
+      // 🔥 chỉ lấy team available
+      const teamData = normalize(teamRes).filter(
+        (t) => t.isAvailable
+      );
+
       setTeams(teamData);
 
-    } catch {
-      message.error("Lỗi tải dữ liệu");
+    } catch (err) {
+      console.error(err);
+      AuthNotify.error("Lỗi tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -55,7 +65,7 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
         rescueTeamId: Number(values.rescueTeamId),
         distributedAt: new Date().toISOString(),
 
-        // 🔥 FIX: mặc định pending
+        // 🔥 mặc định
         status: "pending",
 
         note: values.note || "",
@@ -63,17 +73,23 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
 
       const res = await createDistribution(payload);
 
-      message.success("Tạo thành công");
+      AuthNotify.success("Tạo thành công");
+
+      // 🔥 REMOVE TEAM ĐÃ CHỌN NGAY LẬP TỨC
+      setTeams((prev) =>
+        prev.filter(
+          (t) => t.rescueTeamId !== values.rescueTeamId
+        )
+      );
 
       form.resetFields();
       onClose();
 
-      // 🔥 FIX QUAN TRỌNG: đẩy item mới lên đầu
       onSuccess?.(res);
 
     } catch (err) {
       console.error(err);
-      message.error("Tạo thất bại");
+      AuthNotify.error("Tạo thất bại");
     }
   };
 
@@ -103,7 +119,9 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
         >
           <Select
             placeholder="Chọn chiến dịch"
-            options={campaigns.map(c => ({
+            showSearch
+            optionFilterProp="label"
+            options={campaigns.map((c) => ({
               value: c.campaignId || c.campaignID,
               label: c.campaignName,
             }))}
@@ -118,16 +136,19 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
         >
           <Select
             placeholder="Chọn đội cứu trợ"
-            options={teams.map(t => ({
+            showSearch
+            optionFilterProp="label"
+            options={teams.map((t) => ({
               value: t.rescueTeamId,
               label: `${t.teamName} (${t.teamStatus})`,
+              disabled: t.activeTaskCount > 0, // 🔥 bonus
             }))}
           />
         </Form.Item>
 
         {/* NOTE */}
         <Form.Item name="note" label="Ghi chú">
-          <Input />
+          <Input placeholder="Nhập ghi chú (nếu có)" />
         </Form.Item>
 
       </Form>

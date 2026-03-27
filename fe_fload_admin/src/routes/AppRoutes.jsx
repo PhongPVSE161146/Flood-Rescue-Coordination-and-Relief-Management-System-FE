@@ -19,7 +19,7 @@ import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueT
 import CampaignPageManagerSuply from "../pages/Manager/CompaningManagerMent/CampaignPageManagerSuply";
 import SupplyPlanPage from "../pages/Manager/CompaningManagerMent/SuplyPlanPageDeatilManager/SupplyPlanPage";
 import DistributionPage from "../pages/Manager/PlanDistributionManager/DistributionPage";
-
+import DistributionDetailPage from "../pages/Manager/PlanDistributionManager/DistributionDetailPage";
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
 import DispatchMapPage from "../pages/RescueCoordinator/DispatchMapPage/DispatchMapPage";
@@ -92,6 +92,8 @@ export default function AppRoutes() {
         <Route path="ke-hoach-cuu-tro" element={<CampaignPageManagerSuply />} />
         <Route path="ke-hoach-cuu-tro/:id" element={<SupplyPlanPage />} />
         <Route path="team-cuu-tro" element={<DistributionPage />} />
+        <Route path="team-cuu-tro/:id" element={<DistributionDetailPage />} />
+        
         
       </Route>
 

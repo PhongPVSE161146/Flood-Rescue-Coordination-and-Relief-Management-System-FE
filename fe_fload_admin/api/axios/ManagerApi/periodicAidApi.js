@@ -277,3 +277,47 @@ export const getAvailableRescueTeams = async () => {
     );
   }
 };
+export const getDistributionDetailsByDistribution = async (distributionId) => {
+  try {
+    if (!distributionId) {
+      throw new Error("distributionId không hợp lệ");
+    }
+
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-distribution-details/by-distribution/${distributionId}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.error("GET DISTRIBUTION DETAILS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải chi tiết phân phối"
+    );
+  }
+};
+export const getBeneficiaryById = async (beneficiaryId) => {
+  try {
+    if (!beneficiaryId) {
+      throw new Error("beneficiaryId không hợp lệ");
+    }
+
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-beneficiaries/${beneficiaryId}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.error("GET BENEFICIARY ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tải thông tin người nhận"
+    );
+  }
+};

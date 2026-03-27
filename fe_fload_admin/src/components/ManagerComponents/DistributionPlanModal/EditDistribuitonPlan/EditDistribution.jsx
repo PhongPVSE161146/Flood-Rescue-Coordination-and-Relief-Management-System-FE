@@ -1,7 +1,7 @@
 import { Modal, Form, Input, Select, message } from "antd";
 import { useEffect } from "react";
 import { updateDistribution } from "../../../../../api/axios/ManagerApi/periodicAidApi";
-
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 export default function EditDistribution({ open, onClose, data, onSuccess }) {
   const [form] = Form.useForm();
 
@@ -21,13 +21,13 @@ export default function EditDistribution({ open, onClose, data, onSuccess }) {
         note: values.note,
       });
 
-      message.success("Cập nhật thành công");
+      AuthNotify.success("Cập nhật thành công");
 
       onClose();
       onSuccess();
 
     } catch {
-      message.error("Cập nhật thất bại");
+      AuthNotify.error("Cập nhật thất bại");
     }
   };
 
