@@ -10,21 +10,27 @@ import Logs from "../pages/Admin/Logs/LogsChange";
 import Permissions from "../pages/Admin/Permissions/Permissions";
 import CampaignPage from "../pages/Admin/CampaignAdmin/CampaignPage";
 import BeneficiaryPage from "../pages/Admin/CampaignAdmin/BeneficiaryPageAdmin/BeneficiaryPage";
+
+
 /* ================= MANAGER ================= */
 import DashboardOverview from "../pages/Manager/Dashboard/DashboardOverview";
 import Vehicle from "../pages/Manager/Vehicle/VehicleManagement";
 import Inventory from "../pages/Manager/Inventory/InventoryManagement";
-import Approve from "../pages/Manager/Approval/ApprovalManagement";
+import ApprovalManagement from "../pages/Manager/Approval/ApprovalManagement";
 import ManagerRescueTeam from "../pages/Manager/RescueTeamRoleManagement/RescueTeamManagement";
 import CampaignPageManagerSuply from "../pages/Manager/CompaningManagerMent/CampaignPageManagerSuply";
 import SupplyPlanPage from "../pages/Manager/CompaningManagerMent/SuplyPlanPageDeatilManager/SupplyPlanPage";
 import DistributionPage from "../pages/Manager/PlanDistributionManager/DistributionPage";
+import DistributionDetailPage from "../pages/Manager/PlanDistributionManager/DistributionDetailPage";
+
 
 /* ================= COORDINATOR ================= */
 import CoordinatorDispatch from "../pages/RescueCoordinator/MissionDispatch/MissionDispatch";
 import DispatchMapPage from "../pages/RescueCoordinator/DispatchMapPage/DispatchMapPage";
 import RescueOperationLayout from "../pages/RescueCoordinator/RescueOperationLayout/RescueOperationLayout";
 import RescueReportPage from "../pages/RescueCoordinator/RescueReportPage/RescueReportPage";
+
+
 
 /* ================= RESCUE ================= */
 import RescueTask from "../pages/RescueTeam/RescueMission/RescueMission";
@@ -36,7 +42,7 @@ import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/Te
 import DistributionListRescue from "../pages/RescueTeam/DistributionListCuuTro/DistributionListRescue";
 import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
 import TaskDashboard from "../pages/RescueTeam/DashboardTaskRescue/TaskDashboardForTeam";
-
+import TaskDistributionDetailPage from "../pages/RescueTeam/DistributionListCuuTro/TaskCuuTroForTeam/TaskDistributionDetailPage";
 
 
 export default function AppRoutes() {
@@ -87,11 +93,13 @@ export default function AppRoutes() {
         <Route index element={<DashboardOverview />} />
         <Route path="vehicles" element={<Vehicle />} />
         <Route path="inventory" element={<Inventory />} />
-        <Route path="approve" element={<Approve />} />
+        <Route path="approve" element={<ApprovalManagement />} />
         <Route path="rescue-team" element={<ManagerRescueTeam />} />
         <Route path="ke-hoach-cuu-tro" element={<CampaignPageManagerSuply />} />
         <Route path="ke-hoach-cuu-tro/:id" element={<SupplyPlanPage />} />
         <Route path="team-cuu-tro" element={<DistributionPage />} />
+        <Route path="team-cuu-tro/:id" element={<DistributionDetailPage />} />
+        
         
       </Route>
 
@@ -128,6 +136,8 @@ export default function AppRoutes() {
         <Route path="/rescueTeam/cuu-tro" element={<DistributionListRescue />} />
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
         <Route path="dashboard-task" element={<TaskDashboard />} />
+        <Route path="/rescueTeam/chi-tiet-tro/:id" element={<TaskDistributionDetailPage />} />
+     
       </Route>
       
       {/* ================= ROOT ================= */}

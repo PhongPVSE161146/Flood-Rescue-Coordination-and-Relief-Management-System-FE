@@ -4,14 +4,15 @@ import { Table, Button, Popconfirm, message } from "antd";
 import {
   getSupplyPlansByCampaign,
   deleteSupplyPlan,
-  getAllReliefItems
+  getAllReliefItems,
+  getAllWarehouses // ✅ dùng luôn
 } from "../../../../../api/axios/ManagerApi/periodicAidApi";
 
 import { getAllAidCampaigns } from "../../../../../api/axios/AdminApi/suplyingApi";
 
 import CreateSupplyPlan from "../../../../components/ManagerComponents/AidSuplyManager/CreateYTableSuplan/CreateSupplyPlan";
 import EditSupplyPlan from "../../../../components/ManagerComponents/AidSuplyManager/EditTableSuplylan/EditSupplyPlan";
-
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 import { useParams } from "react-router-dom";
 
 import "./SupplyPlanPage.css";
@@ -22,6 +23,7 @@ export default function SupplyPlanPage() {
   const [list, setList] = useState([]);
   const [reliefItems, setReliefItems] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
+  const [warehouses, setWarehouses] = useState([]); // ✅ thêm
 
   const [loading, setLoading] = useState(false);
 
@@ -62,23 +64,27 @@ export default function SupplyPlanPage() {
     try {
       setLoading(true);
 
-      const [planRes, itemRes, campaignRes] = await Promise.all([
+      const [planRes, itemRes, campaignRes, warehouseRes] = await Promise.all([
         getSupplyPlansByCampaign(id),
         getAllReliefItems(),
-        getAllAidCampaigns()
+        getAllAidCampaigns(),
+        getAllWarehouses() // ✅ thêm API kho
       ]);
 
       const plans = planRes?.items || planRes?.data || planRes || [];
       const items = itemRes?.items || itemRes?.data || itemRes || [];
       const camps = campaignRes?.items || campaignRes?.data || campaignRes || [];
+      const warehousesData =
+        warehouseRes?.items || warehouseRes?.data || warehouseRes || [];
 
       setList(plans);
       setReliefItems(items);
       setCampaigns(camps);
+      setWarehouses(warehousesData); // ✅ set kho
 
     } catch (err) {
       console.error(err);
-      message.error("Lỗi tải dữ liệu");
+      AuthNotify.error("Lỗi tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -98,10 +104,10 @@ export default function SupplyPlanPage() {
         prev.filter(x => x.supplyPlanId !== record.supplyPlanId)
       );
 
-      message.success("Đã xóa");
+      AuthNotify.success("Đã xóa");
 
     } catch {
-      message.error("Xóa thất bại");
+      AuthNotify.error("Xóa thất bại");
     }
   };
 
@@ -115,6 +121,11 @@ export default function SupplyPlanPage() {
     return campaigns.find(x => x.campaignID === id)?.campaignName || "—";
   };
 
+  // ✅ FIX QUAN TRỌNG
+  const getWarehouseName = (id) => {
+    return warehouses.find(x => x.warehouseId === id)?.warehouseName || "—";
+  };
+
   /* ================= TABLE ================= */
 
   const columns = [
@@ -126,6 +137,10 @@ export default function SupplyPlanPage() {
     {
       title: "Chiến dịch",
       render: (_, record) => getCampaignName(record.campaignId),
+    },
+    {
+      title: "Kho hàng",
+      render: (_, record) => getWarehouseName(record.warehouseId), // ✅ FIX
     },
     {
       title: "Vật phẩm",
@@ -199,15 +214,22 @@ export default function SupplyPlanPage() {
         }}
       />
 
-      {/* CREATE */}
-      <CreateSupplyPlan
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
-        campaignId={id}
-        onSuccess={fetchData}
-      />
+<CreateSupplyPlan
+  open={openCreate}
+  onClose={() => setOpenCreate(false)}
+  campaignId={Number(id)}
+  onSuccess={(newItem) => {
+    setList(prev => [
+      {
+        ...newItem,
+        supplyPlanId:
+          newItem?.supplyPlanId || Date.now(), // fallback
+      },
+      ...prev,
+    ]);
+  }}
+/>
 
-      {/* EDIT */}
       <EditSupplyPlan
         open={openEdit}
         onClose={() => setOpenEdit(false)}

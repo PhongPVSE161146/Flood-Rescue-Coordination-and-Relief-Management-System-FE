@@ -1,4 +1,4 @@
-import { Modal, Form, Input, Select } from "antd";
+import { Modal, Form, Input } from "antd";
 import { createAidCampaign } from "../../../../../api/axios/AdminApi/suplyingApi";
 import AuthNotify from "../../../../utils/Common/AuthNotify";
 
@@ -6,7 +6,6 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
   const [form] = Form.useForm();
 
   /* ================= GET ADMIN ================= */
-
   const getAdmin = () => {
     try {
       return (
@@ -19,7 +18,6 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
   };
 
   /* ================= SUBMIT ================= */
-
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -27,15 +25,17 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
       const admin = getAdmin();
 
       if (!admin) {
-        AuthNotify.error("Không xác định được admin");
-        return;
+        return AuthNotify.error("Không xác định được admin");
       }
 
       const payload = {
         campaignName: values.campaignName?.trim(),
         month: Number(values.month),
         year: Number(values.year),
-        status: values.status || "pending",
+
+        // 🔥 FIX QUAN TRỌNG
+        status: "pending",
+
         createdByAdminId: Number(admin.userId || admin.id),
       };
 
@@ -43,12 +43,12 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
 
       const res = await createAidCampaign(payload);
 
+      console.log("📥 RESPONSE:", res);
+
       AuthNotify.success("Tạo thành công");
 
       form.resetFields();
       onClose();
-
-      /* ================= FIX DATA TRẢ VỀ ================= */
 
       const newItem = {
         ...(res?.data || res),
@@ -60,32 +60,32 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
 
         createdByAdminId: payload.createdByAdminId,
 
-        // 🔥 HIỂN THỊ NGƯỜI TẠO
         adminName:
           admin.fullName ||
           admin.name ||
           admin.username ||
           "Admin",
 
-        // 🔥 thời gian fallback
         createdAt: new Date().toISOString(),
       };
 
-      // 🔥 ĐẨY LÊN ĐẦU LIST
       onSuccess?.(newItem);
 
     } catch (err) {
-      console.error("❌ CREATE CAMPAIGN ERROR:", err);
+      console.error("❌ ERROR FULL:", err);
 
-      AuthNotify.error(
+      // 🔥 HIỂN THỊ LỖI THẬT
+      const msg =
         err?.response?.data?.message ||
-        "Tạo thất bại"
-      );
+        err?.response?.data ||
+        err.message ||
+        "Tạo thất bại";
+
+      AuthNotify.error(msg);
     }
   };
 
   /* ================= UI ================= */
-
   return (
     <Modal
       title="Tạo chiến dịch"
@@ -101,16 +101,14 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
     >
       <Form form={form} layout="vertical">
 
-        {/* NAME */}
         <Form.Item
           name="campaignName"
           label="Tên chiến dịch"
           rules={[{ required: true, message: "Nhập tên chiến dịch" }]}
         >
-          <Input placeholder="Nhập tên chiến dịch" />
+          <Input />
         </Form.Item>
 
-        {/* MONTH */}
         <Form.Item
           name="month"
           label="Tháng"
@@ -119,29 +117,12 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
           <Input type="number" min={1} max={12} />
         </Form.Item>
 
-        {/* YEAR */}
         <Form.Item
           name="year"
           label="Năm"
           rules={[{ required: true, message: "Nhập năm" }]}
         >
           <Input type="number" />
-        </Form.Item>
-
-        {/* STATUS */}
-        <Form.Item
-          name="status"
-          label="Trạng thái"
-          
-        >
-          <Select
-           options={[
-            { value: "accepted", label: "🔵 Đã nhận" },
-          
-            { value: "in progress", label: "🟡 Đang thực hiện" },
-           
-          ]}
-          />
         </Form.Item>
 
       </Form>

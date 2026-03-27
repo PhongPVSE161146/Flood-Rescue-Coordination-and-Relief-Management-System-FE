@@ -59,11 +59,7 @@ const menuByRole = {
       icon: <FileTextOutlined />,
       path: "/admin/logs",
     },
-    {
-      label: "Phân quyền nâng cao",
-      icon: <SafetyOutlined />,
-      path: "/admin/permissions",
-    },
+   
     {
       label: "Chiến dịch cứu trợ",
       icon: <DeploymentUnitOutlined />,
@@ -153,7 +149,7 @@ const menuByRole = {
       isDynamic: true,
     },
     {
-      label: "Lịch sử hoàn thành",
+      label: "Lịch sử nhiêm vụ cứu hộ",
       icon: <HistoryOutlined />,
       path: "/rescueTeam/history",
     },

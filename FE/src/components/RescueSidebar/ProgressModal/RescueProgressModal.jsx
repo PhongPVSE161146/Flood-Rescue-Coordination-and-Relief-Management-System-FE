@@ -146,7 +146,7 @@ const RescueProgressModal = ({ requestId, open, onClose }) => {
           onClose(); // đóng modal
 
           setTimeout(() => {
-            navigate("/map");
+            navigate("/");
           
             // 🔥 reload sau khi navigate
             setTimeout(() => {

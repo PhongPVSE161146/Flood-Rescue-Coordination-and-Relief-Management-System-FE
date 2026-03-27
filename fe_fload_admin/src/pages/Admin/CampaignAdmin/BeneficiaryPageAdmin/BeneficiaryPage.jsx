@@ -13,6 +13,8 @@ import {
   deleteBeneficiary
 } from "../../../../../api/axios/AdminApi/suplyingApi";
 
+import { getAllAidCampaigns } from "../../../../../api/axios/AdminApi/suplyingApi";
+
 import CreateBeneficiary from "../../../../components/AdminComponents/AidSupplyCamping/CreateBenefitSuply/CreateBeneficiary";
 import EditBeneficiary from "../../../../components/AdminComponents/AidSupplyCamping/EditBenefitSuply/EditBeneficiary";
 
@@ -25,9 +27,13 @@ export default function BeneficiaryPage() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [campaignName, setCampaignName] = useState(""); // 🔥 thêm
+
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selected, setSelected] = useState(null);
+
+  const normalize = (res) => res?.items || res?.data || res || [];
 
   /* ================= LOAD ================= */
 
@@ -35,17 +41,27 @@ export default function BeneficiaryPage() {
     try {
       setLoading(true);
 
-      const res = await getBeneficiariesByCampaign(id);
+      const [res, campaignRes] = await Promise.all([
+        getBeneficiariesByCampaign(id),
+        getAllAidCampaigns() // 🔥 lấy campaign
+      ]);
 
-      const data =
-        res?.items ||
-        res?.data ||
-        res ||
-        [];
+      const data = normalize(res);
+      const campaigns = normalize(campaignRes);
 
       setList(data);
 
-    } catch {
+      // 🔥 tìm campaign name
+      const found = campaigns.find(
+        c => c.campaignID == id || c.id == id
+      );
+
+      setCampaignName(
+        found?.campaignName || `Chiến dịch #${id}`
+      );
+
+    } catch (err) {
+      console.error(err);
       message.error("Lỗi tải dữ liệu");
     } finally {
       setLoading(false);
@@ -79,32 +95,22 @@ export default function BeneficiaryPage() {
 
   const renderStatus = (status) => {
     const map = {
-      // 🔥 REQUEST / TASK STATUS
       accepted: { text: "Đã nhận", color: "blue" },
       rejected: { text: "Từ chối", color: "red" },
       "in progress": { text: "Đang thực hiện", color: "processing" },
       completed: { text: "Hoàn thành", color: "green" },
-  
-      // 🔥 fallback thêm (nếu API khác)
       pending: { text: "Đang chờ", color: "gold" },
       active: { text: "Đang hoạt động", color: "blue" },
       ready: { text: "Sẵn sàng", color: "green" },
-  
-      // 🔥 nếu API trả tiếng Việt
-      "đã nhận": { text: "Đã nhận", color: "blue" },
-      "từ chối": { text: "Từ chối", color: "red" },
-      "đang thực hiện": { text: "Đang thực hiện", color: "processing" },
-      "hoàn thành": { text: "Hoàn thành", color: "green" },
     };
-  
-    // 🔥 normalize chống lỗi API
+
     const key = status?.toLowerCase()?.trim();
-  
+
     const s = map[key] || {
       text: status || "Không rõ",
       color: "default",
     };
-  
+
     return <Tag color={s.color}>{s.text}</Tag>;
   };
 
@@ -177,7 +183,6 @@ export default function BeneficiaryPage() {
 
         <div className="left">
 
-          {/* 🔥 BACK */}
           <Button
             className="btn-back"
             onClick={() => navigate(-1)}
@@ -186,9 +191,14 @@ export default function BeneficiaryPage() {
           </Button>
 
           <div>
-            <h2>Danh sách người nhận</h2>
+            {/* 🔥 TITLE FIX */}
+            <h2>
+              📦 Danh sách người nhận -{" "}
+              <span style={{ color: "#1677ff" }}>
+                {campaignName}
+              </span>
+            </h2>
 
-            {/* 🔥 COUNT */}
             <span className="count">
               {list.length} người
             </span>
@@ -217,19 +227,30 @@ export default function BeneficiaryPage() {
 
       {/* CREATE */}
       <CreateBeneficiary
-        open={openCreate}
-        onClose={() => setOpenCreate(false)}
-        campaignId={id}
-        onSuccess={fetchData}
-      />
+  open={openCreate}
+  onClose={() => setOpenCreate(false)}
+  campaignId={id}
+  onSuccess={(newItem) => {
+    setList(prev => [newItem, ...prev]); // 🔥 lên đầu
+  }}
+/>
 
       {/* EDIT */}
       <EditBeneficiary
-        open={openEdit}
-        onClose={() => setOpenEdit(false)}
-        data={selected}
-        onSuccess={fetchData}
-      />
+  open={openEdit}
+  onClose={() => setOpenEdit(false)}
+  data={selected}
+  onSuccess={(updatedItem) => {
+    setList(prev => [
+      updatedItem, // 🔥 đưa lên đầu
+      ...prev.filter(
+        x =>
+          (x.id || x.beneficiaryId) !==
+          (updatedItem.id || updatedItem.beneficiaryId)
+      ),
+    ]);
+  }}
+/>
 
     </div>
   );

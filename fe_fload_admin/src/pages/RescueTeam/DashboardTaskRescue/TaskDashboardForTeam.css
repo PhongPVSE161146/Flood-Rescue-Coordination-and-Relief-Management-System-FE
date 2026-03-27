@@ -1,159 +1,207 @@
-/* ===== CONTAINER ===== */
-.dashboard-container {
-    padding: 24px;
-    background: #f0f2f5;
-    min-height: 100vh;
-  }
-  
-  /* ===== TITLE ===== */
-  .dashboard-title {
-    margin-bottom: 24px;
+/* ===== ROOT ===== */
+.task-dashboard {
+  padding: 24px;
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+/* ===== TITLE ===== */
+.task-dashboard__title {
+  margin-bottom: 24px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+/* ===== SUMMARY CARD ===== */
+.task-dashboard__card {
+  cursor: pointer;
+  border-radius: 16px !important;
+  padding: 16px;
+  transition: all 0.3s ease;
+  background: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* hover effect */
+.task-dashboard__card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+}
+
+/* active */
+.task-dashboard__card--active {
+  outline: 2px solid #1677ff;
+}
+
+/* TEXT */
+.task-dashboard__card h3 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.task-dashboard__card h1 {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== COLOR BY TYPE ===== */
+.task-dashboard__card:nth-child(1) {
+  border-left: 6px solid #595959; /* tổng */
+}
+
+.task-dashboard__card:nth-child(2) {
+  border-left: 6px solid #faad14; /* pending */
+}
+
+.task-dashboard__card:nth-child(3) {
+  border-left: 6px solid #1677ff; /* accepted */
+}
+
+.task-dashboard__card:nth-child(4) {
+  border-left: 6px solid #52c41a; /* completed */
+}
+
+.task-dashboard__card:nth-child(5) {
+  border-left: 6px solid #ff4d4f; /* rejected */
+}
+
+/* ===== PROGRESS ===== */
+.task-dashboard__progress-row {
+  margin-top: 28px;
+}
+
+.task-dashboard__progress-card {
+  border-radius: 16px !important;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: 0.2s;
+}
+
+.task-dashboard__progress-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ===== LIST ===== */
+.task-dashboard__list-row {
+  margin-top: 24px;
+}
+
+.task-dashboard__list {
+  margin-top: 12px;
+}
+
+/* ===== ITEM ===== */
+.task-dashboard__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: #ffffff;
+  border-left: 6px solid #1677ff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+}
+
+/* hover */
+.task-dashboard__item:hover {
+  transform: translateX(6px);
+  background: #f0f7ff;
+}
+
+/* STATUS BORDER */
+.task-dashboard__item--pending {
+  border-left-color: #faad14;
+}
+
+.task-dashboard__item--accepted {
+  border-left-color: #1677ff;
+}
+
+.task-dashboard__item--completed {
+  border-left-color: #52c41a;
+}
+
+.task-dashboard__item--rejected {
+  border-left-color: #ff4d4f;
+}
+
+/* ===== TEXT ===== */
+.task-dashboard__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+.task-dashboard__sub {
+  font-size: 13px;
+  color: #555;
+  margin-top: 2px;
+}
+
+/* ===== STATUS BADGE ===== */
+.task-dashboard__status {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* màu */
+.task-dashboard__status--pending {
+  color: #faad14;
+  background: #fff7e6;
+}
+
+.task-dashboard__status--accepted {
+  color: #1677ff;
+  background: #e6f4ff;
+}
+
+.task-dashboard__status--completed {
+  color: #52c41a;
+  background: #f6ffed;
+}
+
+.task-dashboard__status--rejected {
+  color: #ff4d4f;
+  background: #fff1f0;
+}
+
+/* ===== PAGINATION ===== */
+.task-dashboard__pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* ===== LOADING ===== */
+.task-dashboard__loading {
+  height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #1677ff;
+  font-weight: 500;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .task-dashboard__card h1 {
     font-size: 22px;
-    font-weight: 700;
-    color: #1f1f1f;
   }
-  
-  /* ===== SUMMARY CARD ===== */
-  .dashboard-card {
-    cursor: pointer;
-    border-radius: 14px !important;
-    padding: 10px;
-    transition: all 0.25s ease;
-    border: 1px solid #eee;
-    background: #fff;
-  }
-  
-  .dashboard-card h3 {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 4px;
-  }
-  
-  .dashboard-card h1 {
-    font-size: 26px;
-    font-weight: 700;
-    margin: 0;
-  }
-  
-  /* hover */
-  .dashboard-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
-  
-  /* active */
-  .dashboard-card.active {
-    border: 2px solid #1677ff !important;
-    background: #e6f4ff;
-  }
-  
-  /* ===== ICON ===== */
-  .card-icon {
-    font-size: 22px;
-    margin-top: 8px;
-    color: #1677ff;
-  }
-  
-  /* ===== PROGRESS ===== */
-  .progress-row {
-    margin-top: 28px;
-  }
-  
-  .progress-card {
-    border-radius: 14px !important;
-    border: 1px solid #eee;
-  }
-  
-  .progress-card h3 {
-    font-size: 14px;
-  }
-  
-  /* ===== LIST ===== */
-  .list-row {
-    margin-top: 24px;
-  }
-  
-  /* LIST WRAP */
-  .task-list {
-    margin-top: 12px;
-  }
-  
-  /* ITEM */
-  .task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 16px;
-    border-radius: 12px;
-    margin-bottom: 12px;
-    background: #ffffff;
-    border-left: 5px solid #1677ff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    transition: all 0.2s ease;
-  }
-  
-  /* hover */
-  .task-item:hover {
-    transform: translateX(4px);
-    background: #f6fbff;
-  }
-  
-  /* TEXT */
-  .task-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: #111;
-  }
-  
-  .task-sub {
-    font-size: 13px;
-    color: #555;
-    margin-top: 2px;
-  }
-  
-  /* ===== STATUS BADGE ===== */
-  .task-status {
-    padding: 6px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  
-  /* màu */
-  .status-accepted {
-    background: #e6f4ff;
-    color: #1677ff;
-  }
-  
-  .status-completed {
-    background: #f6ffed;
-    color: #52c41a;
-  }
-  
-  .status-rejected {
-    background: #fff1f0;
-    color: #ff4d4f;
-  }
-  
-  /* ===== EMPTY ===== */
-  .empty-text {
-    text-align: center;
-    padding: 20px;
-    color: #999;
-  }
-  
-  /* ===== PAGINATION ===== */
-  .pagination-wrap {
-    margin-top: 20px;
-    text-align: center;
-  }
-  .loading-full {
-    height: 60vh;
-    display: flex;
+
+  .task-dashboard__item {
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    color: #1677ff;
-    font-weight: 500;
   }
+}

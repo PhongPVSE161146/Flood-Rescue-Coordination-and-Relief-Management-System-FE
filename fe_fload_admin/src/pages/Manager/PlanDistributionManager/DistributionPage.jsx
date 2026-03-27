@@ -6,14 +6,14 @@ import {
   message,
   Tag
 } from "antd";
-
+import { useNavigate } from "react-router-dom";
 import {
   getAllDistributions,
   deleteDistribution,
   getAllRescueTeams,
   getAllAidCampaigns
 } from "../../../../api/axios/ManagerApi/periodicAidApi";
-
+import AuthNotify from "../../../utils/Common/AuthNotify";
 import CreateDistribution from "../../../components/ManagerComponents/DistributionPlanModal/CreateDistribuionPlan/CreateDistribution";
 import EditDistribution from "../../../components/ManagerComponents/DistributionPlanModal/EditDistribuitonPlan/EditDistribution";
 
@@ -27,7 +27,7 @@ export default function DistributionPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selected, setSelected] = useState(null);
-
+  const navigate = useNavigate();
   /* ================= HELPER ================= */
 
   const normalize = (res) =>
@@ -79,9 +79,9 @@ export default function DistributionPage() {
         prev.filter(x => x.distributionId !== record.distributionId)
       );
 
-      message.success("Đã xóa");
+      AuthNotify.success("Đã xóa");
     } catch {
-      message.error("Xóa thất bại");
+      AuthNotify.error("Xóa thất bại");
     }
   };
 
@@ -128,6 +128,14 @@ export default function DistributionPage() {
       title: "ID",
       dataIndex: "distributionId",
       width: 80,
+      render: (id) => (
+        <span
+          style={{ color: "#1677ff", cursor: "pointer" }}
+          onClick={() => navigate(`/manager/team-cuu-tro/${id}`)}
+        >
+          #{id}
+        </span>
+      ),
     },
     {
       title: "Chiến dịch",

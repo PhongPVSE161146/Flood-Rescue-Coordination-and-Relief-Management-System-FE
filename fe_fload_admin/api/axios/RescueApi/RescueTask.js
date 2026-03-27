@@ -382,3 +382,56 @@ export const getPeriodicAidCampaignById = async (id) => {
 
   }
 };
+export const getPeriodicAidDistributionDetails = async (distributionId) => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-distribution-details/by-distribution/${distributionId}`,
+      {
+        headers: {
+          accept: "*/*",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching periodic aid distribution details:", error);
+    throw error;
+  }
+};
+
+
+export const getPeriodicAidBeneficiaries = async (id) => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-beneficiaries/${id}`,
+      {
+        headers: {
+          accept: "*/*",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching periodic aid beneficiaries:", error);
+    throw error;
+  }
+};
+export const deletePeriodicAidDistributionDetail = async (id) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/api/periodic-aid-distribution-details/${id}`,
+      {
+        headers: {
+          accept: "*/*",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting periodic aid distribution detail:", error);
+    throw error;
+  }
+};
