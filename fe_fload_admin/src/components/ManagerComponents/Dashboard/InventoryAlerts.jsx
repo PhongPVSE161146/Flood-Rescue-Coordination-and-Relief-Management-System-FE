@@ -11,6 +11,7 @@ export default function InventoryAlerts({ data = [] }) {
         boxShadow: "0 6px 18px rgba(0,0,0,0.4)",
       }}
     >
+      {/* TITLE */}
       <div
         style={{
           fontSize: 14,
@@ -21,65 +22,89 @@ export default function InventoryAlerts({ data = [] }) {
         Cảnh báo kho
       </div>
 
-      {data.length === 0 && (
-        <p style={{ color: "#aaa" }}>Không có dữ liệu</p>
-      )}
-
-      {data.map((i, idx) => {
-        const percent = Math.min(
-          (i.quantity / i.threshold) * 100,
-          100
-        );
-
-        return (
+      {/* SCROLL BOX */}
+      <div
+        style={{
+          maxHeight: 300,
+          overflowY: "auto",
+          paddingRight: 6,
+        }}
+      >
+        {/* EMPTY */}
+        {data.length === 0 ? (
           <div
-            key={idx}
             style={{
-              marginBottom: 14,
-              padding: 10,
-              background: "rgba(255,255,255,0.03)",
-              borderRadius: 8,
+              textAlign: "center",
+              color: "#8aa0b6",
+              padding: "40px 0",
             }}
           >
-            {/* 🔥 TÊN + KHO */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 4,
-              }}
-            >
-              <span style={{ fontWeight: 600 }}>
-                {i.reliefItemName}
-              </span>
-
-              <span style={{ color: "#8aa0b6", fontSize: 12 }}>
-                {i.warehouseName}
-              </span>
-            </div>
-
-            {/* 🔥 SỐ LƯỢNG */}
-            <div
-              style={{
-                fontSize: 12,
-                marginBottom: 6,
-                color: "#aaa",
-              }}
-            >
-              {i.quantity} / {i.threshold}
-            </div>
-
-            {/* 🔥 PROGRESS */}
-            <Progress
-              percent={percent}
-              showInfo={false}
-              strokeColor={
-                percent >= 100 ? "#ff4d4f" : "#1890ff"
-              }
-            />
+            Không có dữ liệu
           </div>
-        );
-      })}
+        ) : (
+          data.map((i, idx) => {
+            // 🔥 tránh lỗi chia 0
+            const percent =
+              i.threshold > 0
+                ? Math.min((i.quantity / i.threshold) * 100, 100)
+                : 0;
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  marginBottom: 14,
+                  padding: 10,
+                  background: "rgba(255,255,255,0.03)",
+                  borderRadius: 8,
+                }}
+              >
+                {/* NAME + WAREHOUSE */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: 4,
+                  }}
+                >
+                  <span style={{ fontWeight: 600 }}>
+                    {i.reliefItemName}
+                  </span>
+
+                  <span
+                    style={{
+                      color: "#8aa0b6",
+                      fontSize: 12,
+                    }}
+                  >
+                    {i.warehouseName}
+                  </span>
+                </div>
+
+                {/* QUANTITY */}
+                <div
+                  style={{
+                    fontSize: 12,
+                    marginBottom: 6,
+                    color: "#aaa",
+                  }}
+                >
+                  {i.quantity} / {i.threshold}
+                </div>
+
+                {/* PROGRESS */}
+                <Progress
+                  percent={percent}
+                  showInfo={false}
+                  strokeColor={
+                    percent >= 100 ? "#ff4d4f" : "#1890ff"
+                  }
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
