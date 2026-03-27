@@ -48,7 +48,7 @@ export default function CreateBeneficiary({ open, onClose, onSuccess, campaignId
         priorityLevel: Number(values.priorityLevel || 1),
 
         // 🔥 FIX: luôn là accepted
-        status: "accepted",
+        status: "Pending",
 
         selectedByAdminId: Number(adminId),
         selectedAt: new Date().toISOString(),

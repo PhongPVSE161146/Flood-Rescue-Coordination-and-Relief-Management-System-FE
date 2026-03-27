@@ -12,7 +12,7 @@ import { getAllAidCampaigns } from "../../../../../api/axios/AdminApi/suplyingAp
 
 import CreateSupplyPlan from "../../../../components/ManagerComponents/AidSuplyManager/CreateYTableSuplan/CreateSupplyPlan";
 import EditSupplyPlan from "../../../../components/ManagerComponents/AidSuplyManager/EditTableSuplylan/EditSupplyPlan";
-
+import AuthNotify from "../../../../utils/Common/AuthNotify";
 import { useParams } from "react-router-dom";
 
 import "./SupplyPlanPage.css";
@@ -84,7 +84,7 @@ export default function SupplyPlanPage() {
 
     } catch (err) {
       console.error(err);
-      message.error("Lỗi tải dữ liệu");
+      AuthNotify.error("Lỗi tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -104,10 +104,10 @@ export default function SupplyPlanPage() {
         prev.filter(x => x.supplyPlanId !== record.supplyPlanId)
       );
 
-      message.success("Đã xóa");
+      AuthNotify.success("Đã xóa");
 
     } catch {
-      message.error("Xóa thất bại");
+      AuthNotify.error("Xóa thất bại");
     }
   };
 

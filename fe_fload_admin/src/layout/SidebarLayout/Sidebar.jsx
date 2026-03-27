@@ -59,11 +59,7 @@ const menuByRole = {
       icon: <FileTextOutlined />,
       path: "/admin/logs",
     },
-    {
-      label: "Phân quyền nâng cao",
-      icon: <SafetyOutlined />,
-      path: "/admin/permissions",
-    },
+   
     {
       label: "Chiến dịch cứu trợ",
       icon: <DeploymentUnitOutlined />,
