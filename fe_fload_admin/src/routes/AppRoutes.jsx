@@ -43,7 +43,7 @@ import DistributionListRescue from "../pages/RescueTeam/DistributionListCuuTro/D
 import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
 import TaskDashboard from "../pages/RescueTeam/DashboardTaskRescue/TaskDashboardForTeam";
 import TaskDistributionDetailPage from "../pages/RescueTeam/DistributionListCuuTro/TaskCuuTroForTeam/TaskDistributionDetailPage";
-
+import DistributionListRescueHistory from "../pages/RescueTeam/DistributionListCuuTro/ListTaskCompletedHistory/DistributionListRescueHistory";
 
 export default function AppRoutes() {
   const isAuth = sessionStorage.getItem("isAuth") === "true";
@@ -137,7 +137,9 @@ export default function AppRoutes() {
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
         <Route path="dashboard-task" element={<TaskDashboard />} />
         <Route path="/rescueTeam/chi-tiet-tro/:id" element={<TaskDistributionDetailPage />} />
-     
+        <Route path="history-cuu-tro" element={<DistributionListRescueHistory />} />
+        
+
       </Route>
       
       {/* ================= ROOT ================= */}

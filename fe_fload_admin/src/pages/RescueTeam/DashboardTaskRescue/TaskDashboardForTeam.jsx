@@ -1,14 +1,32 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Progress, Pagination, Spin } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Progress,
+  Spin,
+  Tabs,
+  Pagination,
+} from "antd";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+} from "recharts";
+
 import "./TaskDashboardForTeam.css";
+
 import {
   getAllAssignments,
   getAllRescueTeams,
-  getRescueTeamMembers
+  getRescueTeamMembers,
+  getAllDistributions,
+  getAllAidCampaigns,
 } from "../../../../api/axios/RescueApi/RescueTask";
 
-/* ================= MAP STATUS ================= */
-
+/* ================= STATUS ================= */
 const mapStatusVN = (status) => {
   const map = {
     accepted: "Đã nhận",
@@ -20,10 +38,17 @@ const mapStatusVN = (status) => {
 };
 
 export default function TaskDashboardForTeam() {
-  const [filter, setFilter] = useState("all");
-  const [data, setData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [tab, setTab] = useState("assignment");
   const [loading, setLoading] = useState(false);
+
+  const [assignmentData, setAssignmentData] = useState([]);
+  const [distributionData, setDistributionData] = useState([]);
+
+  const [assignmentPage, setAssignmentPage] = useState(1);
+  const [distributionPage, setDistributionPage] = useState(1);
+
+  const [campaignMap, setCampaignMap] = useState({});
+
   const pageSize = 5;
 
   const user =
@@ -32,7 +57,6 @@ export default function TaskDashboardForTeam() {
     {};
 
   /* ================= FIND TEAM ================= */
-
   const findMyTeamId = async (teams, userId) => {
     for (const team of teams) {
       try {
@@ -48,7 +72,6 @@ export default function TaskDashboardForTeam() {
   };
 
   /* ================= GET REQUEST ================= */
-
   const getRequestById = async (id) => {
     try {
       const res = await fetch(
@@ -60,53 +83,65 @@ export default function TaskDashboardForTeam() {
     }
   };
 
-  /* ================= LOAD ================= */
-
+  /* ================= LOAD DATA ================= */
   const loadData = async () => {
     try {
       setLoading(true);
 
-      if (!user?.userId) return;
-
+      // TEAM
       const teamRes = await getAllRescueTeams();
       const teams = teamRes?.data?.items || [];
 
       const myTeamId = await findMyTeamId(teams, user.userId);
+      if (!myTeamId) return;
 
-      if (!myTeamId) {
-        setData([]);
-        return;
-      }
+      // CAMPAIGN
+      const campaigns = await getAllAidCampaigns();
+      const cmap = {};
+      campaigns.forEach((c) => (cmap[c.campaignID] = c));
+      setCampaignMap(cmap);
 
-      const res = await getAllAssignments();
-      const list = res?.data?.items || res || [];
+      // ===== ASSIGNMENT =====
+      const aRes = await getAllAssignments();
+      const assignments = aRes?.data?.items || aRes || [];
 
-      const myData = list.filter(
-        (x) => x.rescueTeamId === myTeamId
+      const myAssignments = assignments.filter(
+        (a) => a.rescueTeamId === myTeamId
       );
 
-      const mapped = await Promise.all(
-        myData.map(async (a) => {
+      const aData = await Promise.all(
+        myAssignments.map(async (a) => {
           const req = await getRequestById(a.rescueRequestId);
 
-          // 🔥 normalize assigned → pending
           let status = a.assignmentStatus?.toLowerCase();
           if (status === "assigned") status = "pending";
 
           return {
-            id: a.assignmentId,
             name: req?.fullName || "Không rõ",
             phone: req?.contactPhone || "Không có",
             address: req?.address || "Chưa có",
             status,
-            time: a.assignedAt
-              ? new Date(a.assignedAt).toLocaleString("vi-VN")
-              : "Chưa có",
+            time: new Date(a.assignedAt).toLocaleString("vi-VN"),
           };
         })
       );
 
-      setData(mapped);
+      setAssignmentData(aData);
+
+      // ===== DISTRIBUTION =====
+      const dRes = await getAllDistributions();
+
+      const dData = dRes
+        .filter((d) => d.rescueTeamId === myTeamId)
+        .map((d) => ({
+          campaignName:
+            cmap[d.campaignId]?.campaignName ||
+            "Không rõ chiến dịch",
+          status: d.status?.toLowerCase(),
+          time: new Date(d.distributedAt).toLocaleString("vi-VN"),
+        }));
+
+      setDistributionData(dData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -118,161 +153,157 @@ export default function TaskDashboardForTeam() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter]);
+  /* ================= PAGINATION ================= */
+  const paginate = (data, page) =>
+    data.slice((page - 1) * pageSize, page * pageSize);
 
-  /* ================= FILTER ================= */
+  /* ================= STATS ================= */
+  const getStats = (data) => ({
+    total: data.length,
+    pending: data.filter((x) => x.status === "pending").length,
+    accepted: data.filter((x) => x.status === "accepted").length,
+    completed: data.filter((x) => x.status === "completed").length,
+    rejected: data.filter((x) => x.status === "rejected").length,
+  });
 
-  const filteredData =
-    filter === "all"
-      ? data
-      : data.filter((x) => x.status === filter);
+  /* ================= PIE ================= */
+  const renderPie = (stats) => {
+    const pieData = [
+      { name: "Chờ", value: stats.pending },
+      { name: "Đã nhận", value: stats.accepted },
+      { name: "Hoàn thành", value: stats.completed },
+      { name: "Từ chối", value: stats.rejected },
+    ];
 
-  const sortedData = filteredData.sort(
-    (a, b) => new Date(b.time) - new Date(a.time)
-  );
+    const COLORS = ["#faad14", "#1890ff", "#52c41a", "#ff4d4f"];
 
-  const paginatedData = sortedData.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+    return (
+      <Card title="📈 Biểu đồ" style={{ marginTop: 16 }}>
+        <PieChart width={400} height={300}>
+          <Pie data={pieData} dataKey="value" outerRadius={100} label>
+            {pieData.map((_, i) => (
+              <Cell key={i} fill={COLORS[i]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend />
+        </PieChart>
+      </Card>
+    );
+  };
 
-  /* ================= COUNT ================= */
+  /* ================= UI ASSIGNMENT ================= */
+  const renderAssignment = () => {
+    const stats = getStats(assignmentData);
+    const data = paginate(assignmentData, assignmentPage);
 
-  const total = data.length;
-  const pending = data.filter((x) => x.status === "pending").length;
-  const accepted = data.filter((x) => x.status === "accepted").length;
-  const completed = data.filter((x) => x.status === "completed").length;
-  const rejected = data.filter((x) => x.status === "rejected").length;
+    return (
+      <>
+        <Row gutter={12}>
+          <Col span={4}><Card>Tổng: {stats.total}</Card></Col>
+          <Col span={4}><Card>Chờ: {stats.pending}</Card></Col>
+          <Col span={4}><Card>Đã nhận: {stats.accepted}</Card></Col>
+          <Col span={6}><Card>Hoàn thành: {stats.completed}</Card></Col>
+          <Col span={6}><Card>Từ chối: {stats.rejected}</Card></Col>
+        </Row>
 
-  /* ================= PERCENT ================= */
+        {renderPie(stats)}
 
-  const percent = (value) =>
-    total ? Math.round((value / total) * 100) : 0;
+        <Card title="📋 Danh sách cứu hộ" style={{ marginTop: 16 }}>
+          {data.map((item, i) => (
+            <div key={i} className="task-dashboard__item">
+              <div>
+                <b>{item.name}</b>
+                <div>📞 {item.phone}</div>
+                <div>📍 {item.address}</div>
+                <div>⏱ {item.time}</div>
+              </div>
+              <div
+  className={`task-dashboard__status task-dashboard__status--${item.status}`}
+>
+  {mapStatusVN(item.status)}
+</div>
+            </div>
+          ))}
 
-  /* ================= UI ================= */
+          <Pagination
+            current={assignmentPage}
+            pageSize={pageSize}
+            total={assignmentData.length}
+            onChange={setAssignmentPage}
+            style={{ marginTop: 16, textAlign: "center" }}
+          />
+        </Card>
+      </>
+    );
+  };
 
+  /* ================= UI DISTRIBUTION ================= */
+  const renderDistribution = () => {
+    const stats = getStats(distributionData);
+    const data = paginate(distributionData, distributionPage);
+
+    return (
+      <>
+        <Row gutter={12}>
+          <Col span={4}><Card>Tổng: {stats.total}</Card></Col>
+          <Col span={4}><Card>Chờ: {stats.pending}</Card></Col>
+          <Col span={4}><Card>Đã nhận: {stats.accepted}</Card></Col>
+          <Col span={6}><Card>Hoàn thành: {stats.completed}</Card></Col>
+          <Col span={6}><Card>Từ chối: {stats.rejected}</Card></Col>
+        </Row>
+
+        {renderPie(stats)}
+
+        <Card title="📋 Danh sách cứu trợ" style={{ marginTop: 16 }}>
+          {data.map((item, i) => (
+            <div key={i} className="task-dashboard__item">
+              <div>
+                <b>{item.campaignName}</b>
+                <div>⏱ {item.time}</div>
+              </div>
+              <div
+  className={`task-dashboard__status task-dashboard__status--${item.status}`}
+>
+  {mapStatusVN(item.status)}
+</div>
+            </div>
+          ))}
+
+          <Pagination
+            current={distributionPage}
+            pageSize={pageSize}
+            total={distributionData.length}
+            onChange={setDistributionPage}
+            style={{ marginTop: 16, textAlign: "center" }}
+          />
+        </Card>
+      </>
+    );
+  };
+
+  /* ================= MAIN ================= */
   return (
     <div className="task-dashboard">
       {loading ? (
-        <div className="task-dashboard__loading">
-          <Spin size="large" />
-          <p>Đang tải dữ liệu...</p>
-        </div>
+        <Spin size="large" />
       ) : (
-        <>
-          <h2 className="task-dashboard__title">
-            📊 Thống Kê Nhiệm Vụ
-          </h2>
-
-          {/* ===== SUMMARY ===== */}
-          <Row gutter={12}>
-            <Col span={4}>
-              <Card onClick={() => setFilter("all")}>
-                <h3>Tổng</h3>
-                <h1>{total}</h1>
-              </Card>
-            </Col>
-
-            <Col span={4}>
-              <Card onClick={() => setFilter("pending")}>
-                <h3>Đang chờ</h3>
-                <h1>{pending}</h1>
-              </Card>
-            </Col>
-
-            <Col span={6}>
-              <Card onClick={() => setFilter("accepted")}>
-                <h3>Đã nhận</h3>
-                <h1>{accepted}</h1>
-              </Card>
-            </Col>
-
-            <Col span={4}>
-              <Card onClick={() => setFilter("completed")}>
-                <h3>Hoàn thành</h3>
-                <h1>{completed}</h1>
-              </Card>
-            </Col>
-
-            <Col span={6}>
-              <Card onClick={() => setFilter("rejected")}>
-                <h3>Từ chối</h3>
-                <h1>{rejected}</h1>
-              </Card>
-            </Col>
-          </Row>
-
-          {/* ===== PROGRESS ===== */}
-          <Row gutter={16} className="task-dashboard__progress-row">
-            <Col span={6}>
-              <Card>
-                <h3>Đang chờ</h3>
-                <Progress percent={percent(pending)} />
-              </Card>
-            </Col>
-
-            <Col span={6}>
-              <Card>
-                <h3>Đã nhận</h3>
-                <Progress percent={percent(accepted)} />
-              </Card>
-            </Col>
-
-            <Col span={6}>
-              <Card>
-                <h3>Hoàn thành</h3>
-                <Progress percent={percent(completed)} />
-              </Card>
-            </Col>
-
-            <Col span={6}>
-              <Card>
-                <h3>Từ chối</h3>
-                <Progress percent={percent(rejected)} />
-              </Card>
-            </Col>
-          </Row>
-
-          {/* ===== LIST ===== */}
-          <Card title="📋 Danh sách nhiệm vụ">
-            {paginatedData.map((item) => (
-              <div key={item.id} className="task-dashboard__item">
-                <div>
-                  <b>Mã nhiệm vụ: #{item.id}</b>
-                  <div>Họ tên: {item.name}</div>
-                  <div>SĐT: {item.phone}</div>
-                  <div>Địa chỉ: {item.address}</div>
-                  <div>⏱ {item.time}</div>
-                </div>
-
-                <div
-                  className={`task-dashboard__status ${
-                    item.status === "accepted"
-                      ? "task-dashboard__status--accepted"
-                      : item.status === "completed"
-                      ? "task-dashboard__status--completed"
-                      : item.status === "pending"
-                      ? "task-dashboard__status--pending"
-                      : "task-dashboard__status--rejected"
-                  }`}
-                >
-                  {mapStatusVN(item.status)}
-                </div>
-              </div>
-            ))}
-
-            {filteredData.length > pageSize && (
-              <Pagination
-                current={currentPage}
-                pageSize={pageSize}
-                total={filteredData.length}
-                onChange={setCurrentPage}
-              />
-            )}
-          </Card>
-        </>
+        <Tabs
+          activeKey={tab}
+          onChange={setTab}
+          items={[
+            {
+              key: "assignment",
+              label: "🚑 Cứu hộ",
+              children: renderAssignment(),
+            },
+            {
+              key: "distribution",
+              label: "🎁 Cứu trợ",
+              children: renderDistribution(),
+            },
+          ]}
+        />
       )}
     </div>
   );

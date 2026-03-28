@@ -124,7 +124,7 @@ export default function MissionListRescue() {
         .filter(a => a.rescueTeamId === myTeamId)
         .filter(a => a.assignmentStatus !== "COMPLETED")
         .filter(a => a.assignmentStatus !== "REJECTED")
-        .filter(a => a.assignmentStatus !== "PENDING")
+        // .filter(a => a.assignmentStatus !== "PENDING")
         .sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
 
       const mapped = await Promise.all(
