@@ -134,7 +134,11 @@ const menuByRole = {
   rescueteam: [
 
    
-
+    {
+      label: "Thống kê nhiệm vụ cứu hộ",
+      icon: <BarChartOutlined />,
+      path: "/rescueTeam/dashboard-task",
+    },
    
     {
       label: "Nhiệm vụ cứu hộ",
@@ -155,7 +159,7 @@ const menuByRole = {
     },
   
     {
-      label: "Thành Viên Đội",
+      label: "Thành Viên Trong Đội",
       icon: <UserOutlined />,
       path: "/rescueTeam/list-member",
     },
@@ -165,9 +169,9 @@ const menuByRole = {
       path: "/rescueTeam/cuu-tro"
     },
     {
-      label: "Thống kê nhiệm vụ",
-      icon: <BarChartOutlined />,
-      path: "/rescueTeam/dashboard-task",
+      label: "Lịch sử nhiêm vụ cứu trợ",
+      icon: <HistoryOutlined />,
+      path: "/rescueTeam/history-cuu-tro",
     },
   ],
 };
