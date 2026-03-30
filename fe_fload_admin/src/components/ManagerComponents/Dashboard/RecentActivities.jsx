@@ -69,7 +69,9 @@ export default function RecentActivities({ data = [] }) {
       </div>
 
       <Table
-        rowKey={(r, i) => i}
+        rowKey={(r) =>
+          r.id || r.activityId || `${r.title || "activity"}-${r.createdAt || Date.now()}`
+        }
         columns={columns}
         dataSource={data}
         pagination={{ pageSize: 5 }}

@@ -1,4 +1,5 @@
 import axiosInstance from "../../axiosInstance";
+import axios from "axios";
 
 /* ================= SAFE NUMBER ================= */
 
@@ -68,4 +69,40 @@ export const deleteVehicle = (id) => {
   if (!safeId) throw new Error("Invalid vehicleId");
 
   return axiosInstance.delete(`/api/vehicles/${safeId}`);
+};
+
+/* UPLOAD IMAGE */
+export const uploadCommonImage = (file, folder = "vehicles") => {
+  const formData = new FormData();
+  formData.append("File", file);
+  formData.append("Folder", folder);
+
+  const token =
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken");
+
+  const headers = {
+    "Content-Type": "multipart/form-data",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  return axios
+    .post("/upload-api/api/Upload/image", formData, { headers })
+    .catch((error) => {
+      // Fallback direct API call in case local proxy is unavailable.
+      const directUrl = `${(import.meta.env.VITE_API_URL || "").replace(/\/$/, "")}/api/Upload/image`;
+      return axios.post(directUrl, formData, { headers }).catch(() => {
+        throw error;
+      });
+    });
+};
+
+/* PATCH VEHICLE IMAGE */
+export const updateVehicleImage = (id, vehicleImg) => {
+  const safeId = safeNumber(id);
+  if (!safeId) throw new Error("Invalid vehicleId");
+
+  return axiosInstance.patch(`/api/vehicles/${safeId}/image`, {
+    vehicleImg: vehicleImg || "",
+  });
 };

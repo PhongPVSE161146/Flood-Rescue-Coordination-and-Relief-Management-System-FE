@@ -4,18 +4,26 @@ import {
   Button,
   Popconfirm,
   message,
-  Tag
+  Tag,
+  Spin,
+  Empty,
+  Modal
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   getAllDistributions,
   deleteDistribution,
   getAllRescueTeams,
-  getAllAidCampaigns
+  getAllAidCampaigns,
+  getDistributionDetailsByDistribution,
+  getBeneficiaryById,
+  getAllReliefItems
 } from "../../../../api/axios/ManagerApi/periodicAidApi";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 import CreateDistribution from "../../../components/ManagerComponents/DistributionPlanModal/CreateDistribuionPlan/CreateDistribution";
 import EditDistribution from "../../../components/ManagerComponents/DistributionPlanModal/EditDistribuitonPlan/EditDistribution";
+import EditDistributionDetail from "../../../components/ManagerComponents/DistributionPlanModal/EditDistributionDetailPlan/EditDistributionDetail";
+import AddDistributionDetail from "../../../components/ManagerComponents/DistributionPlanModal/AddDistributionDetail/AddDistributionDetail";
 
 export default function DistributionPage() {
   const [list, setList] = useState([]);
@@ -23,15 +31,83 @@ export default function DistributionPage() {
   const [teams, setTeams] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [expandedDetails, setExpandedDetails] = useState({});
+  const [expandedLoading, setExpandedLoading] = useState({});
 
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openEditDetail, setOpenEditDetail] = useState(false);
+  const [openAddDetail, setOpenAddDetail] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [selectedDetail, setSelectedDetail] = useState(null);
+  const [selectedDistributionForAdd, setSelectedDistributionForAdd] = useState(null);
+  const [reliefItems, setReliefItems] = useState([]);
   const navigate = useNavigate();
   /* ================= HELPER ================= */
 
   const normalize = (res) =>
     res?.items || res?.data || res || [];
+
+  /* ================= LOAD RELIEF ITEMS ================= */
+
+  const loadReliefItems = async () => {
+    try {
+      const res = await getAllReliefItems();
+      setReliefItems(normalize(res));
+    } catch (err) {
+      console.error("Load relief items error:", err);
+    }
+  };
+
+  /* ================= LOAD EXPANDED DETAILS ================= */
+
+  const loadExpandedDetails = async (distributionId) => {
+    try {
+      setExpandedLoading(prev => ({ ...prev, [distributionId]: true }));
+
+      const detailsRes = await getDistributionDetailsByDistribution(distributionId);
+      const details = normalize(detailsRes);
+
+      // 🔥 enrich each detail with beneficiary info
+      const enriched = await Promise.all(
+        details.map(async (detail) => {
+          try {
+            const beneficiary = await getBeneficiaryById(detail.beneficiaryId);
+            return {
+              ...detail,
+              fullName: beneficiary?.fullName || "—",
+              phone: beneficiary?.phone,
+              address: beneficiary?.address,
+              householdSize: beneficiary?.householdSize,
+            };
+          } catch {
+            return { ...detail, fullName: "—" };
+          }
+        })
+      );
+
+      setExpandedDetails(prev => ({
+        ...prev,
+        [distributionId]: enriched
+      }));
+
+    } catch (err) {
+      console.error("Load details error:", err);
+      message.error("Lỗi tải chi tiết người nhận");
+    } finally {
+      setExpandedLoading(prev => ({ ...prev, [distributionId]: false }));
+    }
+  };
+
+  /* ================= RELIEF ITEMS MAP ================= */
+
+  const reliefItemMap = useMemo(() => {
+    const map = {};
+    reliefItems.forEach(item => {
+      map[item.itemId] = item.itemName;
+    });
+    return map;
+  }, [reliefItems]);
 
   /* ================= LOAD ================= */
 
@@ -56,6 +132,9 @@ export default function DistributionPage() {
       setList(sorted);
       setCampaigns(normalize(campRes));
       setTeams(normalize(teamRes));
+
+      // 🔥 load relief items
+      await loadReliefItems();
   
     } catch (err) {
       console.error(err);
@@ -119,6 +198,99 @@ export default function DistributionPage() {
     const s = map[key] || { text: status, color: "default" };
 
     return <Tag color={s.color}>{s.text}</Tag>;
+  };
+
+  /* ================= EXPANDED ROW RENDER ================= */
+
+  const expandedRowRender = (record) => {
+    const details = expandedDetails[record.distributionId] || [];
+    const isLoading = expandedLoading[record.distributionId];
+
+    if (isLoading) {
+      return <div style={{ padding: 12 }}><Spin size="small" /> Đang tải...</div>;
+    }
+
+    if (!details || details.length === 0) {
+      return <Empty description="Không có người nhận" />;
+    }
+
+    const detailColumns = [
+      {
+        title: "ID",
+        dataIndex: "detailId",
+        width: 70,
+      },
+      {
+        title: "Người nhận",
+        dataIndex: "fullName",
+      },
+      {
+        title: "SĐT",
+        dataIndex: "phone",
+      },
+      {
+        title: "Địa chỉ",
+        dataIndex: "address",
+      },
+      {
+        title: "Số người",
+        dataIndex: "householdSize",
+      },
+      {
+        title: "Vật phẩm",
+        dataIndex: "reliefItemId",
+        render: (id) => reliefItemMap[id] || `#${id}`,
+      },
+      {
+        title: "Số lượng",
+        dataIndex: "distributedQuantity",
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "status",
+        render: renderStatus,
+      },
+      {
+        title: "Ghi chú",
+        dataIndex: "note",
+        ellipsis: true,
+      },
+      {
+        title: "Hành động",
+        width: 100,
+        render: (_, detail) => (
+          <Button
+            size="small"
+            onClick={() => {
+              setSelectedDetail(detail);
+              setOpenEditDetail(true);
+            }}
+          >
+            Sửa
+          </Button>
+        ),
+      },
+    ];
+
+    return (
+      <div style={{ padding: "12px 16px" }}>
+        <Table
+          rowKey="detailId"
+          columns={detailColumns}
+          dataSource={details}
+          pagination={false}
+          size="small"
+          style={{ marginBottom: 16 }}
+        />
+
+        <Button type="primary" onClick={() => {
+          setSelectedDistributionForAdd(record);
+          setOpenAddDetail(true);
+        }}>
+          + Thêm người nhận
+        </Button>
+      </div>
+    );
   };
 
   /* ================= TABLE ================= */
@@ -208,6 +380,14 @@ export default function DistributionPage() {
         columns={columns}
         dataSource={list}
         loading={loading}
+        expandable={{
+          expandedRowRender,
+          onExpand: (expanded, record) => {
+            if (expanded && !expandedDetails[record.distributionId]) {
+              loadExpandedDetails(record.distributionId);
+            }
+          },
+        }}
         pagination={{
           pageSize: 6,
           showSizeChanger: true,
@@ -226,6 +406,33 @@ export default function DistributionPage() {
         onClose={() => setOpenEdit(false)}
         data={selected}
         onSuccess={fetchAll}
+      />
+
+      <EditDistributionDetail
+        open={openEditDetail}
+        onClose={() => setOpenEditDetail(false)}
+        data={selectedDetail}
+        onSuccess={() => {
+          setOpenEditDetail(false);
+          if (selectedDetail?.distributionId) {
+            loadExpandedDetails(selectedDetail.distributionId);
+          }
+        }}
+      />
+
+      <AddDistributionDetail
+        open={openAddDetail}
+        onClose={() => {
+          setOpenAddDetail(false);
+          setSelectedDistributionForAdd(null);
+        }}
+        distributionId={selectedDistributionForAdd?.distributionId}
+        campaignId={selectedDistributionForAdd?.campaignId}
+        onSuccess={() => {
+          if (selectedDistributionForAdd?.distributionId) {
+            loadExpandedDetails(selectedDistributionForAdd.distributionId);
+          }
+        }}
       />
 
     </div>

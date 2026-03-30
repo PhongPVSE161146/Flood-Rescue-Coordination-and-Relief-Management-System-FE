@@ -107,7 +107,7 @@ export default function CreateDistribution({ open, onClose, onSuccess }) {
       confirmLoading={loading}
       okText="Tạo"
       cancelText="Hủy"
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical">
 

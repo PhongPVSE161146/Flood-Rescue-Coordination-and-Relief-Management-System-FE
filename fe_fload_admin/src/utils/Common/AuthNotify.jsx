@@ -12,7 +12,7 @@ const baseConfig = {
 const open = (type, title, description) => {
   notification[type]({
     ...baseConfig,
-    message: title,
+    title,
     description,
     style: {
       borderRadius: 14,

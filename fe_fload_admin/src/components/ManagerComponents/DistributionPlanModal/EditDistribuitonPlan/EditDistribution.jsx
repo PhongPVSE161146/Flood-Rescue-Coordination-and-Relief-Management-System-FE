@@ -47,7 +47,7 @@ export default function EditDistribution({ open, onClose, data, onSuccess }) {
       onCancel={onClose}
       onOk={handleSubmit}
       okButtonProps={{ disabled: isCompleted }} // ❌ disable nút OK
-      destroyOnClose
+      destroyOnHidden
     >
       {/* ⚠️ cảnh báo */}
       {isCompleted && (
