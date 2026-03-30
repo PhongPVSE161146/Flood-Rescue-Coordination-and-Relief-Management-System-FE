@@ -214,17 +214,33 @@ export default function RescueReportDetail({ mission }) {
 
   const images = [];
 
-  if (request?.locationImageUrl) {
-    images.push(
-      request.locationImageUrl.startsWith("http")
-        ? request.locationImageUrl
-        : IMAGE_BASE + request.locationImageUrl
-    );
-  }
-
   if (Array.isArray(request?.imageUrls)) {
     images.push(...request.imageUrls);
   }
+  
+  if (Array.isArray(request?.images)) {
+    images.push(...request.images);
+  }
+  
+  if (request?.locationImageUrl) {
+    if (typeof request.locationImageUrl === "string") {
+      images.push(...request.locationImageUrl.split(","));
+    } else if (Array.isArray(request.locationImageUrl)) {
+      images.push(...request.locationImageUrl);
+    }
+  }
+  
+  // normalize + clean + dedupe
+  const normalizedImages = [...new Set(
+    images
+      .map(i => i?.trim())
+      .filter(Boolean)
+      .map(i =>
+        i.startsWith("http")
+          ? i
+          : `${IMAGE_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+      )
+  )];
   const formatSLA = (minutes) => {
     if (!minutes) return "--";
 
@@ -388,17 +404,30 @@ export default function RescueReportDetail({ mission }) {
           <section className="card">
             <h4 className="card-title">6. HÌNH ẢNH THỰC TẾ</h4>
 
-            {images.length > 0 ? (
-              <Image.PreviewGroup>
-                {images.map((img, i) => (
-                  <Image key={i} src={img} width={160} />
-                ))}
-              </Image.PreviewGroup>
-            ) : (
-              <p>Không có hình ảnh</p>
-            )}
+            {normalizedImages.length > 0 ? (
+  <Image.PreviewGroup>
+    <div className="rc-image-grid">
+      {normalizedImages.map((img, i) => (
+        <div key={i} className="rc-image-item">
+          <Image
+            src={img}
+            alt="rescue"
+            preview={false}
+          />
+        </div>
+      ))}
+    </div>
+  </Image.PreviewGroup>
+) : (
+  <p>Không có hình ảnh</p>
+)}
           </section>
-          <section className="rc-op-card">
+       
+        </div>
+
+        {/* RIGHT */}
+        <div className="right-col">
+        <section className="rc-op-card">
             <h4 className="card-title">
               7. VỊ TRÍ HIỆN TẠI
               <span className="rc-online">● TRỰC TUYẾN</span>
@@ -413,10 +442,6 @@ export default function RescueReportDetail({ mission }) {
               />
             </div>
           </section>
-        </div>
-
-        {/* RIGHT */}
-        <div className="right-col">
           {/* TEAM */}
           <section className="card">
             <h4 className="card-title">8. ĐỘI CỨU HỘ</h4>

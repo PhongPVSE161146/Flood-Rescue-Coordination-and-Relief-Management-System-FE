@@ -235,17 +235,43 @@ const [rejectLoading, setRejectLoading] = useState(false);
     return `${h} giờ ${m} phút`;
   };
   /* ================= IMAGE FIX ================= */
-  const images = [
-    ...(mission?.images || []),
-    ...(mission?.imageUrls || []),
-    ...(mission?.locationImageUrl ? [mission.locationImageUrl] : [])
-  ];
-
+  const getImages = (mission) => {
+    const images = [];
+  
+    if (Array.isArray(mission?.images)) {
+      images.push(...mission.images);
+    }
+  
+    if (Array.isArray(mission?.imageUrls)) {
+      images.push(...mission.imageUrls);
+    }
+  
+    if (mission?.locationImageUrl) {
+      if (typeof mission.locationImageUrl === "string") {
+        images.push(...mission.locationImageUrl.split(","));
+      } else if (Array.isArray(mission.locationImageUrl)) {
+        images.push(...mission.locationImageUrl);
+      }
+    }
+  
+    return [...new Set(
+      images
+        .map(i => i?.trim())
+        .filter(Boolean)
+        .map(i =>
+          i.startsWith("http")
+            ? i
+            : `${IMAGE_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+        )
+    )];
+  };
+  
+  const images = getImages(mission);
 
 
 
   console.log("MISSION:", mission);
-  console.log("IMAGES:", mission?.images);
+  console.log("IMAGES:", images);
   return (
 
     <section className="rc-md">
@@ -431,9 +457,9 @@ const [rejectLoading, setRejectLoading] = useState(false);
 {images.map((img, i) => {
 
   const imageUrl =
-    img.startsWith("http")
-      ? img
-      : `${API_BASE}/${img.replace(/^\/+/, "")}`;
+  img.startsWith("http")
+  ? img
+  : `${IMAGE_BASE}${img.startsWith("/") ? "" : "/"}${img}`
 
   return (
     <Image

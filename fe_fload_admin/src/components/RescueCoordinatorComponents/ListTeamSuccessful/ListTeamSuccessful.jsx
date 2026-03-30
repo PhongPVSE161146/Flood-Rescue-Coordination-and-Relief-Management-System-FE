@@ -65,25 +65,36 @@ const convertApiToMission = (data = [], statuses = [], urgencyLevels = []) => {
       );
       const images = [];
 
+      // imageUrls
       if (Array.isArray(item.imageUrls)) {
-        images.push(...item.imageUrls.map(url =>
-          url.startsWith("http") ? url : API_BASE + url
-        ));
+        images.push(...item.imageUrls);
       }
-
+      
+      // images
       if (Array.isArray(item.images)) {
-        images.push(...item.images.map(url =>
-          url.startsWith("http") ? url : API_BASE + url
-        ));
+        images.push(...item.images);
       }
-
+      
+      // locationImageUrl (FIX QUAN TRỌNG)
       if (item.locationImageUrl) {
-        images.push(
-          item.locationImageUrl.startsWith("http")
-            ? item.locationImageUrl
-            : API_BASE + item.locationImageUrl
-        );
+        if (typeof item.locationImageUrl === "string") {
+          images.push(...item.locationImageUrl.split(","));
+        } else if (Array.isArray(item.locationImageUrl)) {
+          images.push(...item.locationImageUrl);
+        }
       }
+      
+      // normalize + clean + dedupe
+      const normalizedImages = [...new Set(
+        images
+          .map(i => i?.trim())
+          .filter(Boolean)
+          .map(i =>
+            i.startsWith("http")
+              ? i
+              : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+          )
+      )];
 
       return {
         id: item.rescueRequestId,
@@ -107,7 +118,7 @@ const convertApiToMission = (data = [], statuses = [], urgencyLevels = []) => {
             ? "Đã từ chối"
             : statusObj?.description || "Đã hoàn thành",
           statusId: item.statusId,
-        images: images,
+          images: normalizedImages,
         urgencyLevelName: urgencyObj?.levelName,
         urgencyLevelId: item.urgencyLevelId,
         detailDescription: item.detailDescription,
