@@ -278,6 +278,37 @@ const normalizeAttachments = (attachments) => {
     .filter((item) => item.url);
 };
 
+const getRequestImages = (request) => {
+  const imgs = [];
+
+  if (Array.isArray(request?.imageUrls)) {
+    imgs.push(...request.imageUrls);
+  }
+
+  if (Array.isArray(request?.images)) {
+    imgs.push(...request.images);
+  }
+
+  if (request?.locationImageUrl) {
+    if (typeof request.locationImageUrl === "string") {
+      imgs.push(...request.locationImageUrl.split(","));
+    } else if (Array.isArray(request.locationImageUrl)) {
+      imgs.push(...request.locationImageUrl);
+    }
+  }
+
+  return [...new Set(
+    imgs
+      .map((item) => item?.trim?.() || item)
+      .filter(Boolean)
+      .map((item) =>
+        item.startsWith("http")
+          ? item
+          : `${API_BASE}${item.startsWith("/") ? "" : "/"}${item}`
+      )
+  )];
+};
+
 const detailText = (value, fallback = "Khong co") =>
   value === null || value === undefined || value === "" ? fallback : String(value);
 
@@ -316,7 +347,11 @@ export default function SummaryDetailPanel({
     [normalizedRows, selectedRowKey]
   );
   const rescueRequestDetailFields = buildRescueRequestDetailFields(selectedRow);
-  const attachmentImages = normalizeAttachments(selectedRow?.attachments);
+  const requestImages = getRequestImages(selectedRow);
+  const attachmentImages = normalizeAttachments(selectedRow?.attachments)
+    .map((item) => item.url)
+    .filter(Boolean);
+  const allImages = [...new Set([...requestImages, ...attachmentImages])];
 
   return (
     <Card className="summary-detail-panel">
@@ -545,35 +580,23 @@ export default function SummaryDetailPanel({
                 </div>
               </Card>
 
-              {selectedRow.locationImageUrl ? (
+              {allImages.length > 0 ? (
                 <div className="summary-detail-gallery-block">
-                  <Text className="summary-detail-gallery-title">Location Image</Text>
+                  <Text className="summary-detail-gallery-title">Hinh anh hien truong</Text>
                   <div className="summary-detail-gallery">
-                    <Image
-                      src={resolveImageUrl(selectedRow.locationImageUrl)}
-                      alt={`Location ${selectedRow.rescueRequestId}`}
-                      width={260}
-                      height={180}
-                      style={{ objectFit: "cover", borderRadius: 14 }}
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {attachmentImages.length > 0 ? (
-                <div className="summary-detail-gallery-block">
-                  <Text className="summary-detail-gallery-title">Attachments</Text>
-                  <div className="summary-detail-gallery">
-                    {attachmentImages.map((item) => (
-                      <Image
-                        key={item.key}
-                        src={item.url}
-                        alt={`Attachment ${item.key}`}
-                        width={120}
-                        height={96}
-                        style={{ objectFit: "cover", borderRadius: 14 }}
-                      />
-                    ))}
+                    <Image.PreviewGroup>
+                      {allImages.map((img, index) => (
+                        <Image
+                          key={`${selectedRow.rescueRequestId}-${index}`}
+                          src={img}
+                          alt={`Rescue ${selectedRow.rescueRequestId}-${index}`}
+                          width={index === 0 ? 260 : 120}
+                          height={index === 0 ? 180 : 96}
+                          style={{ objectFit: "cover", borderRadius: 14 }}
+                          preview={false}
+                        />
+                      ))}
+                    </Image.PreviewGroup>
                   </div>
                 </div>
               ) : null}
