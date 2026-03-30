@@ -35,11 +35,10 @@ import RescueReportPage from "../pages/RescueCoordinator/RescueReportPage/Rescue
 /* ================= RESCUE ================= */
 import RescueTask from "../pages/RescueTeam/RescueMission/RescueMission";
 import MissionDetailRescue from "../pages/RescueTeam/RescueMission/DetailRescueMission/MissionDetailRescue";
-import MissionHistory from "../pages/RescueTeam/RescueMissionHistory/MissionHistory";
+import HistoryNavigator from "../pages/RescueTeam/HistoryTastRescueTeam/HistoryNavigator";
 import MissionInProgress from "../pages/RescueTeam/RescueMissionProgress/MissionInProgress";
 import RescueMissionComplete from "../pages/RescueTeam/MissionComplete/RescueMissionComplete";
 import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/TeamMembersMisionList";
-import DistributionListRescue from "../pages/RescueTeam/DistributionListCuuTro/DistributionListRescue";
 import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
 import TaskDashboard from "../pages/RescueTeam/DashboardTaskRescue/TaskDashboardForTeam";
 import TaskDistributionDetailPage from "../pages/RescueTeam/DistributionListCuuTro/TaskCuuTroForTeam/TaskDistributionDetailPage";
@@ -129,11 +128,10 @@ export default function AppRoutes() {
       >
         <Route index element={<RescueTask />} />
         <Route path="mission/:id" element={<MissionDetailRescue />} />
-        <Route path="history" element={<MissionHistory />} />
+        <Route path="history" element={<HistoryNavigator />} />
         <Route path="history/:id" element={<RescueMissionComplete />} />
         <Route path="/rescueTeam/dangcuho/:id" element={<MissionInProgress />} />
-        <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />
-        <Route path="/rescueTeam/cuu-tro" element={<DistributionListRescue />} />
+        <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />    
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
         <Route path="dashboard-task" element={<TaskDashboard />} />
         <Route path="/rescueTeam/chi-tiet-tro/:id" element={<TaskDistributionDetailPage />} />

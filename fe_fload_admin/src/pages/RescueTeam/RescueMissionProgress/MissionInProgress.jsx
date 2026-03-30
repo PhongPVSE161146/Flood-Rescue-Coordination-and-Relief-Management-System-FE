@@ -130,13 +130,40 @@ export default function MissionInProgress() {
       }
 
       /* ===== IMAGES ===== */
-      const imgs = [
-        ...(req?.imageUrls || []),
-        ...(req?.images || []),
-        req?.locationImageUrl,
-      ].filter(Boolean);
+      const API_BASE = "https://api-rescue.purintech.id.vn";
 
-      setImages(imgs);
+      const getImages = (req) => {
+        const imgs = [];
+      
+        if (Array.isArray(req?.imageUrls)) {
+          imgs.push(...req.imageUrls);
+        }
+      
+        if (Array.isArray(req?.images)) {
+          imgs.push(...req.images);
+        }
+      
+        if (req?.locationImageUrl) {
+          if (typeof req.locationImageUrl === "string") {
+            imgs.push(...req.locationImageUrl.split(","));
+          } else if (Array.isArray(req.locationImageUrl)) {
+            imgs.push(...req.locationImageUrl);
+          }
+        }
+      
+        return [...new Set(
+          imgs
+            .map(i => i?.trim())
+            .filter(Boolean)
+            .map(i =>
+              i.startsWith("http")
+                ? i
+                : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+            )
+        )];
+      };
+      
+      setImages(getImages(req));
     } catch (err) {
       console.error("Load detail error:", err);
     } finally {
@@ -385,30 +412,32 @@ export default function MissionInProgress() {
             <h4 className="card-title">7. GHI CHÚ ĐỘI CỨU HỘ</h4>
             <p>{detail.rescueTeamNote}</p>
           </section>
-
           <section className="card">
-            <h4 className="card-title">8. HÌNH ẢNH THỰC TẾ </h4>
+  <h4 className="card-title">8. HÌNH ẢNH THỰC TẾ </h4>
 
-            {images?.length > 0 ? (
-              <Image.PreviewGroup>
-                {images.map((img, i) => (
-                  <Image
-                    key={i}
-                    src={img}
-                    width="100%"
-                    referrerPolicy="no-referrer"
-                  />
-                ))}
-              </Image.PreviewGroup>
-            ) : (
-              <p>Không có ảnh</p>
-            )}
-          </section>
+  {images?.length > 0 ? (
+    <Image.PreviewGroup>
+      <div className="rc-image-grid">
+        {images.map((img, i) => (
+          <div key={i} className="rc-image-item">
+            <Image
+              src={img}
+              alt="rescue"
+              preview={false}
+            />
+          </div>
+        ))}
+      </div>
+    </Image.PreviewGroup>
+  ) : (
+    <p>Không có ảnh</p>
+  )}
+</section>
         </div>
       </div>
       <footer className="rp-footer">
         <div className="rp-actions">
-          <button className="rp-help">Yêu cầu hỗ trợ</button>
+        
 
           <button
             className={`rp-done ${

@@ -139,13 +139,40 @@ export default function RescueMissionComplete() {
       }
 
       /* ===== IMAGES ===== */
-      const imgs = [
-        ...(req?.imageUrls || []),
-        ...(req?.images || []),
-        req?.locationImageUrl
-      ].filter(Boolean);
+      const API_BASE = "https://api-rescue.purintech.id.vn";
+
+      const getImages = (req) => {
+        const imgs = [];
       
-      setImages(imgs);
+        if (Array.isArray(req?.imageUrls)) {
+          imgs.push(...req.imageUrls);
+        }
+      
+        if (Array.isArray(req?.images)) {
+          imgs.push(...req.images);
+        }
+      
+        if (req?.locationImageUrl) {
+          if (typeof req.locationImageUrl === "string") {
+            imgs.push(...req.locationImageUrl.split(","));
+          } else if (Array.isArray(req.locationImageUrl)) {
+            imgs.push(...req.locationImageUrl);
+          }
+        }
+      
+        return [...new Set(
+          imgs
+            .map(i => i?.trim())
+            .filter(Boolean)
+            .map(i =>
+              i.startsWith("http")
+                ? i
+                : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+            )
+        )];
+      };
+      
+      setImages(getImages(req));
 
    
 
@@ -375,12 +402,24 @@ export default function RescueMissionComplete() {
  </div>
  
  </section>
- 
+   {/* Đội */}      <section className="card">
+
+<h4 className="card-title">
+  3. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{detail.urgencyScore}</p>
+
+</section>
        
  
            {/* MAP */}
            <section className="rc-op-card">
-           <h4 className="card-title">3, ĐỊA CHỈ HIỆN TẠI</h4>
+           <h4 className="card-title">4. ĐỊA CHỈ HIỆN TẠI</h4>
              <iframe
                title="map"
                src={`https://www.google.com/maps?q=${location.lat},${location.lng}&z=15&output=embed`}
@@ -392,19 +431,7 @@ export default function RescueMissionComplete() {
  
          {/* RIGHT */}
          <div className="rc-op-col">
-     {/* Đội */}      <section className="card">
-
-<h4 className="card-title">
-  4. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
-</h4>
-
-
-
-<label>ĐIỂM MỨC ĐỘ</label>
-
-<p>{detail.urgencyScore}</p>
-
-</section>
+   
 
      <section className="rc-op-card">
      <h4 className="card-title">5. THÔNG ĐỘI CỨU HỘ & PHƯƠNG TIỆN</h4>
@@ -427,20 +454,23 @@ export default function RescueMissionComplete() {
            <section className="card">
            <h4 className="card-title">8. HÌNH ẢNH THỰC TẾ </h4>
  
-                   {images?.length > 0 ? (
-                     <Image.PreviewGroup>
-                       {images.map((img, i) => (
-                         <Image
-                           key={i}
-                           src={img}
-                           width="100%"
-                           referrerPolicy="no-referrer"
-                         />
-                       ))}
-                     </Image.PreviewGroup>
-                   ) : (
-                     <p>Không có ảnh</p>
-                   )}
+           {images?.length > 0 ? (
+  <Image.PreviewGroup>
+    <div className="rc-image-grid">
+      {images.map((img, i) => (
+        <div key={i} className="rc-image-item">
+          <Image
+            src={img}
+            alt="rescue"
+            preview={false}
+          />
+        </div>
+      ))}
+    </div>
+  </Image.PreviewGroup>
+) : (
+  <p>Không có ảnh</p>
+)}
  
                  </section>
  
@@ -451,9 +481,7 @@ export default function RescueMissionComplete() {
  
  <div className="rp-actions">
  
-   <button className="rp-help">
-      Yêu cầu hỗ trợ
-   </button>
+   
  
    <button
      className={`rp-done ${

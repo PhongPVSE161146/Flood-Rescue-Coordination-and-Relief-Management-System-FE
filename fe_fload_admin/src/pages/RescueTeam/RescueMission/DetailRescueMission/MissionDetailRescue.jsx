@@ -1,5 +1,5 @@
 import "./MissionDetailRescue.css";
-import MissionHistory from "../../../../components/Common/MissionHistory/MissionHistory";
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Image } from "antd";
@@ -88,6 +88,38 @@ export default function MissionDetailRescue() {
         const urgencyObj = urgencyMap[req?.urgencyLevelId];
 
         const urgencyText = urgencyObj?.levelName || "Không xác định";
+        const API_BASE = "https://api-rescue.purintech.id.vn";
+
+const getImages = (req) => {
+  const imgs = [];
+
+  if (Array.isArray(req?.imageUrls)) {
+    imgs.push(...req.imageUrls);
+  }
+
+  if (Array.isArray(req?.images)) {
+    imgs.push(...req.images);
+  }
+
+  if (req?.locationImageUrl) {
+    if (typeof req.locationImageUrl === "string") {
+      imgs.push(...req.locationImageUrl.split(","));
+    } else if (Array.isArray(req.locationImageUrl)) {
+      imgs.push(...req.locationImageUrl);
+    }
+  }
+
+  return [...new Set(
+    imgs
+      .map(i => i?.trim())
+      .filter(Boolean)
+      .map(i =>
+        i.startsWith("http")
+          ? i
+          : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+      )
+  )];
+};
 
         setDetail({
           assignmentId: assignment.assignmentId,
@@ -125,7 +157,7 @@ export default function MissionDetailRescue() {
           lat: req?.locationLat || 10.7731,
           lng: req?.locationLng || 106.7031,
 
-          image: req?.locationImageUrl,
+          images: getImages(req),
         });
       } catch (err) {
         console.error("Load mission detail error:", err);
@@ -291,17 +323,20 @@ export default function MissionDetailRescue() {
             <h4 className="card-title">5. Hình ảnh hiện trường</h4>
 
             <div className="md-media-list">
-              {detail.image ? (
-                <Image.PreviewGroup>
-                  <Image
-                    src={detail.image}
-                    alt="rescue"
-                    className="md-thumb-img"
-                  />
-                </Image.PreviewGroup>
-              ) : (
-                <div className="md-thumb-empty">Không có hình ảnh</div>
-              )}
+            {detail.images?.length > 0 ? (
+  <Image.PreviewGroup>
+    {detail.images.map((img, i) => (
+      <Image
+        key={i}
+        src={img}
+        alt="rescue"
+        className="md-thumb-img"
+      />
+    ))}
+  </Image.PreviewGroup>
+) : (
+  <div className="md-thumb-empty">Không có hình ảnh</div>
+)}
             </div>
           </section>
         </aside>

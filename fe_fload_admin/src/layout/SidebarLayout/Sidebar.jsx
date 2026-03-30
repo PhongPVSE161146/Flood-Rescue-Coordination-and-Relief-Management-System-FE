@@ -153,7 +153,7 @@ const menuByRole = {
       isDynamic: true,
     },
     {
-      label: "Lịch sử nhiêm vụ cứu hộ",
+      label: "Lịch sử nhiêm vụ ",
       icon: <HistoryOutlined />,
       path: "/rescueTeam/history",
     },
@@ -162,11 +162,6 @@ const menuByRole = {
       label: "Thành Viên Trong Đội",
       icon: <UserOutlined />,
       path: "/rescueTeam/list-member",
-    },
-    {
-      label: "Nhiệm Vụ Cứu Trợ",
-      icon: <AlertOutlined />,
-      path: "/rescueTeam/cuu-tro"
     },
     {
       label: "Lịch sử nhiêm vụ cứu trợ",

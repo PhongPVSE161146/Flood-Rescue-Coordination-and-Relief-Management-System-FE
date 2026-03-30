@@ -430,3 +430,30 @@
   align-items: center;
   gap: 6px;
 }
+.rc-image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.rc-image-item {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rc-image-item img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* ảnh đầu to */
+.rc-image-grid .rc-image-item:first-child {
+  grid-column: span 2;
+}
+
+.rc-image-grid .rc-image-item:first-child img {
+  height: 200px;
+}
