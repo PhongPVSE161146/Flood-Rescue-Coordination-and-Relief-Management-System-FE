@@ -51,15 +51,18 @@ export default function RescueDetailModal({ data, onClose }) {
   }
   
   if (data.locationImageUrl) {
-    images.push(data.locationImageUrl);
+    if (typeof data.locationImageUrl === "string") {
+      images.push(...data.locationImageUrl.split(","));
+    }
   }
   
   const normalizedImages = images
   .filter(Boolean)
-  .map((img) =>
+  .map(img => img.trim())
+  .map(img =>
     img.startsWith("http")
       ? img
-      : `${IMAGE_BASE}${img}`
+      : `https://api-rescue.purintech.id.vn${img}`
   );
     const getRequestTypeLabel = (value) => {
       const found = REQUEST_TYPE_OPTIONS.find(
