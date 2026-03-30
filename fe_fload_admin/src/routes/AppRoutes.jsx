@@ -131,8 +131,7 @@ export default function AppRoutes() {
         <Route path="history" element={<HistoryNavigator />} />
         <Route path="history/:id" element={<RescueMissionComplete />} />
         <Route path="/rescueTeam/dangcuho/:id" element={<MissionInProgress />} />
-        <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />
-     
+        <Route path="/rescueTeam/list-member" element={<TeamMembersMisionList />} />    
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
         <Route path="dashboard-task" element={<TaskDashboard />} />
         <Route path="/rescueTeam/chi-tiet-tro/:id" element={<TaskDistributionDetailPage />} />
