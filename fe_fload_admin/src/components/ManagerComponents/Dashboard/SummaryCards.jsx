@@ -1,14 +1,19 @@
 import { Card, Row, Col } from "antd";
 import "./SummaryCards.css";
 
-export default function SummaryCards({ summary, onClickItem }) {
+export default function SummaryCards({
+  summary,
+  onClickItem,
+  activeKey,
+  completedValue,
+}) {
   const items = [
-    { key: "total", label: "Tổng yêu cầu", value: summary.totalRequests },
-    { key: "open", label: "Đang xử lý", value: summary.openRequests },
-    { key: "assigned", label: "Đã phân công", value: summary.activeAssignments },
-    { key: "overdue", label: "Quá hạn", value: summary.overdueRequests },
-    { key: "campaign", label: "Chiến dịch đang thực hiện ", value: summary.activeCampaigns },
-    { key: "stock", label: "Cảnh báo kho", value: summary.inventoryAlertCount },
+    { key: "total", label: "Tong yeu cau", value: summary.totalRequests },
+    { key: "open", label: "Dang xu ly", value: summary.openRequests },
+    { key: "completed", label: "Da hoan thanh", value: completedValue ?? 0 },
+    { key: "overdue", label: "Qua han", value: summary.overdueRequests },
+    { key: "campaign", label: "Chien dich dang thuc hien", value: summary.activeCampaigns },
+    { key: "stock", label: "Canh bao kho", value: summary.inventoryAlertCount },
   ];
 
   return (
@@ -16,7 +21,9 @@ export default function SummaryCards({ summary, onClickItem }) {
       {items.map((item, i) => (
         <Col span={4} key={i}>
           <Card
-            className="summary-card"
+            className={`summary-card ${
+              activeKey === item.key ? "summary-card-active" : ""
+            }`}
             hoverable
             onClick={() => onClickItem?.(item.key)}
           >

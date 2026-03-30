@@ -61,7 +61,12 @@
     transition: all 0.25s ease;
   }
   
-  .summary-card:hover {
-    transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-  }
+.summary-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.summary-card-active {
+  outline: 2px solid #40a9ff;
+  box-shadow: 0 0 0 3px rgba(64, 169, 255, 0.2);
+}
