@@ -54,66 +54,74 @@ const convertApiToMission = (data = [], statuses = []) => {
   if (!Array.isArray(data)) return [];
 
   return data
-    .filter((item) => item.statusId === 1)
-    .map((item) => {
-      const statusObj = statuses.find((s) => s.statusId === item.statusId);
+  .filter((item) => item.statusId === 1)
+  .map((item) => {
+    const statusObj = statuses.find((s) => s.statusId === item.statusId);
 
+    const getImages = (mission) => {
       const images = [];
 
-      if (Array.isArray(item.imageUrls)) {
-        images.push(
-          ...item.imageUrls.map((url) =>
-            url.startsWith("http") ? url : API_BASE + url
+      if (Array.isArray(mission.imageUrls)) {
+        images.push(...mission.imageUrls);
+      }
+
+      if (Array.isArray(mission.images)) {
+        images.push(...mission.images);
+      }
+
+      if (mission.locationImageUrl) {
+        if (typeof mission.locationImageUrl === "string") {
+          images.push(...mission.locationImageUrl.split(","));
+        } else if (Array.isArray(mission.locationImageUrl)) {
+          images.push(...mission.locationImageUrl);
+        }
+      }
+
+      return [...new Set(
+        images
+          .map(i => i?.trim())
+          .filter(Boolean)
+          .map(i =>
+            i.startsWith("http")
+              ? i
+              : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
           )
-        );
-      }
+      )];
+    };
 
-      if (Array.isArray(item.images)) {
-        images.push(
-          ...item.images.map((url) =>
-            url.startsWith("http") ? url : API_BASE + url
-          )
-        );
-      }
+    return {
+      id: item.rescueRequestId || item.id,
+      rescueRequestId: item.rescueRequestId || item.id,
+      name: item.fullName,
+      phone: item.contactPhone,
+      address: item.address,
 
-      if (item.locationImageUrl) {
-        images.push(
-          item.locationImageUrl.startsWith("http")
-            ? item.locationImageUrl
-            : API_BASE + item.locationImageUrl
-        );
-      }
+      lat: item.locationLat,
+      lng: item.locationLng,
 
-      return {
-        id: item.rescueRequestId || item.id,
-        rescueRequestId: item.rescueRequestId || item.id,
-        name: item.fullName,
-        phone: item.contactPhone,
-        address: item.address,
+      locationLat: item.locationLat,
+      locationLng: item.locationLng,
 
-        lat: item.locationLat,
-        lng: item.locationLng,
+      createdAt: new Date(item.createdAt).getTime(),
 
-        locationLat: item.locationLat,
-        locationLng: item.locationLng,
+      incident: item.requestType || "Không rõ",
 
-        createdAt: new Date(item.createdAt).getTime(),
+      status: "pending",
+      statusText: statusObj?.description || "Đang xử lý",
 
-        incident: item.requestType || "Không rõ",
+      urgencyScore: item.urgencyScore,
 
-        status: "pending",
-        statusText: statusObj?.description || "Đang xử lý",
-        urgencyScore:item.urgencyScore,
-        images: images,
+      // ✅ FIX Ở ĐÂY
+      images: getImages(item),
 
-        urgencyLevelId: item.urgencyLevelId,
-        detailDescription: item.detailDescription,
-        rescueTeamNote: item.rescueTeamNote,
-        victimCount: item.victimCount,
-        availableRescueTool: item.availableRescueTool,
-        specialNeeds: item.specialNeeds,
-      };
-    });
+      urgencyLevelId: item.urgencyLevelId,
+      detailDescription: item.detailDescription,
+      rescueTeamNote: item.rescueTeamNote,
+      victimCount: item.victimCount,
+      availableRescueTool: item.availableRescueTool,
+      specialNeeds: item.specialNeeds,
+    };
+  });
 };
 /* ================= COMPONENT ================= */
 
