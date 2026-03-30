@@ -363,22 +363,30 @@
 
 /* ================= IMAGE LIST ================= */
 
-.rc-images{
-  display:flex;
-  gap:12px;
+
+.rc-images {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 cột */
+  gap: 14px;
 }
 
-.rc-image{
-  width:120px;
-  height:80px;
-  border-radius:12px;
-  background:#e5e7eb;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  color:#64748b;
-  overflow:hidden;
+.rc-image {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.rc-image img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+/* hover */
+.rc-image img:hover {
+  transform: scale(1.04);
+  transition: 0.2s;
 }
 
 /* ===== CARD ===== */

@@ -148,26 +148,38 @@ export default function RescueOperationDetail({ assignmentId }) {
 
       /* ================= IMAGE FIX ================= */
 
-      const imgs = [];
-
-      if (Array.isArray(req?.imageUrls)) {
-        imgs.push(...req.imageUrls);
-      }
-
-      if (Array.isArray(req?.images)) {
-        imgs.push(...req.images);
-      }
-
-      if (req?.locationImageUrl) {
-        imgs.push(req.locationImageUrl);
-      }
-
-      /* chuẩn hóa URL */
-      const normalizedImages = imgs.map((img) =>
-        img.startsWith("http") ? img : API_BASE + img
-      );
-
-      setImages(normalizedImages);
+      const getImages = (req) => {
+        const imgs = [];
+      
+        if (Array.isArray(req?.imageUrls)) {
+          imgs.push(...req.imageUrls);
+        }
+      
+        if (Array.isArray(req?.images)) {
+          imgs.push(...req.images);
+        }
+      
+        if (req?.locationImageUrl) {
+          if (typeof req.locationImageUrl === "string") {
+            imgs.push(...req.locationImageUrl.split(","));
+          } else if (Array.isArray(req.locationImageUrl)) {
+            imgs.push(...req.locationImageUrl);
+          }
+        }
+      
+        return [...new Set(
+          imgs
+            .map(i => i?.trim())
+            .filter(Boolean)
+            .map(i =>
+              i.startsWith("http")
+                ? i
+                : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+            )
+        )];
+      };
+      
+      setImages(getImages(req));
     } catch (err) {
       console.error("Load detail error:", err);
     } finally {
@@ -219,9 +231,7 @@ export default function RescueOperationDetail({ assignmentId }) {
         <div>
           <h2>
             Mã yêu cầu: #{detail.rescueRequestId}
-            {/* <span className={`rc-badge ${getPriorityClass(detail.urgencyLevelId)}`}>
-  {detail.urgency}
-</span> */}
+        
           </h2>
 
           <p>
@@ -347,12 +357,30 @@ export default function RescueOperationDetail({ assignmentId }) {
               <p> {detail.vehicle}</p>
             </div>
           </section>
+          <section className="card">
+            <h4 className="card-title">3. TÌNH TRẠNG KHẨN CẤP</h4>
 
+            <p className="quote">{detail.detailDescription}</p>
+          </section>
+          
+          <section className="card">
+
+<h4 className="card-title">
+  4. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
+</h4>
+
+
+
+<label>ĐIỂM MỨC ĐỘ</label>
+
+<p>{detail.urgencyScore}</p>
+
+</section>
           {/* MAP */}
 
           <section className="rc-op-card">
             <h4 className="card-title">
-              3. VỊ TRÍ HIỆN TẠI
+              5. VỊ TRÍ HIỆN TẠI
               <span className="rc-online">● TRỰC TUYẾN</span>
             </h4>
 
@@ -369,7 +397,7 @@ export default function RescueOperationDetail({ assignmentId }) {
         <div className="rc-op-col">
           <section className="rc-op-card">
             <div className="rc-card-header">
-              <h4 className="card-title">4. HÌNH ẢNH TỪ HIỆN TRƯỜNG</h4>
+              <h4 className="card-title">6. HÌNH ẢNH TỪ HIỆN TRƯỜNG</h4>
             </div>
 
             <div className="rc-images">
@@ -385,37 +413,14 @@ export default function RescueOperationDetail({ assignmentId }) {
                       src={img}
                       alt="rescue"
                       className="rc-image"
-                      style={{
-                        width: "100%",
-                        height: 150,
-                        objectFit: "cover",
-                        borderRadius: 10,
-                      }}
+                     
                     />
                   ))}
                 </Image.PreviewGroup>
               )}
             </div>
           </section>
-          <section className="card">
-            <h4 className="card-title">5. TÌNH TRẠNG KHẨN CẤP</h4>
-
-            <p className="quote">{detail.detailDescription}</p>
-          </section>
-          
-          <section className="card">
-
-<h4 className="card-title">
-  6. ĐIỂM ĐÁNH GIÁ MỨC ĐỘ
-</h4>
-
-
-
-<label>ĐIỂM MỨC ĐỘ</label>
-
-<p>{detail.urgencyScore}</p>
-
-</section>
+    
           <section className="card">
             <h4 className="card-title">7. NGUỒN LỰC</h4>
 
