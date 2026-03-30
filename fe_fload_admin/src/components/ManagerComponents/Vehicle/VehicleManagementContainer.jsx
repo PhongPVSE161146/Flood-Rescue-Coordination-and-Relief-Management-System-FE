@@ -10,22 +10,36 @@ import {
   Card,
   Form,
   Select,
-  Dropdown,
   Drawer,
   Pagination,
+  Upload,
+  Image,
 } from "antd";
 
 import {
-
-  MoreOutlined,
   SearchOutlined
 } from "@ant-design/icons";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
   getAllVehicles,
   createVehicle,
   updateVehicle,
   deleteVehicle,
+  uploadCommonImage,
+  updateVehicleImage,
 } from "../../../../api/axios/ManagerApi/vehicleApi";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
@@ -46,9 +60,43 @@ export default function VehicleManagementContainer() {
   const [progressPercent, setProgressPercent] = useState(0);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 6;
+  const pageSize = 10;
 
   const [form] = Form.useForm();
+  const [imageFileList, setImageFileList] = useState([]);
+  const MAX_UPLOAD_SIZE_MB = 2;
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [selectedActionVehicle, setSelectedActionVehicle] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const getVehicleId = (vehicle) => vehicle?.id || vehicle?.vehicleId || vehicle?.vehicleID;
+
+  const toAbsoluteImageUrl = (rawUrl, withApiPrefix = false) => {
+    if (!rawUrl) return "";
+    const clean = String(rawUrl).trim();
+    if (!clean || clean === "string" || clean === "/string") return "";
+    if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
+    if (!clean.startsWith("/") && !clean.includes("/")) return "";
+    const base = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+    const path = clean.startsWith("/") ? clean : `/${clean}`;
+    if (withApiPrefix && path.startsWith("/uploads/")) {
+      return `${base}/api${path}`;
+    }
+    return `${base}${path}`;
+  };
+
+  const toDevProxiedImageUrl = (rawUrl, withApiPrefix = false) => {
+    if (!import.meta.env.DEV) return "";
+    if (!rawUrl) return "";
+    const clean = String(rawUrl).trim();
+    if (!clean || clean === "string" || clean === "/string") return "";
+    if (clean.startsWith("http://") || clean.startsWith("https://")) return "";
+    const path = clean.startsWith("/") ? clean : `/${clean}`;
+    if (withApiPrefix && path.startsWith("/uploads/")) {
+      return `/api${path}`; // hits vite proxy "/api/uploads"
+    }
+    return path; // hits vite proxy "/uploads"
+  };
 
   /* ================= LOAD ================= */
 
@@ -78,6 +126,7 @@ export default function VehicleManagementContainer() {
   const handleCreate = () => {
     setEditingVehicle(null);
     form.resetFields();
+    setImageFileList([]);
     setModalVisible(true);
   };
 
@@ -93,20 +142,50 @@ export default function VehicleManagementContainer() {
         vehicleStatus: values.vehicleStatus,
       };
   
+      let targetVehicleId = null;
+
       if (editingVehicle) {
-        const id = editingVehicle.id || editingVehicle.vehicleId;
-  
+        const id = getVehicleId(editingVehicle);
+        targetVehicleId = id;
         await updateVehicle(id, payload);
-  
         AuthNotify.success("Cập nhật phương tiện thành công");
       } else {
-        await createVehicle(payload);
+        const createRes = await createVehicle(payload);
+        const createdVehicle = createRes?.data;
+        targetVehicleId = getVehicleId(createdVehicle);
         AuthNotify.success("Tạo phương tiện thành công");
+      }
+
+      if (imageFileList.length > 0 && targetVehicleId) {
+        const fileObj = imageFileList[0]?.originFileObj;
+        if (fileObj) {
+          try {
+            const uploadRes = await uploadCommonImage(fileObj, "vehicles");
+            const imageUrl = uploadRes?.data?.url;
+            if (imageUrl) {
+              await updateVehicleImage(targetVehicleId, imageUrl);
+            }
+          } catch (uploadErr) {
+            const status = uploadErr?.response?.status;
+            if (status === 413) {
+              AuthNotify.warning(
+                "Ảnh quá lớn",
+                `Vui lòng chọn ảnh nhỏ hơn ${MAX_UPLOAD_SIZE_MB}MB`
+              );
+            } else {
+              AuthNotify.warning(
+                "Upload ảnh thất bại",
+                "Phương tiện đã được lưu, nhưng chưa cập nhật ảnh."
+              );
+            }
+          }
+        }
       }
   
       setModalVisible(false);
       setEditingVehicle(null);
       form.resetFields();
+      setImageFileList([]);
   
       loadVehicles();
   
@@ -128,6 +207,7 @@ export default function VehicleManagementContainer() {
       vehicleLocation: vehicle.vehicleLocation,
       vehicleStatus: vehicle.vehicleStatus,
     });
+    setImageFileList([]);
   
     setModalVisible(true);
   };
@@ -135,32 +215,24 @@ export default function VehicleManagementContainer() {
   /* ================= DELETE ================= */
 
   const handleDelete = (vehicle) => {
-    Modal.confirm({
-      title: "Xóa phương tiện?",
-      content: vehicle.vehicleName,
-      okText: "Xóa",
-      cancelText: "Hủy",
-      okType: "danger",
-  
-      async onOk() {
-        try {
-          const id = vehicle.id || vehicle.vehicleId;
-  
-          await deleteVehicle(id);
-  
-          AuthNotify.success("Đã xóa phương tiện");
-  
-          // 🔥 update UI ngay (không cần reload)
-          setVehicleList(prev =>
-            prev.filter(v => (v.id || v.vehicleId) !== id)
-          );
-  
-        } catch (err) {
-          console.error(err);
-          AuthNotify.error("Xóa thất bại");
-        }
-      },
-    });
+    setSelectedActionVehicle(vehicle);
+    setDeleteDialogOpen(true);
+  };
+  const confirmDeleteVehicle = async () => {
+    try {
+      const id = selectedActionVehicle?.id || selectedActionVehicle?.vehicleId;
+      if (!id) return;
+
+      await deleteVehicle(id);
+      AuthNotify.success("Đã xóa phương tiện");
+      setVehicleList((prev) => prev.filter((v) => (v.id || v.vehicleId) !== id));
+    } catch (err) {
+      console.error(err);
+      AuthNotify.error("Xóa thất bại");
+    } finally {
+      setDeleteDialogOpen(false);
+      setSelectedActionVehicle(null);
+    }
   };
   /* ================= STATUS ================= */
 
@@ -239,21 +311,14 @@ export default function VehicleManagementContainer() {
 
   /* ================= ACTION MENU ================= */
 
-  const actionMenu = (vehicle) => ({
-    items: [
-      {
-        key: "edit",
-        label: "Cập nhật",
-        onClick: () => handleEdit(vehicle),
-      },
-      {
-        key: "delete",
-        label: "Xóa",
-        danger: true,
-        onClick: () => handleDelete(vehicle),
-      },
-    ],
-  });
+  const handleOpenActionMenu = (event, vehicle) => {
+    event.stopPropagation();
+    setSelectedActionVehicle(vehicle);
+    setMenuAnchorEl(event.currentTarget);
+  };
+  const handleCloseActionMenu = () => {
+    setMenuAnchorEl(null);
+  };
 
   /* ================= DRAWER ================= */
 
@@ -342,20 +407,39 @@ export default function VehicleManagementContainer() {
         {paginatedVehicles.map((v) => (
 
           <Card
-            key={v.id}
+            key={getVehicleId(v)}
             className="vehicle-card"
             hoverable
             onClick={() => openDrawer(v)}
           >
+
+            {v.vehicleImg && (
+              <Image
+                src={toDevProxiedImageUrl(v.vehicleImg) || toAbsoluteImageUrl(v.vehicleImg)}
+                fallback={
+                  toDevProxiedImageUrl(v.vehicleImg, true) ||
+                  toAbsoluteImageUrl(v.vehicleImg, true)
+                }
+                referrerPolicy="no-referrer"
+                alt={v.vehicleName}
+                width="100%"
+                height={180}
+                style={{ objectFit: "cover", borderRadius: 8, marginBottom: 12 }}
+                preview={false}
+              />
+            )}
 
             <div className="vehicle-card-header">
 
               <h3>{v.vehicleName}</h3>
 
               <div onClick={(e) => e.stopPropagation()}>
-                <Dropdown menu={actionMenu(v)} trigger={["click"]}>
-                  <Button icon={<MoreOutlined />} />
-                </Dropdown>
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleOpenActionMenu(e, v)}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
               </div>
 
             </div>
@@ -433,6 +517,28 @@ export default function VehicleManagementContainer() {
             />
           </Form.Item>
 
+          <Form.Item label="Hình phương tiện">
+            <Upload
+              listType="picture"
+              maxCount={1}
+              fileList={imageFileList}
+              beforeUpload={(file) => {
+                const isUnderLimit = file.size / 1024 / 1024 <= MAX_UPLOAD_SIZE_MB;
+                if (!isUnderLimit) {
+                  AuthNotify.warning(
+                    "Ảnh quá lớn",
+                    `Vui lòng chọn ảnh nhỏ hơn ${MAX_UPLOAD_SIZE_MB}MB`
+                  );
+                }
+                return isUnderLimit ? false : Upload.LIST_IGNORE;
+              }}
+              onChange={({ fileList }) => setImageFileList(fileList)}
+              accept="image/*"
+            >
+              <Button>Chọn ảnh</Button>
+            </Upload>
+          </Form.Item>
+
         </Form>
 
       </Modal>
@@ -443,24 +549,88 @@ export default function VehicleManagementContainer() {
         title="Chi tiết phương tiện"
         open={drawerVisible}
         onClose={() => setDrawerVisible(false)}
-        width={400}
+        size="default"
       >
 
         {selectedVehicle && (
 
           <div className="drawer-content">
 
-            <p><b>Mã:</b> {selectedVehicle.id}</p>
+            <p><b>Mã:</b> {getVehicleId(selectedVehicle)}</p>
             <p><b>Tên xe:</b> {selectedVehicle.vehicleName}</p>
             <p><b>Loại xe:</b> {selectedVehicle.vehicleType}</p>
             <p><b>Vị trí:</b> {selectedVehicle.vehicleLocation}</p>
             <p><b>Trạng thái:</b> {getStatusTag(selectedVehicle.vehicleStatus)}</p>
+            {selectedVehicle.vehicleImg && (
+              <div style={{ marginTop: 12 }}>
+                <Image
+                  src={
+                    toDevProxiedImageUrl(selectedVehicle.vehicleImg) ||
+                    toAbsoluteImageUrl(selectedVehicle.vehicleImg)
+                  }
+                  fallback={
+                    toDevProxiedImageUrl(selectedVehicle.vehicleImg, true) ||
+                    toAbsoluteImageUrl(selectedVehicle.vehicleImg, true)
+                  }
+                  referrerPolicy="no-referrer"
+                  alt={selectedVehicle.vehicleName}
+                  width="100%"
+                  style={{ borderRadius: 8 }}
+                />
+              </div>
+            )}
 
           </div>
 
         )}
 
       </Drawer>
+
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleCloseActionMenu}
+      >
+        <MenuItem
+          onClick={() => {
+            handleCloseActionMenu();
+            if (selectedActionVehicle) handleEdit(selectedActionVehicle);
+          }}
+        >
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Cập nhật</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleCloseActionMenu();
+            if (selectedActionVehicle) handleDelete(selectedActionVehicle);
+          }}
+          sx={{ color: "#d32f2f" }}
+        >
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" sx={{ color: "#d32f2f" }} />
+          </ListItemIcon>
+          <ListItemText>Xóa</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Xóa phương tiện?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Bạn có chắc chắn muốn xóa phương tiện{" "}
+            <b>{selectedActionVehicle?.vehicleName || ""}</b> không?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Hủy</Button>
+          <Button danger type="primary" onClick={confirmDeleteVehicle}>
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </div>
   );

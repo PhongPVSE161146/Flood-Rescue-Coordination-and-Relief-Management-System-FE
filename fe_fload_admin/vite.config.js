@@ -25,6 +25,19 @@ export default defineConfig({
 
   server: {
     proxy: {
+      "/upload-api": {
+        target: "https://api-rescue.purintech.id.vn",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/upload-api/, ""),
+      },
+      "/uploads": {
+        target: "https://api-rescue.purintech.id.vn",
+        changeOrigin: true,
+      },
+      "/api/uploads": {
+        target: "https://api-rescue.purintech.id.vn",
+        changeOrigin: true,
+      },
       "/geo": {
         target: "https://nominatim.openstreetmap.org",
         changeOrigin: true,

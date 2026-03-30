@@ -57,7 +57,7 @@ export default function EditDistributionDetail({
       okText="Cập nhật"
       cancelText="Hủy"
       okButtonProps={{ disabled: isCompleted }} // 🔥 disable nút
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

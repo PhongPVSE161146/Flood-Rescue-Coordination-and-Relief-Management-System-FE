@@ -169,11 +169,23 @@ export default function SystemSettingContainer() {
           >
             Sửa
           </Button>
-         
+
         </Space>
       ),
     },
   ];
+
+  const getUnit = (key) => {
+    key = key.toUpperCase();
+    if (key === "SCORE_VICTIM_1" || key === "SCORE_VICTIM_2") return "Người";
+    if (key.includes("SCORE")) return "Điểm";
+    if (key.includes("PRIORITY")) return "Điểm";
+    if (key === "SLA_LEVELS") return "Điểm";
+    if (key.includes("TIME") || key.includes("MINUTE") || key.includes("SLA") || key.includes("TIMEOUT")) return "Phút";
+    if (key.includes("DISTANCE") || key.includes("RADIUS")) return "km";
+    if (key.includes("PERCENT") || key.includes("RATE") || key.includes("RATIO")) return "%";
+    return "";
+  };
 
   const renderConfigField = (config) => {
     const val = config.configValue;
@@ -189,13 +201,19 @@ export default function SystemSettingContainer() {
       );
     }
 
+    const unit = getUnit(config.configKey);
+
     return (
-      <Input.Search
-        defaultValue={val}
-        enterButton={<SaveOutlined />}
-        onSearch={(value) => handleUpdateConfig(config.configKey, value, config.configGroup, config.description)}
-        loading={loading}
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Input.Search
+          defaultValue={val}
+          enterButton={<SaveOutlined />}
+          onSearch={(value) => handleUpdateConfig(config.configKey, value, config.configGroup, config.description)}
+          loading={loading}
+          style={{ flex: 1 }}
+        />
+        {unit && <span style={{ whiteSpace: "nowrap", color: "#555", fontWeight: 500, minWidth: "40px" }}>{unit}</span>}
+      </div>
     );
   };
 
@@ -273,14 +291,14 @@ export default function SystemSettingContainer() {
         <div className="urgency-management">
           <Card
             title="Danh sách Cấp độ Khẩn cấp"
-            // extra={
-            //   <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-            //     setEditingUrgency(null);
-            //     setIsUrgencyModalVisible(true);
-            //   }}>
-            //     THÊM CẤP ĐỘ
-            //   </Button>
-            // }
+          // extra={
+          //   <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+          //     setEditingUrgency(null);
+          //     setIsUrgencyModalVisible(true);
+          //   }}>
+          //     THÊM CẤP ĐỘ
+          //   </Button>
+          // }
           >
             <Table
               dataSource={urgencyLevels}

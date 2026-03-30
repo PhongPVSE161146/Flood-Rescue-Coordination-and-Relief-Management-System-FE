@@ -27,6 +27,7 @@ export const createWarehouse = (data) => {
     warehouseName: data.warehouseName || "",
     locationDescription: data.locationDescription || "",
     areaId: safeNumber(data.areaId) || 0,
+    availableBudget: safeNumber(data.availableBudget) || 0,
   });
 };
 
@@ -38,6 +39,7 @@ export const updateWarehouse = (id, data) => {
     warehouseName: data.warehouseName || "",
     locationDescription: data.locationDescription || "",
     areaId: safeNumber(data.areaId) || 0,
+    availableBudget: safeNumber(data.availableBudget) || 0,
   });
 };
 
@@ -65,6 +67,7 @@ export const createReliefItem = (data) => {
   return axiosInstance.post("/api/relief-items", {
     itemName: data.itemName || "",
     unit: data.unit || "",
+    cost: safeNumber(data.cost) || 0,
   });
 };
 
@@ -75,6 +78,7 @@ export const updateReliefItem = (id, data) => {
   return axiosInstance.put(`/api/relief-items/${safeId}`, {
     itemName: data.itemName || "",
     unit: data.unit || "",
+    cost: safeNumber(data.cost) || 0,
   });
 };
 

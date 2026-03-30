@@ -357,3 +357,38 @@ export const updateDistributionDetail = async (id, data) => {
 
   }
 };
+
+/* ================= CREATE DISTRIBUTION DETAIL ================= */
+
+export const createDistributionDetail = async (data) => {
+  try {
+    if (!data.distributionId || !data.beneficiaryId || !data.reliefItemId) {
+      throw new Error("Thiếu thông tin bắt buộc");
+    }
+
+    const payload = {
+      distributionId: Number(data.distributionId),
+      beneficiaryId: Number(data.beneficiaryId),
+      reliefItemId: Number(data.reliefItemId),
+      distributedQuantity: Number(data.distributedQuantity || 1),
+      status: data.status || "pending",
+      note: data.note || "",
+    };
+
+    const response = await axiosInstance.post(
+      `/api/periodic-aid-distribution-details`,
+      payload
+    );
+
+    return response.data;
+
+  } catch (error) {
+    console.error("CREATE DISTRIBUTION DETAIL ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể tạo chi tiết phân phối"
+    );
+  }
+};
