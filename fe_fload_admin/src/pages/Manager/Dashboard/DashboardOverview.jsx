@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { message, Row, Col } from "antd";
 import "./DashboardOverview.css";
 
-import { getDashboardManagement } from "../../../../api/axios/ManagerApi/getDashboardManagement";
+import {
+  getDashboardManagement,
+} from "../../../../api/axios/ManagerApi/getDashboardManagement";
+import {
+  getCompletedRequestsCount,
+  getDashboardSummaryDetail,
+} from "../../../../api/axios/ManagerApi/getDashboardSummaryDetail";
 
 import RescueTrendChart from "../../../components/ManagerComponents/Dashboard/RescueTrendChart";
 import SummaryCards from "../../../components/ManagerComponents/Dashboard/SummaryCards";
@@ -10,10 +16,15 @@ import RecentActivities from "../../../components/ManagerComponents/Dashboard/Re
 import CampaignProgress from "../../../components/ManagerComponents/Dashboard/CampaignProgress";
 import TeamStatus from "../../../components/ManagerComponents/Dashboard/TeamStatus";
 import InventoryAlerts from "../../../components/ManagerComponents/Dashboard/InventoryAlerts";
+import SummaryDetailPanel from "../../../components/ManagerComponents/Dashboard/SummaryDetailPanel";
 
 export default function DashboardOverview() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeSummaryKey, setActiveSummaryKey] = useState(null);
+  const [summaryDetailData, setSummaryDetailData] = useState(null);
+  const [summaryDetailLoading, setSummaryDetailLoading] = useState(false);
+  const [completedCount, setCompletedCount] = useState(0);
 
   const normalize = (res) => res?.data || res || {};
 
@@ -23,9 +34,13 @@ export default function DashboardOverview() {
     try {
       setLoading(true);
 
-      const res = await getDashboardManagement();
+      const [dashboardRes, completedRequests] = await Promise.all([
+        getDashboardManagement(),
+        getCompletedRequestsCount(),
+      ]);
 
-      setData(normalize(res));
+      setData(normalize(dashboardRes));
+      setCompletedCount(completedRequests);
     } catch (err) {
       console.error(err);
       message.error("Lỗi tải dashboard");
@@ -38,6 +53,30 @@ export default function DashboardOverview() {
     fetchData();
   }, []);
 
+  const handleSummaryCardClick = async (summaryKey) => {
+    try {
+      setActiveSummaryKey(summaryKey);
+      setSummaryDetailLoading(true);
+      setSummaryDetailData(null);
+
+      const res = await getDashboardSummaryDetail(summaryKey);
+      const detailData = normalize(res);
+
+      setSummaryDetailData(detailData);
+      console.log(`Dashboard summary detail [${summaryKey}]`, detailData);
+    } catch (err) {
+      console.error(err);
+      message.error("Loi tai du lieu chi tiet cho the dashboard");
+    } finally {
+      setSummaryDetailLoading(false);
+    }
+  };
+
+  const handleCloseSummaryModal = () => {
+    setActiveSummaryKey(null);
+    setSummaryDetailData(null);
+  };
+
   if (!data) return null;
 
   return (
@@ -46,7 +85,16 @@ export default function DashboardOverview() {
       {/* 🔥 SUMMARY */}
       <SummaryCards
         summary={data.summary}
-        loading={loading}
+        activeKey={activeSummaryKey}
+        onClickItem={handleSummaryCardClick}
+        completedValue={completedCount}
+      />
+
+      <SummaryDetailPanel
+        summaryKey={activeSummaryKey}
+        loading={summaryDetailLoading}
+        data={summaryDetailData}
+        onClear={handleCloseSummaryModal}
       />
 
       {/* 🔥 CHART */}
