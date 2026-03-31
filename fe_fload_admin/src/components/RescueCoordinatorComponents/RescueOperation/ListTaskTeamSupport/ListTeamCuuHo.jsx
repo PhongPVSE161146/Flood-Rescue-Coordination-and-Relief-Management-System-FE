@@ -345,7 +345,7 @@ MỚI NHẤT
 className={tab==="merge"?"active":""}
 onClick={()=>changeTab("merge")}
 >
-GỘP YÊU CẦU
+TÌM YÊU CẦU
 </button>
 
 </div>

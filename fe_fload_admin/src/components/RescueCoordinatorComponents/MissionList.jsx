@@ -340,7 +340,7 @@ export default function MissionList({ onSelectMission }) {
           className={tab === "merge" ? "active" : ""}
           onClick={() => changeTab("merge")}
         >
-          {tabLoading === "merge" ? "Loading..." : "GỘP YÊU CẦU"}
+          {tabLoading === "merge" ? "Loading..." : "TÌM YÊU CẦU"}
         </button>
       </div>
 
