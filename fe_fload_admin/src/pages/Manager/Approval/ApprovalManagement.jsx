@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Table, Tag, Button } from "antd";
 import AuthNotify from "../../../utils/Common/AuthNotify";
+import { Select } from "antd";
 
 import {
   getInventoryTransactions,
@@ -17,6 +18,28 @@ export default function ApprovalManagement() {
   const [loading, setLoading] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [warehouseFilter, setWarehouseFilter] = useState(null); // New state for warehouse filter
+  const [approvalFilter, setApprovalFilter] = useState(null); // New state for approval filter
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState(null); // New state for IN/OUT filter
+
+  const handleWarehouseChange = (value) => {
+    setWarehouseFilter(value);
+  };
+
+  const handleApprovalChange = (value) => {
+    setApprovalFilter(value);
+  };
+
+  const handleTransactionTypeChange = (value) => {
+    setTransactionTypeFilter(value);
+  };
+
+  const resetFilters = () => {
+    setFilter("all");
+    setWarehouseFilter(null);
+    setApprovalFilter(null);
+    setTransactionTypeFilter(null);
+  };
 
   /* ================= NORMALIZE ================= */
   const normalize = (res) => {
@@ -72,12 +95,15 @@ export default function ApprovalManagement() {
 
   /* ================= FILTER ================= */
 
-  const filteredData =
-    filter === "pending"
-      ? data.filter((t) => t.isPending)
-      : filter === "confirmed"
-      ? data.filter((t) => !t.isPending)
-      : data;
+  const filteredData = data.filter((t) => {
+    if (filter === "pending" && !t.isPending) return false;
+    if (filter === "confirmed" && t.isPending) return false;
+    if (warehouseFilter && t.warehouseId !== warehouseFilter) return false;
+    if (approvalFilter === "pending" && t.confirmedAt) return false;
+    if (approvalFilter === "confirmed" && !t.confirmedAt) return false;
+    if (transactionTypeFilter && t.transactionType !== transactionTypeFilter) return false;
+    return true;
+  });
 
   /* ================= CONFIRM ================= */
 
@@ -184,29 +210,41 @@ export default function ApprovalManagement() {
         </Button>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type={filter === "all" ? "primary" : "default"}
-          onClick={() => setFilter("all")}
+      <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+        <Select
+          placeholder="Chọn kho hàng"
+          onChange={handleWarehouseChange}
+          style={{ width: 200 }}
+          value={warehouseFilter}
         >
-          Tất cả ({data.length})
-        </Button>
+          {warehouses.map((wh) => (
+            <Select.Option key={wh.warehouseId} value={wh.warehouseId}>
+              {wh.warehouseName}
+            </Select.Option>
+          ))}
+        </Select>
 
-        <Button
-          style={{ marginLeft: 8 }}
-          type={filter === "pending" ? "primary" : "default"}
-          onClick={() => setFilter("pending")}
+        <Select
+          placeholder="Chọn trạng thái phê duyệt"
+          onChange={handleApprovalChange}
+          style={{ width: 200 }}
+          value={approvalFilter}
         >
-          Chờ duyệt ({data.filter((t) => t.isPending).length})
-        </Button>
+          <Select.Option value="pending">Chờ duyệt</Select.Option>
+          <Select.Option value="confirmed">Đã duyệt</Select.Option>
+        </Select>
 
-        <Button
-          style={{ marginLeft: 8 }}
-          type={filter === "confirmed" ? "primary" : "default"}
-          onClick={() => setFilter("confirmed")}
+        <Select
+          placeholder="Chọn loại giao dịch"
+          onChange={handleTransactionTypeChange}
+          style={{ width: 200 }}
+          value={transactionTypeFilter}
         >
-          Đã duyệt ({data.filter((t) => !t.isPending).length})
-        </Button>
+          <Select.Option value="IN">Nhập</Select.Option>
+          <Select.Option value="OUT">Xuất</Select.Option>
+        </Select>
+
+        <Button onClick={resetFilters}>Quay lại</Button>
       </div>
 
       <Table
