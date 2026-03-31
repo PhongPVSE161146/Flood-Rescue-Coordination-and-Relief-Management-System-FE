@@ -1,6 +1,6 @@
 import "./DistributionListRescue.css";
 import { useEffect, useState } from "react";
-import { Pagination, Spin, Tag } from "antd";
+import { Pagination, Spin, Tag, Select } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   getRescueTeamMembers,
@@ -22,9 +22,13 @@ export default function DistributionListRescue() {
 const [selectedId, setSelectedId] = useState(null);
 const [actionType, setActionType] = useState(""); // Completed | Rejected
 const [campaignMap, setCampaignMap] = useState({});
+const [selectedCampaign, setSelectedCampaign] = useState("");
+const [selectedStatus, setSelectedStatus] = useState("");
 const [note, setNote] = useState("");
   const navigate = useNavigate();
   const pageSize = 3;
+  const campaignOptions = Object.values(campaignMap);
+
   const openModal = (id, type) => {
     setSelectedId(id);
     setActionType(type);
@@ -76,6 +80,7 @@ campaigns.forEach(c => {
 });
 
 setCampaignMap(cmap);
+
       // 🔥 map id -> name
       const map = {};
       teams.forEach(t => {
@@ -162,9 +167,30 @@ setCampaignMap(cmap);
     setCurrentPage(1);
   }, [list]);
 
+
+  const statusOptions = [
+    { value: "pending", label: "Đang chờ" },
+    { value: "accepted", label: "Đã nhận" },
+    { value: "in progress", label: "Đang phát" },
+
+  ];
+
   /* ================= PAGINATION ================= */
 
-  const paginated = list.slice(
+  const filteredList = list.filter(item => {
+    const matchCampaign =
+      !selectedCampaign ||
+      item.campaignId === selectedCampaign ||
+      item.campaignID === selectedCampaign;
+  
+    const matchStatus =
+      !selectedStatus ||
+      item.status?.toLowerCase() === selectedStatus;
+  
+    return matchCampaign && matchStatus;
+  });
+  
+  const paginated = filteredList.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -197,10 +223,40 @@ setCampaignMap(cmap);
       <div className="rm-header-fixed">
         <h3>Danh sách cứu trợ</h3>
         <span style={{ color: "white", fontSize: 20 }}>
-          {list.length} đợt
+        {filteredList.length} đợt
         </span>
       </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+
+{/* Filter campaign */}
+<div className="rm-filter">
   
+  <div className="rm-filter__item rm-filter__item--campaign">
+    <Select
+      placeholder="Chọn chiến dịch"
+      allowClear
+      className="rm-filter__select"
+      onChange={(value) => setSelectedCampaign(value)}
+      options={campaignOptions.map(c => ({
+        value: c.campaignID,
+        label: c.campaignName
+      }))}
+    />
+  </div>
+
+  <div className="rm-filter__item rm-filter__item--status">
+    <Select
+      placeholder="Chọn trạng thái"
+      allowClear
+      className="rm-filter__select"
+      onChange={(value) => setSelectedStatus(value)}
+      options={statusOptions}
+    />
+  </div>
+
+</div>
+
+</div>
       <div className="rm-list-scroll">
   
         {loading && (

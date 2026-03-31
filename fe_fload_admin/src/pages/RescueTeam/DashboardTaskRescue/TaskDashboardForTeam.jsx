@@ -34,6 +34,7 @@ const mapStatusVN = (status) => {
     completed: "Hoàn thành",
     rejected: "Từ chối",
     pending: "Đang chờ",
+    "in progress": "Đang phát", // ✅ thêm
   };
   return map[status] || status;
 };
@@ -134,14 +135,15 @@ export default function TaskDashboardForTeam() {
       const dRes = await getAllDistributions();
 
       const dData = dRes
-        .filter((d) => d.rescueTeamId === myTeamId)
-        .map((d) => ({
-          campaignName:
-            cmap[d.campaignId]?.campaignName ||
-            "Không rõ chiến dịch",
-          status: d.status?.toLowerCase(),
-          time: new Date(d.distributedAt).toLocaleString("vi-VN"),
-        }));
+      .filter((d) => d.rescueTeamId === myTeamId)
+      .map((d) => ({
+        distributionId: d.distributionId, // ✅ THÊM DÒNG NÀY
+        campaignName:
+          cmap[d.campaignId]?.campaignName ||
+          "Không rõ chiến dịch",
+        status: d.status?.toLowerCase(),
+        time: new Date(d.distributedAt).toLocaleString("vi-VN"),
+      }));
 
       setDistributionData(dData);
     } catch (err) {
@@ -163,6 +165,7 @@ export default function TaskDashboardForTeam() {
   const getStats = (data) => ({
     total: data.length,
     pending: data.filter((x) => x.status === "pending").length,
+    in_progress: data.filter((x) => x.status === "in progress").length,
     accepted: data.filter((x) => x.status === "accepted").length,
     completed: data.filter((x) => x.status === "completed").length,
     rejected: data.filter((x) => x.status === "rejected").length,
@@ -172,12 +175,18 @@ export default function TaskDashboardForTeam() {
   const renderPie = (stats) => {
     const pieData = [
       { name: "Đang chờ", value: stats.pending },
+      { name: "Đang phát", value: stats.in_progress }, // ✅ thêm
       { name: "Đã nhận", value: stats.accepted },
       { name: "Hoàn thành", value: stats.completed },
       { name: "Từ chối", value: stats.rejected },
     ];
-
-    const COLORS = ["#faad14", "#1890ff", "#52c41a", "#ff4d4f"];
+    const COLORS = [
+      "#faad14", // pending
+      "#722ed1", // in_progress (màu tím cho khác biệt)
+      "#1890ff", // accepted
+      "#52c41a", // completed
+      "#ff4d4f", // rejected
+    ];
 
     return (
       <Card title="Biểu đồ nhiệm vụ" style={{ marginTop: 16 }}>
@@ -230,11 +239,9 @@ export default function TaskDashboardForTeam() {
 
     return (
       <>
-      <Row gutter={12}>
-  <Col span={4}>
-    <Card 
-
-    onClick={() => {
+<Row gutter={12}>
+  <Col flex={1}>
+    <Card onClick={() => {
       setStatusFilter("all");
       setAssignmentPage(1);
     }}>
@@ -242,7 +249,7 @@ export default function TaskDashboardForTeam() {
     </Card>
   </Col>
 
-  <Col span={4}>
+  <Col flex={1}>
     <Card onClick={() => {
       setStatusFilter("pending");
       setAssignmentPage(1);
@@ -251,7 +258,7 @@ export default function TaskDashboardForTeam() {
     </Card>
   </Col>
 
-  <Col span={4}>
+  <Col flex={1}>
     <Card onClick={() => {
       setStatusFilter("accepted");
       setAssignmentPage(1);
@@ -260,7 +267,7 @@ export default function TaskDashboardForTeam() {
     </Card>
   </Col>
 
-  <Col span={6}>
+  <Col flex={1}>
     <Card onClick={() => {
       setStatusFilter("completed");
       setAssignmentPage(1);
@@ -269,7 +276,7 @@ export default function TaskDashboardForTeam() {
     </Card>
   </Col>
 
-  <Col span={6}>
+  <Col flex={1}>
     <Card onClick={() => {
       setStatusFilter("rejected");
       setAssignmentPage(1);
@@ -332,7 +339,7 @@ export default function TaskDashboardForTeam() {
 
     return (
       <>
-      <Row gutter={12}>
+<Row gutter={12}>
   <Col span={4}>
     <Card onClick={() => {
       setDistributionFilter("all");
@@ -353,6 +360,15 @@ export default function TaskDashboardForTeam() {
 
   <Col span={4}>
     <Card onClick={() => {
+      setDistributionFilter("in progress");
+      setDistributionPage(1);
+    }} style={{ cursor: "pointer" }}>
+      Đã phát: {stats.in_progress}
+    </Card>
+  </Col>
+
+  <Col span={4}>
+    <Card onClick={() => {
       setDistributionFilter("accepted");
       setDistributionPage(1);
     }} style={{ cursor: "pointer" }}>
@@ -360,7 +376,7 @@ export default function TaskDashboardForTeam() {
     </Card>
   </Col>
 
-  <Col span={6}>
+  <Col span={4}>
     <Card onClick={() => {
       setDistributionFilter("completed");
       setDistributionPage(1);
@@ -369,7 +385,7 @@ export default function TaskDashboardForTeam() {
     </Card>
   </Col>
 
-  <Col span={6}>
+  <Col span={4}>
     <Card onClick={() => {
       setDistributionFilter("rejected");
       setDistributionPage(1);
@@ -382,25 +398,40 @@ export default function TaskDashboardForTeam() {
         {renderPie(stats)}
 
         <Card title=" Danh sách nhiệm vụ cứu trợ" style={{ marginTop: 16 }}>
-  {data.length === 0 ? (
-    <div style={{ textAlign: "center", padding: 20 }}>
-      Không có dữ liệu
-    </div>
-  ) : (
-    data.map((item, i) => (
-      <div key={i} className="task-dashboard__item">
+        {data.length === 0 ? (
+  <div style={{ textAlign: "center", padding: 20 }}>
+    Không có dữ liệu
+  </div>
+) : (
+  data.map((item, i) => {
+    const status = item.status?.toLowerCase();
+    const canViewProcess = ["accepted", "in progress", "completed"].includes(status);
+
+    return (
+      <div
+        key={i}
+        className="task-dashboard__item"
+        style={{ cursor: canViewProcess ? "pointer" : "default" }}
+        onClick={() => {
+          if (canViewProcess) {
+            navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`);
+          }
+        }}
+      >
         <div>
           <b>{item.campaignName}</b>
           <div>⏱ {item.time}</div>
         </div>
+
         <div
           className={`task-dashboard__status task-dashboard__status--${item.status}`}
         >
           {mapStatusVN(item.status)}
         </div>
       </div>
-    ))
-  )}
+    );
+  })
+)}
 
   {filteredData.length > 0 && (
     <Pagination
