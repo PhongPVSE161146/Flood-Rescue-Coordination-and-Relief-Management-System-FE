@@ -12,6 +12,8 @@ import { getAllWarehouses } from "../../../../api/axios/ManagerApi/inventoryApi"
 
 import CreateTransactionModal from "../../../components/ManagerComponents/Approval/CreateTransactionModal";
 
+import { Tabs } from "antd";
+
 export default function ApprovalManagement() {
   const [data, setData] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -19,15 +21,10 @@ export default function ApprovalManagement() {
   const [openCreate, setOpenCreate] = useState(false);
   const [filter, setFilter] = useState("all");
   const [warehouseFilter, setWarehouseFilter] = useState(null); // New state for warehouse filter
-  const [approvalFilter, setApprovalFilter] = useState(null); // New state for approval filter
   const [transactionTypeFilter, setTransactionTypeFilter] = useState(null); // New state for IN/OUT filter
 
   const handleWarehouseChange = (value) => {
     setWarehouseFilter(value);
-  };
-
-  const handleApprovalChange = (value) => {
-    setApprovalFilter(value);
   };
 
   const handleTransactionTypeChange = (value) => {
@@ -37,7 +34,6 @@ export default function ApprovalManagement() {
   const resetFilters = () => {
     setFilter("all");
     setWarehouseFilter(null);
-    setApprovalFilter(null);
     setTransactionTypeFilter(null);
   };
 
@@ -99,8 +95,6 @@ export default function ApprovalManagement() {
     if (filter === "pending" && !t.isPending) return false;
     if (filter === "confirmed" && t.isPending) return false;
     if (warehouseFilter && t.warehouseId !== warehouseFilter) return false;
-    if (approvalFilter === "pending" && t.confirmedAt) return false;
-    if (approvalFilter === "confirmed" && !t.confirmedAt) return false;
     if (transactionTypeFilter && t.transactionType !== transactionTypeFilter) return false;
     return true;
   });
@@ -198,6 +192,9 @@ export default function ApprovalManagement() {
     },
   ];
 
+  const pendingCount = data.filter((t) => t.isPending).length;
+  const approvedCount = data.filter((t) => !t.isPending).length;
+
   /* ================= UI ================= */
 
   return (
@@ -225,16 +222,6 @@ export default function ApprovalManagement() {
         </Select>
 
         <Select
-          placeholder="Chọn trạng thái phê duyệt"
-          onChange={handleApprovalChange}
-          style={{ width: 200 }}
-          value={approvalFilter}
-        >
-          <Select.Option value="pending">Chờ duyệt</Select.Option>
-          <Select.Option value="confirmed">Đã duyệt</Select.Option>
-        </Select>
-
-        <Select
           placeholder="Chọn loại giao dịch"
           onChange={handleTransactionTypeChange}
           style={{ width: 200 }}
@@ -247,13 +234,26 @@ export default function ApprovalManagement() {
         <Button onClick={resetFilters}>Quay lại</Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        loading={loading}
-        pagination={{ pageSize: 8 }}
-        bordered
-      />
+      <Tabs defaultActiveKey="1">
+        <Tabs.TabPane tab={`Chờ phê duyệt (${pendingCount})`} key="1">
+          <Table
+            columns={columns}
+            dataSource={filteredData.filter((t) => t.isPending)}
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            bordered
+          />
+        </Tabs.TabPane>
+        <Tabs.TabPane tab={`Đã phê duyệt (${approvedCount})`} key="2">
+          <Table
+            columns={columns}
+            dataSource={filteredData.filter((t) => !t.isPending)}
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            bordered
+          />
+        </Tabs.TabPane>
+      </Tabs>
 
       <CreateTransactionModal
         open={openCreate}

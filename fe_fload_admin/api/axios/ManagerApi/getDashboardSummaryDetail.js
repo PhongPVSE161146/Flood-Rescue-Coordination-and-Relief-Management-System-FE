@@ -111,7 +111,7 @@ const getOverdueRequestsDetail = async () => {
   });
 
   return buildListPayload(overdueRequests, {
-    note: "Tinh tu FE dua tren createdAt + urgencyLevel.slaMinutes vi BE chua co endpoint detail rieng cho overdue.",
+    note: "Được tính ở FE theo công thức createdAt + slaMinutes vì backend chưa có endpoint chi tiết riêng cho quá hạn.",
   });
 };
 
@@ -129,7 +129,7 @@ const getInventoryAlertsDetail = async () => {
     : [];
 
   return buildListPayload(inventoryAlerts, {
-    note: "BE hien chua co endpoint detail rieng cho card canh bao kho, dang dung inventoryAlerts tu dashboard management.",
+    note: "Backend hiện chưa có endpoint chi tiết riêng cho thẻ cảnh báo kho, đang dùng inventoryAlerts từ dashboard management.",
   });
 };
 
@@ -137,6 +137,7 @@ const summaryDetailResolvers = {
   total: getTotalRequestsDetail,
   open: getOpenRequestsDetail,
   completed: getCompletedRequestsDetail,
+  assigned: getLegacyAssignedRequestsDetail,
   overdue: getOverdueRequestsDetail,
   campaign: getCampaignsDetail,
   stock: getInventoryAlertsDetail,
@@ -147,7 +148,7 @@ export const getDashboardSummaryDetail = async (summaryKey) => {
     const resolver = summaryDetailResolvers[summaryKey];
 
     if (!resolver) {
-      throw new Error(`Khong tim thay xu ly cho card: ${summaryKey}`);
+      throw new Error(`Không tìm thấy xử lý cho thẻ: ${summaryKey}`);
     }
 
     return await resolver();
@@ -157,7 +158,7 @@ export const getDashboardSummaryDetail = async (summaryKey) => {
     throw new Error(
       error.response?.data?.message ||
         error.message ||
-        "Khong the tai du lieu chi tiet dashboard"
+        "Không thể tải dữ liệu chi tiết dashboard"
     );
   }
 };
