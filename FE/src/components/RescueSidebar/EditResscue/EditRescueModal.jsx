@@ -5,7 +5,8 @@ import {
   Select,
   InputNumber,
   Button,
-  Upload
+  Upload,
+  Image
 } from "antd";
 
 import {
@@ -17,6 +18,7 @@ import { updateRescueRequest } from "../../../api/service/historyApi";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 
 import "./EditRescueModal.css";
+const API_BASE = "https://api-rescue.purintech.id.vn";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -54,7 +56,8 @@ function EditRescueModal({ data, onClose, onUpdated }) {
     address: "",
     locationLat: 0,
     locationLng: 0,
-    locationImageUrl: "",
+    locationImageUrl: [],
+    previewImages: [],
     imageFile: null
   });
 
@@ -75,7 +78,14 @@ function EditRescueModal({ data, onClose, onUpdated }) {
         address: data.address || "",
         locationLat: data.locationLat || 0,
         locationLng: data.locationLng || 0,
-        locationImageUrl: data.locationImageUrl || ""
+        locationImageUrl: data.locationImageUrl
+        ? data.locationImageUrl.split(",").map(i =>
+            i.startsWith("http")
+              ? i
+              : `${API_BASE}${i.startsWith("/") ? "" : "/"}${i}`
+          )
+        : [],
+        previewImages: []
       });
 
       setErrors({});
@@ -141,8 +151,8 @@ function EditRescueModal({ data, onClose, onUpdated }) {
       newErrors.address = "Vui lòng nhập địa chỉ";
     }
 
-    if (!form.locationImageUrl) {
-      newErrors.image = "Vui lòng tải ảnh hiện trường";
+    if (!form.locationImageUrl || form.locationImageUrl.length === 0) {
+      newErrors.locationImageUrl = "Vui lòng tải ảnh hiện trường";
     }
 
     setErrors(newErrors);
@@ -161,6 +171,9 @@ function EditRescueModal({ data, onClose, onUpdated }) {
     return true;
 
   };
+
+
+
 
   /* ================= IMAGE UPLOAD ================= */
 
@@ -201,7 +214,10 @@ function EditRescueModal({ data, onClose, onUpdated }) {
   
       setForm(prev => ({
         ...prev,
-        previewImage: previewUrl
+        previewImages: [
+          ...(prev.previewImages || []),
+          previewUrl
+        ]
       }));
   
       setLoading(true);
@@ -214,13 +230,16 @@ function EditRescueModal({ data, onClose, onUpdated }) {
       const API_BASE = import.meta.env.VITE_API_BASE_URL;
   
       const imageUrl = imagePath.startsWith("http")
-        ? imagePath
-        : API_BASE + imagePath;
+      ? imagePath
+      : `${API_BASE}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
   
-      setForm(prev => ({
-        ...prev,
-        locationImageUrl: imageUrl
-      }));
+        setForm(prev => ({
+          ...prev,
+          locationImageUrl: [
+            ...(prev.locationImageUrl || []),
+            imageUrl
+          ]
+        }));
   
       AuthNotify.success(
         "Tải ảnh thành công",
@@ -248,6 +267,13 @@ function EditRescueModal({ data, onClose, onUpdated }) {
   
     return false;
   };
+  console.log("PAYLOAD:", {
+    locationImageUrl: form.locationImageUrl.join(","),
+    attachments: form.locationImageUrl.map(url => ({
+      attachmentId: 0,
+      fileUrl: url
+    }))
+  });
   /* ================= UPDATE ================= */
 
   const handleUpdate = async () => {
@@ -259,19 +285,19 @@ function EditRescueModal({ data, onClose, onUpdated }) {
       setLoading(true);
 
       await updateRescueRequest(data.id, {
-
         requestType: form.requestType,
         locationLat: Number(form.locationLat),
         locationLng: Number(form.locationLng),
-        locationImageUrl: form.locationImageUrl,
+      
+        locationImageUrl: form.locationImageUrl.join(","), // ✅ chỉ giữ cái này
+      
         fullName: form.fullName,
-        victimCount: Number(form.victimCount),
+        victimCount: Number(form.victimCount) || 0,
         availableRescueTool: form.availableRescueTool,
         specialNeeds: form.specialNeeds,
         detailDescription: form.detailDescription,
         rescueTeamNote: form.rescueTeamNote,
         address: form.address
-
       });
 
       AuthNotify.success(
@@ -302,6 +328,10 @@ function EditRescueModal({ data, onClose, onUpdated }) {
 
   };
 
+  console.log("PAYLOAD:", {
+    locationImageUrl: form.locationImageUrl.join(",")
+  });
+  
   return (
 
     <Modal
@@ -551,23 +581,79 @@ function EditRescueModal({ data, onClose, onUpdated }) {
             <p className="error-message">{errors.locationImageUrl}</p>
           )}
 
-{(form.previewImage || form.locationImageUrl) && (
+{(form.previewImages.length > 0 || form.locationImageUrl.length > 0) && (
 
-<div style={{marginTop:10}}>
+<Image.PreviewGroup>
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
+      gap: "12px",
+      marginTop: "10px"
+    }}
+  >
+    {(form.previewImages.length > 0
+      ? form.previewImages
+      : form.locationImageUrl
+    ).slice(0, 4).map((img, i) => (
+      <div
+        key={i}
+        style={{
+          position: "relative", // 🔥 quan trọng
+          width: "100%",
+          aspectRatio: "4/3",
+          overflow: "hidden",
+          borderRadius: "12px"
+        }}
+      >
 
-<img
-  src={form.previewImage || form.locationImageUrl}
-  alt="preview"
-referrerPolicy="no-referrer"
-  style={{
-    width:"100%",
-    maxHeight:250,
-    objectFit:"cover",
-    borderRadius:8
-  }}
-/>
+        {/* ❌ BUTTON XOÁ */}
+        <div
+          onClick={(e) => {
+            e.stopPropagation(); // ❌ không mở preview
 
-</div>
+            setForm(prev => ({
+              ...prev,
+              previewImages: prev.previewImages.filter((_, idx) => idx !== i),
+              locationImageUrl: prev.locationImageUrl.filter((_, idx) => idx !== i)
+            }));
+          }}
+          style={{
+            position: "absolute",
+            top: "6px",
+            right: "6px",
+            width: "22px",
+            height: "22px",
+            borderRadius: "50%",
+            background: "rgba(0,0,0,0.6)",
+            color: "#fff",
+            fontSize: "14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 10
+          }}
+        >
+          ×
+        </div>
+
+        {/* IMAGE */}
+        <Image
+          src={img}
+          alt="preview"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "12px"
+          }}
+        />
+
+      </div>
+    ))}
+  </div>
+</Image.PreviewGroup>
 
 )}
  </div>

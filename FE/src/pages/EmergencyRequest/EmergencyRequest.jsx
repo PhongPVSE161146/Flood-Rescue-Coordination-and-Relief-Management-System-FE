@@ -192,13 +192,13 @@ const validateRescueRequest = (data) => {
 
   }
 
-  if (form.images && form.images.length > 5) {
+  if (form.images && form.images.length > 4) {
 
     newErrors.images = true;
 
     newErrors.messages = {
       ...(newErrors.messages || {}),
-      images: "Chỉ được tải tối đa 5 ảnh"
+      images: "Chỉ được tải tối đa 4 ảnh"
     };
 
   }

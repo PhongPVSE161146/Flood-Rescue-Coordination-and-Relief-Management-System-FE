@@ -11,8 +11,6 @@ export default function EditDistributionDetail({
 }) {
   const [form] = Form.useForm();
 
-  const isCompleted = data?.status?.toLowerCase() === "completed";
-
   useEffect(() => {
     if (data) {
       form.setFieldsValue({
@@ -23,12 +21,6 @@ export default function EditDistributionDetail({
   }, [data]);
 
   const handleSubmit = async () => {
-    // 🔥 chặn sửa nếu completed
-    if (isCompleted) {
-      AuthNotify.warning("Không thể chỉnh sửa khi đã hoàn thành");
-      return;
-    }
-
     try {
       const values = await form.validateFields();
 
@@ -56,14 +48,9 @@ export default function EditDistributionDetail({
       onOk={handleSubmit}
       okText="Cập nhật"
       cancelText="Hủy"
-      okButtonProps={{ disabled: isCompleted }} // 🔥 disable nút
       destroyOnHidden
     >
-      <Form
-        form={form}
-        layout="vertical"
-        disabled={isCompleted} // 🔥 disable toàn bộ form
-      >
+      <Form form={form} layout="vertical">
 
         <Form.Item
           name="status"
@@ -85,13 +72,6 @@ export default function EditDistributionDetail({
         </Form.Item>
 
       </Form>
-
-      {/* 🔥 hiển thị cảnh báo */}
-      {isCompleted && (
-        <p style={{ color: "red", marginTop: 10 }}>
-          ⚠ Không thể chỉnh sửa vì đã hoàn thành
-        </p>
-      )}
     </Modal>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { message, Row, Col } from "antd";
+import { message, Row, Col, Spin } from "antd";
 import "./DashboardOverview.css";
 
 import {
@@ -97,55 +97,75 @@ export default function DashboardOverview() {
   const summaryForCards = syncedSummary || data.summary;
 
   return (
-    <div className="dashboard">
-
-      {/* 🔥 SUMMARY */}
-      <SummaryCards
-        summary={summaryForCards}
-        activeKey={activeSummaryKey}
-        onClickItem={handleSummaryCardClick}
-        completedValue={completedCount}
-      />
-
-      <SummaryDetailPanel
-        summaryKey={activeSummaryKey}
-        loading={summaryDetailLoading}
-        data={summaryDetailData}
-        onClear={handleCloseSummaryModal}
-      />
-
-      {/* 🔥 CHART */}
-      <Row style={{ marginTop: 20 }}>
-        <Col span={24}>
-          <RescueTrendChart data={data.rescueTrends} />
-        </Col>
-      </Row>
-
-      {/* 🔥 TEAM + STOCK */}
-      <Row gutter={16} style={{ marginTop: 20 }}>
-        <Col span={12}>
-          <TeamStatus data={data.teamStatusOverview} />
-        </Col>
-
-        <Col span={12}>
-          <InventoryAlerts data={data.inventoryAlerts} />
-        </Col>
-      </Row>
-
-      {/* 🔥 CAMPAIGN (FULL WIDTH - FIX LỆCH) */}
-      <Row style={{ marginTop: 20 }}>
-        <Col span={24}>
-          <CampaignProgress data={data.campaignProgress} />
-        </Col>
-      </Row>
-
-      {/* 🔥 ACTIVITY */}
-      <Row style={{ marginTop: 20 }}>
-        <Col span={24}>
-          <RecentActivities data={data.recentActivities} />
-        </Col>
-      </Row>
-
+<>
+  {loading && (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0,0,0,0.4)",
+        zIndex: 9999,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Spin size="large" tip="Đang tải dashboard..." />
     </div>
+  )}
+
+  <div className="dashboard">
+  <div className="dashboard">
+    
+    <SummaryCards
+      summary={summaryForCards}
+      activeKey={activeSummaryKey}
+      onClickItem={handleSummaryCardClick}
+      completedValue={completedCount}
+    />
+
+    <SummaryDetailPanel
+      summaryKey={activeSummaryKey}
+      loading={summaryDetailLoading}
+      data={summaryDetailData}
+      onClear={handleCloseSummaryModal}
+    />
+
+    <Row style={{ marginTop: 20 }}>
+      <Col span={24}>
+        <RescueTrendChart data={data?.rescueTrends} />
+      </Col>
+    </Row>
+
+    <Row gutter={16} style={{ marginTop: 20 }}>
+      <Col span={12}>
+        <TeamStatus data={data?.teamStatusOverview} />
+      </Col>
+
+      <Col span={12}>
+        <InventoryAlerts data={data?.inventoryAlerts} />
+      </Col>
+    </Row>
+
+    <Row style={{ marginTop: 20 }}>
+      <Col span={24}>
+        <CampaignProgress data={data?.campaignProgress} />
+      </Col>
+    </Row>
+
+    <Row style={{ marginTop: 20 }}>
+      <Col span={24}>
+        <RecentActivities data={data?.recentActivities} />
+      </Col>
+    </Row>
+
+  </div>
+  </div>
+</>
+    
+ 
   );
 }
