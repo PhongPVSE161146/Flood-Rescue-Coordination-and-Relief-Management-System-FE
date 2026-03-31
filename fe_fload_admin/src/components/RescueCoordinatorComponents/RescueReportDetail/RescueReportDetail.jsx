@@ -412,7 +412,7 @@ export default function RescueReportDetail({ mission }) {
           <Image
             src={img}
             alt="rescue"
-            preview={false}
+            // preview={false}
           />
         </div>
       ))}
