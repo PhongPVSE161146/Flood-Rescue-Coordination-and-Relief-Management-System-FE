@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Input,
+  InputNumber,
   Select,
   Table,
   Space,
@@ -16,6 +18,7 @@ import {
   deleteWarehouse,
   deleteReliefItem,
 } from "../../../../api/axios/ManagerApi/inventoryApi";
+import axiosInstance from "../../../../api/axiosInstance";
 
 import CreateWarehouseModal from "./CreateWarehouseModal/CreateWarehouseModal";
 import EditWarehouseModal from "./EditWarehouseModal/EditWarehouseModal";
@@ -36,6 +39,59 @@ export default function InventoryManagement() {
   const [openCreateItem, setOpenCreateItem] = useState(false);
   const [openEditItem, setOpenEditItem] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const [provinceLoading, setProvinceLoading] = useState(false);
+  const [provinces, setProvinces] = useState([]);
+  const [warehouseAreaId, setWarehouseAreaId] = useState(null);
+  const [warehouseMinBudget, setWarehouseMinBudget] = useState(null);
+  const [warehouseMaxBudget, setWarehouseMaxBudget] = useState(null);
+
+  const [itemQuery, setItemQuery] = useState("");
+  const [itemUnitFilter, setItemUnitFilter] = useState(null);
+  const [itemMinCost, setItemMinCost] = useState(null);
+  const [itemMaxCost, setItemMaxCost] = useState(null);
+
+  const [inventoryQuery, setInventoryQuery] = useState("");
+  const [inventoryMinQty, setInventoryMinQty] = useState(null);
+  const [inventoryMaxQty, setInventoryMaxQty] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProvinces = async () => {
+      try {
+        setProvinceLoading(true);
+        const res = await axiosInstance.get("/api/geographic-areas/provinces");
+        const data = res?.data;
+        if (cancelled) return;
+        setProvinces(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (cancelled) return;
+        console.error(err);
+        message.error("Không thể tải danh sách tỉnh/thành phố");
+        setProvinces([]);
+      } finally {
+        if (!cancelled) setProvinceLoading(false);
+      }
+    };
+
+    loadProvinces();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const provinceOptions = useMemo(
+    () =>
+      (Array.isArray(provinces) ? provinces : [])
+        .map((p) => ({
+          value: p?.id,
+          label: p?.name ?? "",
+        }))
+        .filter((x) => x.value != null && String(x.label).trim().length > 0),
+    [provinces]
+  );
 
   // ================= LOAD ALL =================
   async function loadAll(preferredTab = "") {
@@ -231,13 +287,92 @@ export default function InventoryManagement() {
     key: `warehouse-${w.id}`,
     label: w.warehouseName,
     children: (
-      <Table
-        columns={inventoryColumns}
-        dataSource={inventory}
-        pagination={false}
-      />
+      <div>
+        <Space style={{ marginBottom: 16, width: "100%" }} wrap>
+          <Input
+            allowClear
+            placeholder="Tìm item trong kho"
+            value={inventoryQuery}
+            onChange={(e) => setInventoryQuery(e.target.value)}
+            style={{ width: 260 }}
+          />
+          <InputNumber
+            min={0}
+            placeholder="SL tối thiểu"
+            value={inventoryMinQty}
+            onChange={setInventoryMinQty}
+            style={{ width: 140 }}
+          />
+          <InputNumber
+            min={0}
+            placeholder="SL tối đa"
+            value={inventoryMaxQty}
+            onChange={setInventoryMaxQty}
+            style={{ width: 140 }}
+          />
+          <Button
+            onClick={() => {
+              setInventoryQuery("");
+              setInventoryMinQty(null);
+              setInventoryMaxQty(null);
+            }}
+          >
+            Xóa filter
+          </Button>
+        </Space>
+
+        <Table
+          columns={inventoryColumns}
+          dataSource={inventory.filter((row) => {
+            const q = inventoryQuery.trim().toLowerCase();
+            const name = (row.itemName ?? "").toString().toLowerCase();
+            const matchesQuery = !q || name.includes(q);
+            const qty = typeof row.quantity === "number" ? row.quantity : Number(row.quantity);
+            const meetsMin = inventoryMinQty == null || (!Number.isNaN(qty) && qty >= inventoryMinQty);
+            const meetsMax = inventoryMaxQty == null || (!Number.isNaN(qty) && qty <= inventoryMaxQty);
+            return matchesQuery && meetsMin && meetsMax;
+          })}
+          pagination={false}
+        />
+      </div>
     ),
   }));
+
+  const filteredWarehouses = warehouses.filter((w) => {
+    const matchesArea =
+      warehouseAreaId == null ||
+      Number(w.areaId || 0) === Number(warehouseAreaId);
+
+    const budgetRaw = w.availableBudget;
+    const budget =
+      typeof budgetRaw === "number"
+        ? budgetRaw
+        : budgetRaw == null
+          ? null
+          : Number(budgetRaw);
+    const meetsMin = warehouseMinBudget == null || (budget != null && budget >= warehouseMinBudget);
+    const meetsMax = warehouseMaxBudget == null || (budget != null && budget <= warehouseMaxBudget);
+
+    return matchesArea && meetsMin && meetsMax;
+  });
+
+  const filteredItems = items.filter((it) => {
+    const q = itemQuery.trim().toLowerCase();
+    const name = (it.itemName ?? "").toString().toLowerCase();
+    const unit = (it.unit ?? "").toString();
+    const matchesQuery = !q || name.includes(q);
+    const matchesUnit = itemUnitFilter == null || unit === itemUnitFilter;
+    const costRaw = it.cost;
+    const cost =
+      typeof costRaw === "number" ? costRaw : costRaw == null ? null : Number(costRaw);
+    const meetsMin = itemMinCost == null || (cost != null && cost >= itemMinCost);
+    const meetsMax = itemMaxCost == null || (cost != null && cost <= itemMaxCost);
+    return matchesQuery && matchesUnit && meetsMin && meetsMax;
+  });
+
+  const unitOptions = Array.from(
+    new Set(items.map((x) => (x.unit ?? "").toString()).filter((u) => u.trim().length > 0))
+  ).map((u) => ({ value: u, label: u }));
 
   return (
     <div style={{ padding: 20 }}>
@@ -273,15 +408,54 @@ export default function InventoryManagement() {
             label: "Danh sách kho",
             children: (
               <div>
-                <div style={{ marginBottom: 16 }}>
+                <Space style={{ marginBottom: 16, width: "100%" }} wrap>
                   <Button
                     type="primary"
                     onClick={() => setOpenCreateWarehouse(true)}
                   >
                     + Tạo kho mới
                   </Button>
-                </div>
-                <Table columns={warehouseColumns} dataSource={warehouses} />
+
+                  <Select
+                    allowClear
+                    showSearch
+                    loading={provinceLoading}
+                    placeholder="Chọn tỉnh/thành phố"
+                    value={warehouseAreaId}
+                    onChange={setWarehouseAreaId}
+                    options={provinceOptions}
+                    optionFilterProp="label"
+                    style={{ width: 280 }}
+                  />
+
+                  <InputNumber
+                    min={0}
+                    placeholder="Ngân sách tối thiểu"
+                    value={warehouseMinBudget}
+                    onChange={setWarehouseMinBudget}
+                    style={{ width: 180 }}
+                  />
+
+                  <InputNumber
+                    min={0}
+                    placeholder="Ngân sách tối đa"
+                    value={warehouseMaxBudget}
+                    onChange={setWarehouseMaxBudget}
+                    style={{ width: 180 }}
+                  />
+
+                  <Button
+                    onClick={() => {
+                      setWarehouseAreaId(null);
+                      setWarehouseMinBudget(null);
+                      setWarehouseMaxBudget(null);
+                    }}
+                  >
+                    Xóa filter
+                  </Button>
+                </Space>
+
+                <Table columns={warehouseColumns} dataSource={filteredWarehouses} />
               </div>
             ),
           },
@@ -290,15 +464,67 @@ export default function InventoryManagement() {
             label: "Danh sách item",
             children: (
               <div>
-                <div style={{ marginBottom: 16 }}>
+                <Space style={{ marginBottom: 16, width: "100%" }} wrap>
                   <Button
                     type="primary"
                     onClick={() => setOpenCreateItem(true)}
                   >
                     + Tạo vật phẩm mới
                   </Button>
-                </div>
-                <Table columns={itemColumns} dataSource={items} />
+
+                  <Input
+                    allowClear
+                    placeholder="Tìm theo tên item"
+                    value={itemQuery}
+                    onChange={(e) => setItemQuery(e.target.value)}
+                    style={{ width: 260 }}
+                  />
+
+                  <Select
+                    allowClear
+                    showSearch
+                    placeholder="Lọc theo đơn vị"
+                    value={itemUnitFilter}
+                    onChange={setItemUnitFilter}
+                    options={unitOptions}
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toString()
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    style={{ width: 180 }}
+                  />
+
+                  <InputNumber
+                    min={0}
+                    placeholder="Giá tối thiểu"
+                    value={itemMinCost}
+                    onChange={setItemMinCost}
+                    style={{ width: 160 }}
+                  />
+
+                  <InputNumber
+                    min={0}
+                    placeholder="Giá tối đa"
+                    value={itemMaxCost}
+                    onChange={setItemMaxCost}
+                    style={{ width: 160 }}
+                  />
+
+                  <Button
+                    onClick={() => {
+                      setItemQuery("");
+                      setItemUnitFilter(null);
+                      setItemMinCost(null);
+                      setItemMaxCost(null);
+                    }}
+                  >
+                    Xóa filter
+                  </Button>
+                </Space>
+
+                <Table columns={itemColumns} dataSource={filteredItems} />
               </div>
             ),
           },

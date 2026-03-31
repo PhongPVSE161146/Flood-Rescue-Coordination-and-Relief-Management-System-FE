@@ -311,61 +311,6 @@ export default function SystemSettingContainer() {
         </div>
       ),
     },
-    {
-      key: "logs",
-      label: (
-        <span>
-          <ReloadOutlined /> Nhật ký Yêu cầu
-        </span>
-      ),
-      children: (
-        <div className="request-logs-container">
-          <Card
-            title="Lịch sử Hoạt động Yêu cứu Cứu hộ"
-            extra={
-              <Space>
-                <Input
-                  placeholder="Mã yêu cầu (ID)"
-                  value={logRequestId}
-                  onChange={(e) => setLogRequestId(e.target.value)}
-                  onPressEnter={() => fetchRequestLogs(logRequestId)}
-                  size="small"
-                  style={{ width: 150 }}
-                />
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={() => fetchRequestLogs(logRequestId)}
-                  loading={loading}
-                  size="small"
-                >
-                  Làm mới
-                </Button>
-              </Space>
-            }
-          >
-            <Table
-              dataSource={requestLogs}
-              columns={[
-                { title: "ID", dataIndex: "id", key: "id", width: 80 },
-                {
-                  title: "REQ ID",
-                  dataIndex: "rescueRequestId",
-                  key: "rescueRequestId",
-                  width: 100,
-                  render: (id) => <Tag color="blue">REQ-{id}</Tag>
-                },
-                { title: "Hành động", dataIndex: "action", key: "action" },
-                { title: "Người thực hiện", dataIndex: "performedBy", key: "performedBy", render: (u) => `User ${u}` },
-                { title: "Thời gian", dataIndex: "createdAt", key: "createdAt", render: (t) => t ? new Date(t).toLocaleString() : "N/A" },
-              ]}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 8 }}
-            />
-          </Card>
-        </div>
-      ),
-    },
   ];
 
   return (

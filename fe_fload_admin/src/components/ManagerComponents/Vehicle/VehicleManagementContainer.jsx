@@ -348,8 +348,8 @@ export default function VehicleManagementContainer() {
         <div className="performance-header">
 
           <div>
-            <h3>Vehicle Performance</h3>
-            <p>Total: {total}</p>
+            <h3>Hiệu suất Phương Tiện</h3>
+            <p>Tổng: {total}</p>
           </div>
 
           <span className="percentage">{progressPercent}%</span>

@@ -7,7 +7,10 @@ import {
   Tag,
   Spin,
   Empty,
-  Modal
+  Modal,
+  Input,
+  Select,
+  Space
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,6 +22,7 @@ import {
   getBeneficiaryById,
   getAllReliefItems
 } from "../../../../api/axios/ManagerApi/periodicAidApi";
+import { deletePeriodicAidDistributionDetail } from "../../../../api/axios/RescueApi/RescueTask";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 import CreateDistribution from "../../../components/ManagerComponents/DistributionPlanModal/CreateDistribuionPlan/CreateDistribution";
 import EditDistribution from "../../../components/ManagerComponents/DistributionPlanModal/EditDistribuitonPlan/EditDistribution";
@@ -33,6 +37,12 @@ export default function DistributionPage() {
   const [loading, setLoading] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState({});
   const [expandedLoading, setExpandedLoading] = useState({});
+
+  // ================= FILTER =================
+  const [planQuery, setPlanQuery] = useState("");
+  const [campaignFilterId, setCampaignFilterId] = useState(null);
+  const [teamFilterId, setTeamFilterId] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(null);
 
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -104,7 +114,10 @@ export default function DistributionPage() {
   const reliefItemMap = useMemo(() => {
     const map = {};
     reliefItems.forEach(item => {
-      map[item.itemId] = item.itemName;
+      // API có thể trả về key khác nhau cho id vật phẩm
+      const id = item.itemId ?? item.reliefItemId ?? item.reliefItemID ?? item.relief_item_id;
+      if (id == null) return;
+      map[String(id)] = item.itemName;
     });
     return map;
   }, [reliefItems]);
@@ -183,6 +196,32 @@ export default function DistributionPage() {
     return map;
   }, [teams]);
 
+  const filteredList = useMemo(() => {
+    const q = planQuery.trim().toLowerCase();
+    return list.filter((r) => {
+      const matchesQuery =
+        !q ||
+        String(r.distributionId ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(r.note ?? "").toLowerCase().includes(q);
+
+      const matchesCampaign =
+        campaignFilterId == null ||
+        String(r.campaignId ?? r.campaignID) === String(campaignFilterId);
+
+      const matchesTeam =
+        teamFilterId == null || String(r.rescueTeamId) === String(teamFilterId);
+
+      const matchesStatus =
+        statusFilter == null ||
+        String(r.status ?? "").toLowerCase().trim() ===
+          String(statusFilter).toLowerCase().trim();
+
+      return matchesQuery && matchesCampaign && matchesTeam && matchesStatus;
+    });
+  }, [list, planQuery, campaignFilterId, teamFilterId, statusFilter]);
+
   /* ================= STATUS ================= */
 
   const renderStatus = (status) => {
@@ -211,7 +250,21 @@ export default function DistributionPage() {
     }
 
     if (!details || details.length === 0) {
-      return <Empty description="Không có người nhận" />;
+      return (
+        <div style={{ padding: "12px 16px" }}>
+          <Empty description="Không có người nhận" style={{ marginBottom: 16 }} />
+
+          <Button
+            type="primary"
+            onClick={() => {
+              setSelectedDistributionForAdd(record);
+              setOpenAddDetail(true);
+            }}
+          >
+            + Thêm người nhận
+          </Button>
+        </div>
+      );
     }
 
     const detailColumns = [
@@ -239,7 +292,13 @@ export default function DistributionPage() {
       {
         title: "Vật phẩm",
         dataIndex: "reliefItemId",
-        render: (id) => reliefItemMap[id] || `#${id}`,
+        render: (_, row) => {
+          const rawId =
+            row?.reliefItemId ?? row?.reliefItemID ?? row?.relief_item_id ?? row?.reliefItemID;
+          if (rawId == null) return "—";
+          const key = String(rawId);
+          return reliefItemMap[key] || "—";
+        },
       },
       {
         title: "Số lượng",
@@ -257,17 +316,42 @@ export default function DistributionPage() {
       },
       {
         title: "Hành động",
-        width: 100,
+        width: 160,
         render: (_, detail) => (
-          <Button
-            size="small"
-            onClick={() => {
-              setSelectedDetail(detail);
-              setOpenEditDetail(true);
-            }}
-          >
-            Sửa
-          </Button>
+          <Space size="small">
+            <Button
+              size="small"
+              onClick={() => {
+                setSelectedDetail(detail);
+                setOpenEditDetail(true);
+              }}
+            >
+              Sửa
+            </Button>
+            <Popconfirm
+              title="Xóa người nhận khỏi đợt này?"
+              onConfirm={async () => {
+                try {
+                  const id = detail.detailId || detail.id;
+                  if (!id) {
+                    AuthNotify.error("Không xác định được ID chi tiết");
+                    return;
+                  }
+                  await deletePeriodicAidDistributionDetail(id);
+                  AuthNotify.success("Đã xóa khỏi đợt phân phối");
+                  // reload details for this distribution
+                  loadExpandedDetails(record.distributionId);
+                } catch (err) {
+                  console.error(err);
+                  AuthNotify.error("Xóa thất bại");
+                }
+              }}
+            >
+              <Button size="small" danger>
+                Xóa
+              </Button>
+            </Popconfirm>
+          </Space>
         ),
       },
     ];
@@ -366,19 +450,86 @@ export default function DistributionPage() {
       <div style={{
         marginBottom: 16,
         display: "flex",
-        justifyContent: "space-between"
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        flexWrap: "wrap"
       }}>
-        <h2>Phân phối cứu trợ ({list.length})</h2>
+        <h2 style={{ margin: 0 }}>Phân phối cứu trợ ({filteredList.length})</h2>
 
-        <Button type="primary" onClick={() => setOpenCreate(true)}>
-          + Tạo
-        </Button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <Input
+            allowClear
+            placeholder="Tìm theo ID / ghi chú"
+            value={planQuery}
+            onChange={(e) => setPlanQuery(e.target.value)}
+            style={{ width: 260 }}
+          />
+
+          <Select
+            allowClear
+            placeholder="Chiến dịch"
+            value={campaignFilterId}
+            onChange={setCampaignFilterId}
+            style={{ width: 220 }}
+            options={campaigns.map((c) => ({
+              value: c.campaignId || c.campaignID,
+              label: c.campaignName,
+            }))}
+            optionFilterProp="label"
+            showSearch
+          />
+
+          <Select
+            allowClear
+            placeholder="Đội cứu trợ"
+            value={teamFilterId}
+            onChange={setTeamFilterId}
+            style={{ width: 200 }}
+            options={teams.map((t) => ({
+              value: t.rcid,
+              label: t.rcName,
+            }))}
+            optionFilterProp="label"
+            showSearch
+          />
+
+          <Select
+            allowClear
+            placeholder="Trạng thái"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            style={{ width: 180 }}
+            options={[
+              { value: "pending", label: "Đang chờ" },
+              { value: "accepted", label: "Đã nhận" },
+              { value: "in progress", label: "Đang phát" },
+              { value: "completed", label: "Hoàn thành" },
+              { value: "rejected", label: "Từ chối" },
+            ]}
+          />
+
+          <Button
+            onClick={() => {
+              setPlanQuery("");
+              setCampaignFilterId(null);
+              setTeamFilterId(null);
+              setStatusFilter(null);
+            }}
+          >
+            Xóa filter
+          </Button>
+
+          <Button type="primary" onClick={() => setOpenCreate(true)}>
+            + Tạo
+          </Button>
+        </div>
       </div>
 
       <Table
         rowKey="distributionId"
         columns={columns}
-        dataSource={list}
+        dataSource={filteredList}
         loading={loading}
         expandable={{
           expandedRowRender,
