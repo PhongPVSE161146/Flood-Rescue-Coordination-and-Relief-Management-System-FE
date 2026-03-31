@@ -6,15 +6,15 @@ export default function SummaryCards({ summary, onClickItem }) {
     { key: "total", label: "Tổng yêu cầu", value: summary.totalRequests },
     { key: "open", label: "Đang xử lý", value: summary.openRequests },
     { key: "assigned", label: "Đã phân công", value: summary.activeAssignments },
-    { key: "overdue", label: "Quá hạn", value: summary.overdueRequests },
-    { key: "campaign", label: "Chiến dịch đang thực hiện ", value: summary.activeCampaigns },
+    // { key: "overdue", label: "Quá hạn", value: summary.overdueRequests },
+    // { key: "campaign", label: "Chiến dịch đang thực hiện ", value: summary.activeCampaigns },
     { key: "stock", label: "Cảnh báo kho", value: summary.inventoryAlertCount },
   ];
 
   return (
     <Row gutter={16}>
       {items.map((item, i) => (
-        <Col span={4} key={i}>
+        <Col span={6} key={i}>
           <Card
             className="summary-card"
             hoverable

@@ -25,9 +25,20 @@ const SUMMARY_TITLES = {
   stock: "Danh sách cảnh báo kho",
 };
 
+// Mapping summaryKey với key thực tế trong data API
+const DATA_KEY_MAPPING = {
+  total: "rescueTrends",
+  open: "requestsByArea",
+  completed: "requestsByArea",
+  overdue: "requestsByArea",
+  campaign: "campaignProgress",
+  stock: "inventoryAlerts",
+};
+
 const IMAGE_FIELD_HINTS = ["image", "img", "photo", "avatar", "url"];
 const DATE_FIELD_HINTS = ["date", "time", "at"];
 const API_BASE = "https://api-rescue.purintech.id.vn";
+
 const LABEL_OVERRIDES = {
   rescueRequestId: "Mã yêu cầu cứu hộ",
   requestId: "Mã yêu cầu",
@@ -55,6 +66,7 @@ const LABEL_OVERRIDES = {
   detailDescription: "Mô tả chi tiết",
   rescueTeamNote: "Ghi chú đội cứu hộ",
   areaId: "Mã khu vực",
+  areaName: "Tên khu vực",
   warehouseId: "Mã kho",
   warehouseName: "Tên kho",
   reliefItemId: "Mã vật phẩm",
@@ -63,6 +75,16 @@ const LABEL_OVERRIDES = {
   threshold: "Ngưỡng cảnh báo",
   note: "Ghi chú",
   total: "Tổng",
+  totalRequests: "Tổng yêu cầu",
+  openRequests: "Yêu cầu đang mở",
+  campaignId: "Mã chiến dịch",
+  campaignName: "Tên chiến dịch",
+  status: "Trạng thái",
+  completionRate: "Tỷ lệ hoàn thành",
+  totalBeneficiaries: "Tổng số người thụ hưởng",
+  distributedBeneficiaries: "Đã phân phối",
+  type: "Loại hoạt động",
+  title: "Tiêu đề",
 };
 
 const formatLabel = (value) =>
@@ -151,6 +173,24 @@ const formatValue = (fieldName, value) => {
   return String(value);
 };
 
+// ==================== HÀM MỚI: LẤY DATA ĐÚNG THEO summaryKey ====================
+const getArrayData = (data, summaryKey) => {
+  if (!data || typeof data !== "object") return null;
+
+  const mappedKey = DATA_KEY_MAPPING[summaryKey];
+  if (mappedKey && Array.isArray(data[mappedKey])) {
+    return data[mappedKey];
+  }
+
+  // Fallback cho total
+  if (summaryKey === "total" && data.summary) {
+    return [data.summary];
+  }
+
+  // Nếu không map được thì dùng hàm cũ
+  return extractArrayData(data);
+};
+
 const extractArrayData = (value) => {
   if (Array.isArray(value)) {
     return value;
@@ -179,9 +219,9 @@ const buildSummaryFields = (value) => {
   return Object.entries(value)
     .filter(
       ([key, fieldValue]) =>
-        key !== "items" && // bỏ mảng items
-        key !== "note" && // không hiển thị ghi chú ở bảng tóm tắt
-        key !== "total" && // tránh hiển thị "Tổng bản ghi" bị lặp
+        key !== "items" &&
+        key !== "note" &&
+        key !== "total" &&
         isPrimitive(fieldValue)
     )
     .map(([key, fieldValue]) => ({
@@ -220,8 +260,6 @@ const isRescueRequestRow = (row) => {
     return false;
   }
 
-  // Phân công cứu hộ (RescueAssignments) cũng có rescueRequestId,
-  // nên cần phân biệt: request thực sự thường có thêm các field này.
   const hasRequestSpecificFields =
     Object.prototype.hasOwnProperty.call(row, "statusId") ||
     Object.prototype.hasOwnProperty.call(row, "requestType") ||
@@ -380,7 +418,9 @@ export default function SummaryDetailPanel({
   }
 
   const title = SUMMARY_TITLES[summaryKey] || "Chi tiết dashboard";
-  const rows = extractArrayData(data);
+
+  // === SỬA CHÍNH Ở ĐÂY ===
+  const rows = getArrayData(data, summaryKey);
   const normalizedRows = rows ? normalizeRows(rows) : [];
   const isRescueRequestTable = normalizedRows.some(isRescueRequestRow);
   const columns = rows
@@ -388,9 +428,17 @@ export default function SummaryDetailPanel({
       ? buildRescueRequestColumns()
       : buildColumns(normalizedRows)
     : [];
-  const summaryFields = buildSummaryFields(data);
-  const totalCount = data?.total ?? normalizedRows.length ?? 0;
-  const note = data?.note;
+
+  const summaryFields = buildSummaryFields(data?.summary || data);
+
+  // Tính totalCount tốt hơn
+  const totalCount = 
+    data?.summary?.totalRequests ?? 
+    data?.summary?.activeCampaigns ?? 
+    data?.summary?.inventoryAlertCount ?? 
+    normalizedRows.length ?? 
+    0;
+
   const [selectedRowKey, setSelectedRowKey] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -403,6 +451,7 @@ export default function SummaryDetailPanel({
     () => normalizedRows.find((row) => row.key === selectedRowKey) ?? null,
     [normalizedRows, selectedRowKey]
   );
+
   const rescueRequestDetailFields = buildRescueRequestDetailFields(selectedRow);
   const requestImages = getRequestImages(selectedRow);
   const attachmentImages = normalizeAttachments(selectedRow?.attachments)
