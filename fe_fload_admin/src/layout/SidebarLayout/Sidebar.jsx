@@ -141,7 +141,7 @@ const menuByRole = {
     },
    
     {
-      label: "Nhiệm vụ cứu hộ",
+      label: "Nhiệm vụ ",
       icon: <CarryOutOutlined />,
       path: "/rescueTeam",
       end: true,
@@ -163,11 +163,7 @@ const menuByRole = {
       icon: <UserOutlined />,
       path: "/rescueTeam/list-member",
     },
-    {
-      label: "Lịch sử nhiêm vụ cứu trợ",
-      icon: <HistoryOutlined />,
-      path: "/rescueTeam/history-cuu-tro",
-    },
+ 
   ],
 };
 

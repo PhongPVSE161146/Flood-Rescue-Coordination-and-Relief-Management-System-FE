@@ -1,7 +1,7 @@
 import "./MissionListRescue.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Pagination, Spin } from "antd";
+import { Pagination, Spin, Select } from "antd";
 
 import {
   getAllAssignments,
@@ -29,6 +29,9 @@ export default function MissionListRescue() {
   const [loading, setLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterName, setFilterName] = useState(null);
+const [filterPhone, setFilterPhone] = useState(null);
+const [filterAddress, setFilterAddress] = useState(null);
   const pageSize = 5;
 
   const user =
@@ -118,7 +121,7 @@ export default function MissionListRescue() {
         setMissions([]);
         return;
       }
-
+  
       /* 🔥 FILTER KHÔNG LẤY COMPLETED */
       const myAssignments = assignments
         .filter(a => a.rescueTeamId === myTeamId)
@@ -164,15 +167,34 @@ export default function MissionListRescue() {
   /* RESET PAGE */
   useEffect(() => {
     setCurrentPage(1);
-  }, [missions]);
+  }, [filterName, filterPhone, filterAddress]);
 
+  const nameOptions = [...new Set(missions.map(m => m.name))]
+  .filter(Boolean)
+  .map(v => ({ label: v, value: v }));
+
+const phoneOptions = [...new Set(missions.map(m => m.phone))]
+  .filter(Boolean)
+  .map(v => ({ label: v, value: v }));
+
+const addressOptions = [...new Set(missions.map(m => m.address))]
+  .filter(Boolean)
+  .map(v => ({ label: v, value: v }));
+
+
+  const filteredMissions = missions.filter((m) => {
+    const matchName = !filterName || m.name === filterName;
+    const matchPhone = !filterPhone || m.phone === filterPhone;
+    const matchAddress = !filterAddress || m.address === filterAddress;
+  
+    return matchName && matchPhone && matchAddress;
+  });
   /* ================= PAGINATION ================= */
 
-  const paginatedMissions = missions.slice(
+  const paginatedMissions = filteredMissions.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
   /* ================= ACCEPT ================= */
 
   const handleAccept = async (id) => {
@@ -208,9 +230,43 @@ export default function MissionListRescue() {
 
       <div className="rm-header-fixed">
         <h3>Nhiệm vụ của tôi</h3>
-        <span style={{color:"white", fontSize: 20}}>{missions.length} nhiệm vụ</span>
+        <span style={{color:"white", fontSize: 20}}>
+  {filteredMissions.length} nhiệm vụ
+</span>
       </div>
+      <div className="rm-filter">
 
+<Select
+  allowClear
+  showSearch
+  placeholder="👤 Chọn tên"
+  options={nameOptions}
+  value={filterName}
+  onChange={setFilterName}
+  style={{ width: "100%" }}
+/>
+
+<Select
+  allowClear
+  showSearch
+  placeholder="📱 Chọn SĐT"
+  options={phoneOptions}
+  value={filterPhone}
+  onChange={setFilterPhone}
+  style={{ width: "100%" }}
+/>
+
+<Select
+  allowClear
+  showSearch
+  placeholder="📍 Chọn địa chỉ"
+  options={addressOptions}
+  value={filterAddress}
+  onChange={setFilterAddress}
+  style={{ width: "100%" }}
+/>
+
+</div>
       <div className="rm-list-scroll">
 
       {loading && (
@@ -289,17 +345,15 @@ export default function MissionListRescue() {
       </div>
 
       {/* PAGINATION */}
-      {missions.length > pageSize && (
-        <div style={{ marginTop: 16, textAlign: "center" }}>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={missions.length}
-            onChange={setCurrentPage}
-            showSizeChanger={false}
-          />
-        </div>
-      )}
+      {filteredMissions.length > pageSize && (
+  <Pagination
+    current={currentPage}
+    pageSize={pageSize}
+    total={filteredMissions.length}
+    onChange={setCurrentPage}
+    showSizeChanger={false}
+  />
+)}
 
     </section>
   );
