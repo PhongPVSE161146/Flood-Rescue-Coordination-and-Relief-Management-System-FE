@@ -247,7 +247,7 @@ export default function MissionInProgress() {
           color: "#555",
         }}
       >
-        Vui lòng bấm vào nhiệm vụ để xem quá trình cứu hộ
+        Vui lòng bấm vào nhiệm vụ chọn nhiệm vụ cứu hộ để xem quá trình cứu hộ
       </div>
     );
 

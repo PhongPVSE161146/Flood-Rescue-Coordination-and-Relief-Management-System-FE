@@ -135,7 +135,7 @@ const menuByRole = {
 
    
     {
-      label: "Thống kê nhiệm vụ cứu hộ",
+      label: "Thống kê nhiệm vụ ",
       icon: <BarChartOutlined />,
       path: "/rescueTeam/dashboard-task",
     },

@@ -1,13 +1,13 @@
 import "./DistributionListRescueHistory.css";
 import { useEffect, useState } from "react";
-import { Pagination, Spin, Tag } from "antd";
+import { Pagination, Spin, Tag, Select } from "antd";
 import {
   getRescueTeamMembers,
   getAllRescueTeams,
   getAllDistributions,
   getAllAidCampaigns
 } from "../../../../../api/axios/RescueApi/RescueTask";
-
+import { useNavigate } from "react-router-dom";
 export default function DistributionListRescueHistory() {
 
   const [list, setList] = useState([]);
@@ -15,7 +15,9 @@ export default function DistributionListRescueHistory() {
   const [teamMap, setTeamMap] = useState({});
   const [campaignMap, setCampaignMap] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [filterCampaign, setFilterCampaign] = useState(null);
+const [filterStatus, setFilterStatus] = useState(null);
+const navigate = useNavigate();
   const pageSize = 3;
 
   const user =
@@ -71,7 +73,7 @@ export default function DistributionListRescueHistory() {
 
       const data = await getAllDistributions();
 
-      // ✅ CHỈ LẤY completed + rejected
+    
       const myList = data
         .filter(d => d.rescueTeamId === myTeamId)
         .filter(d => {
@@ -95,10 +97,47 @@ export default function DistributionListRescueHistory() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [list]);
+  }, [filterCampaign, filterStatus]);
 
+  const campaignOptions = [
+    { label: "Tất cả chiến dịch", value: "ALL" },
+    ...[...new Map(
+      list.map(item => [
+        item.campaignId || item.campaignID,
+        {
+          label:
+            campaignMap[item.campaignId]?.campaignName ||
+            campaignMap[item.campaignID]?.campaignName ||
+            `Chiến dịch ${item.campaignId}`,
+          value: item.campaignId || item.campaignID
+        }
+      ])
+    ).values()]
+  ];
+  
+  const statusOptions = [
+    { label: "Tất cả trạng thái", value: "ALL" },
+    { label: "Hoàn thành", value: "completed" },
+    { label: "Từ chối", value: "rejected" }
+  ];
+
+  const filteredList = list.filter(item => {
+
+    const matchCampaign =
+      !filterCampaign ||
+      filterCampaign === "ALL" ||
+      item.campaignId === filterCampaign ||
+      item.campaignID === filterCampaign;
+  
+    const matchStatus =
+      !filterStatus ||
+      filterStatus === "ALL" ||
+      item.status?.toLowerCase() === filterStatus;
+  
+    return matchCampaign && matchStatus;
+  });
   /* ================= PAGINATION ================= */
-  const paginated = list.slice(
+  const paginated = filteredList.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -127,10 +166,31 @@ export default function DistributionListRescueHistory() {
       <div className="rm-header-fixed">
         <h3>Lịch sử cứu trợ</h3>
         <span style={{ color: "white", fontSize: 20 }}>
-          {list.length} đợt
+        {filteredList.length} đợt
         </span>
       </div>
+      <div style={{ padding: 10, display: "flex", gap: 10 }}>
 
+<Select
+  allowClear
+  showSearch
+  placeholder=" Chọn chiến dịch"
+  options={campaignOptions}
+  value={filterCampaign}
+  onChange={setFilterCampaign}
+  style={{ width: "50%" }}
+/>
+
+<Select
+  allowClear
+  placeholder=" Trạng thái"
+  options={statusOptions}
+  value={filterStatus}
+  onChange={setFilterStatus}
+  style={{ width: "50%" }}
+/>
+
+</div>
       <div className="rm-list-scroll">
 
         {loading && (
@@ -195,23 +255,32 @@ export default function DistributionListRescueHistory() {
                 </span>
               </div>
 
-              {/* ❌ ĐÃ XÓA TOÀN BỘ BUTTON ACTION */}
+              {item.status?.toLowerCase() === "completed" && (
+  <div style={{ marginTop: 12, textAlign: "right" }}>
+    <button
+      className="rm-btn-detail"
+      onClick={() =>
+        navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`)
+      }
+    >
+      Xem chi tiết →
+    </button>
+  </div>
+)}
             </div>
           );
         })}
       </div>
 
       {/* PAGINATION */}
-      {list.length > pageSize && (
-        <div style={{ marginTop: 16, textAlign: "center" }}>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={list.length}
-            onChange={setCurrentPage}
-          />
-        </div>
-      )}
+      {filteredList.length > pageSize && (
+  <Pagination
+    current={currentPage}
+    pageSize={pageSize}
+    total={filteredList.length}
+    onChange={setCurrentPage}
+  />
+)}
 
     </section>
   );

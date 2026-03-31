@@ -24,6 +24,7 @@ const [actionType, setActionType] = useState("");
 const [campaignMap, setCampaignMap] = useState({});
 const [filterCampaign, setFilterCampaign] = useState(null);
 const [filterStatus, setFilterStatus] = useState(null);
+const [campaignOptions, setCampaignOptions] = useState([]);
 
 const [note, setNote] = useState("");
   const navigate = useNavigate();
@@ -61,32 +62,21 @@ const [note, setNote] = useState("");
   /* ================= LOAD ================= */
 
   const fetchDistributions = async () => {
-
     try {
       setLoading(true);
   
       if (!user?.userId) return;
   
-      // 🔥 lấy danh sách team
       const teamRes = await getAllRescueTeams();
       const teams = teamRes?.data?.items || [];
-  // 🔥 lấy campaign
-const campaigns = await getAllAidCampaigns();
-
-const cmap = {};
-campaigns.forEach(c => {
-  cmap[c.campaignID] = c;
-});
-
-setCampaignMap(cmap);
-      // 🔥 map id -> name
+  
+      // map team
       const map = {};
       teams.forEach(t => {
         map[t.rcid] = t.rcName;
       });
       setTeamMap(map);
   
-      // 🔥 tìm team của user
       const myTeamId = await findMyTeamId(teams, user.userId);
   
       if (!myTeamId) {
@@ -94,20 +84,44 @@ setCampaignMap(cmap);
         return;
       }
   
-      // 🔥 gọi API distribution
       const data = await getAllDistributions();
   
       const myList = data
-      .filter(d => d.rescueTeamId === myTeamId)
-      .filter(d => {
-        const status = d.status?.toLowerCase();
-    
-        // ❌ loại rejected + completed
-        return status !== "rejected" && status !== "completed";
-      })
-      .sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
+        .filter(d => d.rescueTeamId === myTeamId)
+        .filter(d => {
+          const status = d.status?.toLowerCase();
+          return status !== "rejected" && status !== "completed";
+        })
+        .sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
   
       setList(myList);
+  
+      // 🔥 tạo dropdown từ list
+      const campaignMapTemp = new Map();
+  
+      myList.forEach(d => {
+        const id = d.campaignId || d.campaignID;
+  
+        if (!campaignMapTemp.has(id)) {
+          campaignMapTemp.set(id, {
+            value: id,
+            label: d.campaignName || `Chiến dịch ${id}`
+          });
+        }
+      });
+  
+      setCampaignOptions([
+        { label: "Tất cả chiến dịch", value: "ALL" },
+        ...Array.from(campaignMapTemp.values())
+      ]);
+  
+      // 🔥 map campaign để hiển thị
+      const cmap = {};
+      myList.forEach(d => {
+        const id = d.campaignId || d.campaignID;
+        cmap[id] = d;
+      });
+      setCampaignMap(cmap);
   
     } catch (err) {
       console.error("Load distribution error:", err);
@@ -165,36 +179,30 @@ setCampaignMap(cmap);
     setCurrentPage(1);
   }, [filterCampaign, filterStatus]);
 
-  const campaignOptions = [
-    ...new Map(
-      Object.values(campaignMap).map(c => [c.campaignID, c])
-    ).values()
-  ].map(c => ({
-    label: c.campaignName,
-    value: c.campaignID
-  }));
-  const statusOptions = [
-    { label: "Tất cả trạng thái", value: "ALL" },
-    { label: "Đang chờ", value: "pending" },
-    { label: "Đã nhận", value: "accepted" },
-    { label: "Đang phát", value: "in progress" }
-  ];
 
-  const filteredList = list.filter(item => {
 
-    const matchCampaign =
-      !filterCampaign ||
-      filterCampaign === "ALL" ||
-      item.campaignId === filterCampaign ||
-      item.campaignID === filterCampaign;
-  
-    const matchStatus =
-      !filterStatus ||
-      filterStatus === "ALL" ||
-      item.status?.toLowerCase() === filterStatus;
-  
-    return matchCampaign && matchStatus;
-  });
+const statusOptions = [
+  { label: "Tất cả trạng thái", value: "ALL" },
+  { label: "Đang chờ", value: "pending" },
+  { label: "Đã nhận", value: "accepted" },
+  { label: "Đang phát", value: "in progress" }
+];
+
+const filteredList = list.filter(item => {
+
+  const matchCampaign =
+    !filterCampaign ||
+    filterCampaign === "ALL" ||
+    item.campaignId === filterCampaign ||
+    item.campaignID === filterCampaign;
+
+  const matchStatus =
+    !filterStatus ||
+    filterStatus === "ALL" ||
+    item.status?.toLowerCase() === filterStatus;
+
+  return matchCampaign && matchStatus;
+});
   /* ================= PAGINATION ================= */
   const paginated = filteredList.slice(
     (currentPage - 1) * pageSize,
@@ -232,24 +240,27 @@ setCampaignMap(cmap);
         {filteredList.length} đợt
         </span>
       </div>
-      <div style={{ padding: 10 }}>
-  <Select
-    allowClear
-    showSearch
-    placeholder=" Chọn chiến dịch"
-    options={campaignOptions}
-    value={filterCampaign}
-    onChange={setFilterCampaign}
-    style={{ width: "100%" }}
-  />
-  <Select
-    allowClear
-    placeholder=" Chọn trạng thái"
-    options={statusOptions}
-    value={filterStatus}
-    onChange={setFilterStatus}
-    style={{ width: "50%" }}
-  />
+      <div style={{ padding: 10, display: "flex", gap: 10 }}>
+
+<Select
+  allowClear
+  showSearch
+  placeholder=" Chọn chiến dịch"
+  options={campaignOptions}
+  value={filterCampaign}
+  onChange={setFilterCampaign}
+  style={{ width: "50%" }}
+/>
+
+<Select
+  allowClear
+  placeholder=" Chọn trạng thái"
+  options={statusOptions}
+  value={filterStatus}
+  onChange={setFilterStatus}
+  style={{ width: "50%" }}
+/>
+
 </div>
       <div className="rm-list-scroll">
   
