@@ -62,6 +62,7 @@ const [note, setNote] = useState("");
   /* ================= LOAD ================= */
 
   const fetchDistributions = async () => {
+    
     try {
       setLoading(true);
   
