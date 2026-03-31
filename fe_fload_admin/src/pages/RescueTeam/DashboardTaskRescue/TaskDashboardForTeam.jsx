@@ -138,6 +138,7 @@ export default function TaskDashboardForTeam() {
       .filter((d) => d.rescueTeamId === myTeamId)
       .map((d) => ({
         distributionId: d.distributionId, // ✅ THÊM DÒNG NÀY
+        campaignId: d.campaignId,
         campaignName:
           cmap[d.campaignId]?.campaignName ||
           "Không rõ chiến dịch",
@@ -423,10 +424,16 @@ export default function TaskDashboardForTeam() {
           }
         }}
       >
-        <div>
-          <b>{item.campaignName}</b>
-          <div>⏱ {item.time}</div>
-        </div>
+ <div
+  onClick={(e) => {
+    e.stopPropagation();
+    navigate(`/rescueTeam/cuu-tro/${item.campaignId}`);
+  }}
+  style={{ cursor: "pointer" }}
+>
+  <b>{item.campaignName}</b>
+  <div>⏱ {item.time}</div>
+</div>
 
         <div
           className={`task-dashboard__status task-dashboard__status--${item.status}`}

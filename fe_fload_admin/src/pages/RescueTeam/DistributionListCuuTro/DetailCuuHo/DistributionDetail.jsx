@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spin, Divider, Button, Table, Input } from "antd";
+import { Spin, Divider, Button, Table, Input, Tag } from "antd";
 
 import {
   getPeriodicAidCampaignById,
@@ -22,6 +22,7 @@ export default function DistributionDetail() {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
+  /* ================= HELPER ================= */
   const toArray = (res) => {
     if (!res) return [];
     if (Array.isArray(res)) return res;
@@ -31,6 +32,36 @@ export default function DistributionDetail() {
     return [];
   };
 
+  /* ================= STATUS ================= */
+  const renderStatus = (status) => {
+    const map = {
+      // EN
+      pending: { text: "Đang chờ", color: "gold" },
+      accepted: { text: "Đã nhận", color: "blue" },
+      "in progress": { text: "Đang phát", color: "processing" },
+      completed: { text: "Hoàn thành", color: "green" },
+      rejected: { text: "Từ chối", color: "red" },
+
+      // VI
+      "đang chờ": { text: "Đang chờ", color: "gold" },
+      "đã nhận": { text: "Đã nhận", color: "blue" },
+      "đang phát": { text: "Đang phát", color: "processing" },
+      "hoàn thành": { text: "Hoàn thành", color: "green" },
+      "từ chối": { text: "Từ chối", color: "red" },
+      "chưa nhận": { text: "Chưa nhận", color: "gold" },
+    };
+
+    const key = status?.toLowerCase()?.trim();
+
+    const s = map[key] || {
+      text: status || "Không xác định",
+      color: "default",
+    };
+
+    return <Tag color={s.color}>{s.text}</Tag>;
+  };
+
+  /* ================= LOAD ================= */
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -46,7 +77,7 @@ export default function DistributionDetail() {
         getSupplyPlansByCampaign(id),
         getReliefItems(),
         getReliefWarehouses(),
-        getBeneficiariesByCampaign(id), // 🔥 NEW
+        getBeneficiariesByCampaign(id),
       ]);
 
       setCampaign(campaignRes);
@@ -83,23 +114,21 @@ export default function DistributionDetail() {
   /* ================= MERGE DATA ================= */
 
   const tableData = beneficiaries
-  
     .map((b) => {
-      const plan = plans[0]; // 👉 tạm gán 1 plan (nếu backend chưa link)
+      const plan = plans[0]; // ⚠️ backend chưa link
 
       return {
         key: b.beneficiaryId,
-
         name: b.fullName,
         phone: b.phone,
         address: b.address,
         group: b.targetGroup,
+        people: b.householdSize,
 
         itemName: plan
           ? itemMap[plan.reliefItemId] || "—"
           : "—",
 
-          people: b.householdSize, 
         approved: plan?.approvedQuantity || 0,
 
         warehouseName: plan
@@ -115,7 +144,8 @@ export default function DistributionDetail() {
         row.phone?.includes(search)
       );
     });
-    const totalHouseholds = tableData.length;
+
+  const totalHouseholds = tableData.length;
 
   /* ================= COLUMNS ================= */
 
@@ -146,9 +176,7 @@ export default function DistributionDetail() {
     },
     {
       title: "Số lượng hỗ trợ",
-      render: (_, r) => (
-        <b>{r.approved} </b>
-      ),
+      render: (_, r) => <b>{r.approved}</b>,
     },
     {
       title: "Kho",
@@ -157,8 +185,11 @@ export default function DistributionDetail() {
     {
       title: "Trạng thái",
       dataIndex: "status",
+      render: renderStatus,
     },
   ];
+
+  /* ================= UI ================= */
 
   if (loading) return <Spin />;
 
@@ -172,28 +203,38 @@ export default function DistributionDetail() {
       <Divider />
 
       <p><b>Tên chiến dịch:</b> {campaign?.campaignName}</p>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-  
-  {/* LEFT */}
-  <Input
-    placeholder="Tìm tên hoặc SĐT..."
-    style={{ maxWidth: 300 }}
-    onChange={(e) => setSearch(e.target.value)}
-  />
 
-  {/* RIGHT 👉 TỔNG */}
-  <div style={{ fontWeight: 600 }}>
-    Tổng: <span style={{ color: "#1890ff" }}>{totalHouseholds}</span> người nhận
-  </div>
+      {/* HEADER TABLE */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 10,
+        }}
+      >
+        <Input
+          placeholder="Tìm tên hoặc SĐT..."
+          style={{ maxWidth: 300 }}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-</div>
+        <div style={{ fontWeight: 600 }}>
+          Tổng:{" "}
+          <span style={{ color: "#1890ff" }}>
+            {totalHouseholds}
+          </span>{" "}
+          người nhận
+        </div>
+      </div>
 
-<Table
-  columns={columns}
-  dataSource={tableData}
-  pagination={{ pageSize: 5 }}
-  bordered
-/>
+      <Table
+        columns={columns}
+        dataSource={tableData}
+        pagination={{ pageSize: 5 }}
+        bordered
+      />
+
     </div>
   );
 }
