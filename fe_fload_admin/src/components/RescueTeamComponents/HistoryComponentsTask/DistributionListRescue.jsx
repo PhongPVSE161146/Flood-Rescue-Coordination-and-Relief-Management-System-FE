@@ -1,6 +1,6 @@
 import "./DistributionListRescue.css";
 import { useEffect, useState } from "react";
-import { Pagination, Spin, Tag, Select } from "antd";
+import { Pagination, Spin, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   getRescueTeamMembers,
@@ -20,12 +20,8 @@ export default function DistributionListRescue() {
   const [currentPage, setCurrentPage] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
 const [selectedId, setSelectedId] = useState(null);
-const [actionType, setActionType] = useState(""); 
+const [actionType, setActionType] = useState(""); // Completed | Rejected
 const [campaignMap, setCampaignMap] = useState({});
-const [filterCampaign, setFilterCampaign] = useState(null);
-const [filterStatus, setFilterStatus] = useState(null);
-const [campaignOptions, setCampaignOptions] = useState([]);
-
 const [note, setNote] = useState("");
   const navigate = useNavigate();
   const pageSize = 3;
@@ -62,22 +58,32 @@ const [note, setNote] = useState("");
   /* ================= LOAD ================= */
 
   const fetchDistributions = async () => {
-    
+
     try {
       setLoading(true);
   
       if (!user?.userId) return;
   
+      // 🔥 lấy danh sách team
       const teamRes = await getAllRescueTeams();
       const teams = teamRes?.data?.items || [];
-  
-      // map team
+  // 🔥 lấy campaign
+const campaigns = await getAllAidCampaigns();
+
+const cmap = {};
+campaigns.forEach(c => {
+  cmap[c.campaignID] = c;
+});
+
+setCampaignMap(cmap);
+      // 🔥 map id -> name
       const map = {};
       teams.forEach(t => {
         map[t.rcid] = t.rcName;
       });
       setTeamMap(map);
   
+      // 🔥 tìm team của user
       const myTeamId = await findMyTeamId(teams, user.userId);
   
       if (!myTeamId) {
@@ -85,44 +91,20 @@ const [note, setNote] = useState("");
         return;
       }
   
+      // 🔥 gọi API distribution
       const data = await getAllDistributions();
   
       const myList = data
-        .filter(d => d.rescueTeamId === myTeamId)
-        .filter(d => {
-          const status = d.status?.toLowerCase();
-          return status !== "rejected" && status !== "completed";
-        })
-        .sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
+      .filter(d => d.rescueTeamId === myTeamId)
+      .filter(d => {
+        const status = d.status?.toLowerCase();
+    
+        // ❌ loại rejected + completed
+        return status !== "rejected" && status !== "completed";
+      })
+      .sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
   
       setList(myList);
-  
-      // 🔥 tạo dropdown từ list
-      const campaignMapTemp = new Map();
-  
-      myList.forEach(d => {
-        const id = d.campaignId || d.campaignID;
-  
-        if (!campaignMapTemp.has(id)) {
-          campaignMapTemp.set(id, {
-            value: id,
-            label: d.campaignName || `Chiến dịch ${id}`
-          });
-        }
-      });
-  
-      setCampaignOptions([
-        { label: "Tất cả chiến dịch", value: "ALL" },
-        ...Array.from(campaignMapTemp.values())
-      ]);
-  
-      // 🔥 map campaign để hiển thị
-      const cmap = {};
-      myList.forEach(d => {
-        const id = d.campaignId || d.campaignID;
-        cmap[id] = d;
-      });
-      setCampaignMap(cmap);
   
     } catch (err) {
       console.error("Load distribution error:", err);
@@ -178,34 +160,11 @@ const [note, setNote] = useState("");
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterCampaign, filterStatus]);
+  }, [list]);
 
-
-
-const statusOptions = [
-  { label: "Tất cả trạng thái", value: "ALL" },
-  { label: "Đang chờ", value: "pending" },
-  { label: "Đã nhận", value: "accepted" },
-  { label: "Đang phát", value: "in progress" }
-];
-
-const filteredList = list.filter(item => {
-
-  const matchCampaign =
-    !filterCampaign ||
-    filterCampaign === "ALL" ||
-    item.campaignId === filterCampaign ||
-    item.campaignID === filterCampaign;
-
-  const matchStatus =
-    !filterStatus ||
-    filterStatus === "ALL" ||
-    item.status?.toLowerCase() === filterStatus;
-
-  return matchCampaign && matchStatus;
-});
   /* ================= PAGINATION ================= */
-  const paginated = filteredList.slice(
+
+  const paginated = list.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -238,31 +197,10 @@ const filteredList = list.filter(item => {
       <div className="rm-header-fixed">
         <h3>Danh sách cứu trợ</h3>
         <span style={{ color: "white", fontSize: 20 }}>
-        {filteredList.length} đợt
+          {list.length} đợt
         </span>
       </div>
-      <div style={{ padding: 10, display: "flex", gap: 10 }}>
-
-<Select
-  allowClear
-  showSearch
-  placeholder=" Chọn chiến dịch"
-  options={campaignOptions}
-  value={filterCampaign}
-  onChange={setFilterCampaign}
-  style={{ width: "50%" }}
-/>
-
-<Select
-  allowClear
-  placeholder=" Chọn trạng thái"
-  options={statusOptions}
-  value={filterStatus}
-  onChange={setFilterStatus}
-  style={{ width: "50%" }}
-/>
-
-</div>
+  
       <div className="rm-list-scroll">
   
         {loading && (
@@ -297,7 +235,7 @@ const filteredList = list.filter(item => {
                     Tên chiến dịch: {campaign?.campaignName || `Chiến dịch ${item.campaignId}`}
                   </h4>
   
-             
+            
                   <div className="rm-campaign-info">
   <span className="rm-date">
     Lịch: {campaign
@@ -394,14 +332,16 @@ const filteredList = list.filter(item => {
       </div>
   
       {/* PAGINATION */}
-      {filteredList.length > pageSize && (
-  <Pagination
-    current={currentPage}
-    pageSize={pageSize}
-    total={filteredList.length}
-    onChange={setCurrentPage}
-  />
-)}
+      {list.length > pageSize && (
+        <div style={{ marginTop: 16, textAlign: "center" }}>
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={list.length}
+            onChange={setCurrentPage}
+          />
+        </div>
+      )}
   
       {/* MODAL */}
       <Modal
