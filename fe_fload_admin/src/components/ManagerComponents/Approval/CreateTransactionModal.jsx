@@ -1,10 +1,9 @@
-import { Modal, Form, Input, InputNumber, Button, Select } from "antd";
+import { Modal, Form, Input, InputNumber, Button, Select, Space } from "antd";
 import { useState, useEffect } from "react";
 
 import {
   createInventoryTransaction,
   getAllWarehouses,
-  getPendingRescueRequests,
   getAllReliefItems,
 } from "../../../../api/axios/ManagerApi/inventoryApi";
 
@@ -15,7 +14,6 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
 
   const [warehouses, setWarehouses] = useState([]);
-  const [requests, setRequests] = useState([]);
   const [items, setItems] = useState([]);
 
   /* ================= NORMALIZE ================= */
@@ -35,56 +33,60 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
 
   const fetchData = async () => {
     try {
-      const [whRes, rqRes, itemRes] = await Promise.all([
+      const [whRes, itemRes] = await Promise.all([
         getAllWarehouses(),
-        getPendingRescueRequests(),
         getAllReliefItems(),
       ]);
 
       const wh = normalize(whRes);
-      const rq = normalize(rqRes);
       const it = normalize(itemRes);
 
       console.log("🏬 Warehouses:", wh);
-      console.log("🆘 Requests:", rq);
       console.log("📦 Items:", it);
 
+      if (!Array.isArray(it) || it.length === 0) {
+        console.warn("No items received from API");
+      }
+
       setWarehouses(wh);
-      setRequests(rq);
       setItems(it);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching data:", err);
       AuthNotify.error("Load dữ liệu thất bại");
     }
   };
 
-  /* ================= BUILD LABEL REQUEST ================= */
-  const buildRequestLabel = (r) => {
-    return (
-      r.fullName ||
-      r.beneficiaryName ||
-      r.receiverName ||
-      r.userName ||
-      r.createdByName ||
-      `Request #${r.rescueRequestId}`
-    );
-  };
   /* ================= SUBMIT ================= */
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
 
+      const rawLines = Array.isArray(values.lines) ? values.lines : [];
+      if (rawLines.length === 0) {
+        AuthNotify.error("Vui lòng thêm ít nhất 1 hàng hóa");
+        setLoading(false);
+        return;
+      }
+
+      const lines = rawLines
+        .filter((l) => l && l.reliefItemId != null && l.quantity != null)
+        .map((l) => ({
+          reliefItemId: Number(l.reliefItemId),
+          quantity: Number(l.quantity),
+        }))
+        .filter((l) => Number.isFinite(l.reliefItemId) && l.reliefItemId > 0 && Number.isFinite(l.quantity) && l.quantity > 0);
+
+      if (lines.length === 0) {
+        AuthNotify.error("Dữ liệu hàng hóa không hợp lệ");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         warehouseId: Number(values.warehouseId),
         transactionType: values.transactionType,
-        rescueRequestId: Number(values.rescueRequestId),
         note: values.note,
-        lines: [
-          {
-            reliefItemId: Number(values.reliefItemId),
-            quantity: Number(values.quantity),
-          },
-        ],
+        lines,
       };
 
       console.log("🚀 PAYLOAD:", payload);
@@ -116,7 +118,12 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
       onCancel={onClose}
       footer={null}
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={{ lines: [{}] }}
+      >
 
         {/* WAREHOUSE */}
         <Form.Item
@@ -150,53 +157,96 @@ export default function CreateTransactionModal({ open, onClose, onSuccess }) {
           />
         </Form.Item>
 
-        {/* 🔥 RESCUE REQUEST FIXED */}
-        <Form.Item
-          name="rescueRequestId"
-          label="Yêu cầu cứu trợ"
-          rules={[{ required: true, message: "Chọn yêu cầu cứu trợ" }]}
-        >
-          <Select
-            placeholder="Chọn request"
-            showSearch
-            allowClear
-            optionFilterProp="label"
-            options={requests.map((r) => ({
-              value: r.rescueRequestId,
-              label: buildRequestLabel(r),
-            }))}
-          />
-        </Form.Item>
+        {/* DANH SÁCH HÀNG HÓA */}
+        <Form.List name="lines">
+          {(fields, { add, remove }) => (
+            <div
+              style={{
+                border: "1px solid #f0f0f0",
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 16,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ fontWeight: 500 }}>Danh sách hàng hóa</span>
+                <Button type="dashed" size="small" onClick={() => add()}>
+                  + Thêm hàng hóa
+                </Button>
+              </div>
 
-        {/* ITEM */}
-        <Form.Item
-          name="reliefItemId"
-          label="Hàng hóa"
-          rules={[{ required: true, message: "Chọn hàng hóa" }]}
-        >
-          <Select
-            placeholder="Chọn item"
-            showSearch
-            optionFilterProp="label"
-            options={items.map((i) => ({
-              label: `${i.itemName}${i.unit ? ` (${i.unit})` : ""}`,
-              value: i.reliefItemId,
-            }))}
-          />
-        </Form.Item>
+              {fields.length === 0 && (
+                <div style={{ color: "#999", fontStyle: "italic" }}>
+                  Chưa có hàng hóa nào, bấm "Thêm hàng hóa" để bắt đầu.
+                </div>
+              )}
 
-        {/* QUANTITY */}
-        <Form.Item
-          name="quantity"
-          label="Số lượng"
-          rules={[{ required: true, message: "Nhập số lượng" }]}
-        >
-          <InputNumber
-            style={{ width: "100%" }}
-            min={1}
-            max={1000000}
-          />
-        </Form.Item>
+              {fields.map((field, index) => (
+                <Space
+                  key={field.key || index} // Ensure unique keys
+                  style={{ display: "flex", marginBottom: 8 }}
+                  align="baseline"
+                >
+                  <Form.Item
+                    {...field}
+                    name={[field.name, "reliefItemId"]}
+                    fieldKey={[field.fieldKey, "reliefItemId"]}
+                    label={index === 0 ? "Hàng hóa" : ""}
+                    rules={[{ required: true, message: "Chọn hàng hóa" }]}
+                  >
+                    <Select
+                      placeholder="Chọn hàng hóa"
+                      showSearch
+                      optionFilterProp="label"
+                      style={{ width: 260 }}
+                      options={items.map((i) => {
+                        const value =
+                          i?.reliefItemId ?? i?.id ?? i?.itemId;
+                        const labelName =
+                          i?.itemName ?? i?.name ?? i?.reliefItemName ?? `Vật phẩm #${value}`;
+                        return {
+                          label: `${labelName}${i.unit ? ` (${i.unit})` : ""}`,
+                          value,
+                        };
+                      })}
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    {...field}
+                    name={[field.name, "quantity"]}
+                    fieldKey={[field.fieldKey, "quantity"]}
+                    label={index === 0 ? "Số lượng" : ""}
+                    rules={[{ required: true, message: "Nhập số lượng" }]}
+                  >
+                    <InputNumber
+                      min={1}
+                      max={1000000}
+                      style={{ width: 140 }}
+                    />
+                  </Form.Item>
+
+                  {fields.length > 1 && (
+                    <Button
+                      danger
+                      type="link"
+                      onClick={() => remove(field.name)}
+                    >
+                      Xóa
+                    </Button>
+                  )}
+                </Space>
+              ))}
+            </div>
+          )}
+        </Form.List>
 
         {/* NOTE */}
         <Form.Item name="note" label="Ghi chú">

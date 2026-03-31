@@ -25,6 +25,7 @@ export default function DashboardOverview() {
   const [summaryDetailData, setSummaryDetailData] = useState(null);
   const [summaryDetailLoading, setSummaryDetailLoading] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
+  const [syncedSummary, setSyncedSummary] = useState(null);
 
   const normalize = (res) => res?.data || res || {};
 
@@ -34,13 +35,27 @@ export default function DashboardOverview() {
     try {
       setLoading(true);
 
-      const [dashboardRes, completedRequests] = await Promise.all([
+      const [dashboardRes, completedRequests, totalDetail, openDetail, assignedDetail, overdueDetail, campaignDetail, stockDetail] = await Promise.all([
         getDashboardManagement(),
         getCompletedRequestsCount(),
+        getDashboardSummaryDetail("total"),
+        getDashboardSummaryDetail("open"),
+        getDashboardSummaryDetail("assigned"),
+        getDashboardSummaryDetail("overdue"),
+        getDashboardSummaryDetail("campaign"),
+        getDashboardSummaryDetail("stock"),
       ]);
 
       setData(normalize(dashboardRes));
       setCompletedCount(completedRequests);
+      setSyncedSummary({
+        totalRequests: Number(totalDetail?.total ?? 0),
+        openRequests: Number(openDetail?.total ?? 0),
+        activeAssignments: Number(assignedDetail?.total ?? 0),
+        overdueRequests: Number(overdueDetail?.total ?? 0),
+        activeCampaigns: Number(campaignDetail?.total ?? 0),
+        inventoryAlertCount: Number(stockDetail?.total ?? 0),
+      });
     } catch (err) {
       console.error(err);
       message.error("Lỗi tải dashboard");
@@ -79,12 +94,14 @@ export default function DashboardOverview() {
 
   if (!data) return null;
 
+  const summaryForCards = syncedSummary || data.summary;
+
   return (
     <div className="dashboard">
 
       {/* 🔥 SUMMARY */}
       <SummaryCards
-        summary={data.summary}
+        summary={summaryForCards}
         activeKey={activeSummaryKey}
         onClickItem={handleSummaryCardClick}
         completedValue={completedCount}
