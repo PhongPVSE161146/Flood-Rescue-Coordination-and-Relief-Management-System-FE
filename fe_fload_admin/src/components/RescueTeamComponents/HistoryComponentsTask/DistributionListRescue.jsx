@@ -374,12 +374,12 @@ const filteredList = list.filter(item => {
     minWidth: "120px"
   }}
   onClick={() =>
-    item.status?.toLowerCase() === "accepted"
-      ? navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`) // 👉 xem quá trình
-      : navigate(`/rescueTeam/cuu-tro/${item.distributionId}`) // 👉 xem chi tiết
+    ["accepted", "in progress"].includes(item.status?.toLowerCase())
+      ? navigate(`/rescueTeam/chi-tiet-tro/${item.distributionId}`)
+      : navigate(`/rescueTeam/cuu-tro/${item.distributionId}`)
   }
 >
-  {item.status?.toLowerCase() === "accepted"
+  {["accepted", "in progress"].includes(item.status?.toLowerCase())
     ? "Xem quá trình →"
     : "Xem chi tiết →"}
 </button>

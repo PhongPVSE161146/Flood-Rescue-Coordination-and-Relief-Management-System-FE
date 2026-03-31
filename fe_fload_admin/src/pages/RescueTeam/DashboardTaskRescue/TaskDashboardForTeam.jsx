@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,  } from "react";
 import {
   Card,
   Row,
@@ -16,7 +16,7 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
-
+import { useNavigate } from "react-router-dom";
 import "./TaskDashboardForTeam.css";
 
 import {
@@ -51,7 +51,7 @@ export default function TaskDashboardForTeam() {
   const [campaignMap, setCampaignMap] = useState({});
   const [distributionFilter, setDistributionFilter] = useState("all");
   const pageSize = 5;
-
+  const navigate = useNavigate();
   const user =
     JSON.parse(localStorage.getItem("user")) ||
     JSON.parse(sessionStorage.getItem("user")) ||
@@ -118,6 +118,7 @@ export default function TaskDashboardForTeam() {
           if (status === "assigned") status = "pending";
 
           return {
+            id: a.assignmentId,
             name: req?.fullName || "Không rõ",
             phone: req?.contactPhone || "Không có",
             address: req?.address || "Chưa có",
@@ -287,19 +288,24 @@ export default function TaskDashboardForTeam() {
   </div>
 ) : (
   data.map((item, i) => (
-    <div key={i} className="task-dashboard__item">
-      <div>
-        <b>Họ ten: {item.name}</b>
-        <div>SĐT: {item.phone}</div>
-        <div>Địa chỉ: {item.address}</div>
-        <div>⏱Phân công lúc: {item.time}</div>
-      </div>
-      <div
-        className={`task-dashboard__status task-dashboard__status--${item.status}`}
-      >
-        {mapStatusVN(item.status)}
-      </div>
-    </div>
+<div
+  key={i}
+  className="task-dashboard__item"
+  onClick={() => navigate(`/rescueTeam/history/${item.id}`)}
+>
+  <div>
+    <b>Họ tên: {item.name}</b>
+    <div>SĐT: {item.phone}</div>
+    <div>Địa chỉ: {item.address}</div>
+    <div>⏱ Phân công lúc: {item.time}</div>
+  </div>
+
+  <div
+    className={`task-dashboard__status task-dashboard__status--${item.status}`}
+  >
+    {mapStatusVN(item.status)}
+  </div>
+</div>
   ))
 )}
 

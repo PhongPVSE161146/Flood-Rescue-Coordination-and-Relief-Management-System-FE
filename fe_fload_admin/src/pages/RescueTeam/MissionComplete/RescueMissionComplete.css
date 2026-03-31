@@ -455,3 +455,11 @@
   .rc-image-grid .rc-image-item:first-child img {
     height: 200px;
   }
+  .rc-timeline.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .rc-timeline.center .rc-timeline__step {
+    flex: 0 0 auto;
+  }
