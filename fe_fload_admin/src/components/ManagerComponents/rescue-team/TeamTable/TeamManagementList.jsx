@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-import {
-  Modal,
-  Pagination
-} from 'antd';
+import { Modal, Pagination, Input, Select, Space } from 'antd';
 
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import VehicleTable from "./VehicleTable";
@@ -41,6 +38,11 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 export default function TeamManagementList({
   teamsData,
   onTeamChanged,
+  searchQuery,
+  areaFilterId,
+  onSearchChange,
+  onAreaChange,
+  onResetFilters,
 }) {
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -178,14 +180,54 @@ export default function TeamManagementList({
           🚑 Danh sách đội cứu hộ ({teamsData.length})
         </div>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setCreateOpen(true)}
-          className="team-mgmt-create-btn"
-        >
-          Tạo đội cứu hộ
-        </Button>
+        <Space size={8} wrap>
+          <Input
+            allowClear
+            placeholder="Tìm theo tên đội / SĐT"
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            style={{ width: 220 }}
+          />
+
+          <Select
+            allowClear
+            placeholder="Khu vực"
+            style={{ width: 180 }}
+            value={areaFilterId}
+            onChange={onAreaChange}
+            options={[
+              ...Array.from(
+                new Map(
+                  teamsData
+                    .filter((t) => t.areaId != null)
+                    .map((t) => [
+                      Number(t.areaId),
+                      {
+                        value: Number(t.areaId),
+                        label: `Khu vực #${t.areaId}`,
+                      },
+                    ])
+                ).values()
+              ),
+            ]}
+          />
+
+          <Button
+            size="small"
+            onClick={() => onResetFilters?.()}
+          >
+            Xóa filter
+          </Button>
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateOpen(true)}
+            className="team-mgmt-create-btn"
+          >
+            Tạo đội cứu hộ
+          </Button>
+        </Space>
 
       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Spin, message } from "antd";
+import { Button, Spin, message, Input, Select, Space } from "antd";
 import {
   FilterOutlined,
   DownloadOutlined,
@@ -19,6 +19,8 @@ export default function RescueTeamManagement() {
   const [teams, setTeams] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [areaFilterId, setAreaFilterId] = useState(null);
   const fetchTeams = async () => {
     try {
       setLoading(true);
@@ -55,12 +57,28 @@ export default function RescueTeamManagement() {
   useEffect(() => {
     fetchTeams();
   }, []);
-  // Lọc đội theo trạng thái
   const getFilteredTeams = () => {
-    if (filterStatus === "all") return teams;
+    const q = searchQuery.trim().toLowerCase();
 
     return teams.filter((team) => {
-      return normalizeStatus(team.rcStatus) === filterStatus;
+      const byStatus =
+        filterStatus === "all" ||
+        normalizeStatus(team.rcStatus) === filterStatus;
+
+      const byArea =
+        !areaFilterId ||
+        Number(team.areaId) === Number(areaFilterId);
+
+      const byQuery =
+        !q ||
+        String(team.rcName ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(team.rcPhone ?? "")
+          .toLowerCase()
+          .includes(q);
+
+      return byStatus && byArea && byQuery;
     });
   };
 
@@ -166,10 +184,19 @@ export default function RescueTeamManagement() {
         /> */}
       </div>
 
+      {/* FILTER BAR */}
       <TeamManagementList
         teamsData={mappedTeams}
         filterStatus={filterStatus}
         onTeamChanged={fetchTeams}
+        searchQuery={searchQuery}
+        areaFilterId={areaFilterId}
+        onSearchChange={setSearchQuery}
+        onAreaChange={setAreaFilterId}
+        onResetFilters={() => {
+          setSearchQuery("");
+          setAreaFilterId(null);
+        }}
       />
       <ScheduleList />
     </div>

@@ -9,7 +9,8 @@ import {
   Empty,
   Modal,
   Input,
-  Select
+  Select,
+  Space
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,6 +22,7 @@ import {
   getBeneficiaryById,
   getAllReliefItems
 } from "../../../../api/axios/ManagerApi/periodicAidApi";
+import { deletePeriodicAidDistributionDetail } from "../../../../api/axios/RescueApi/RescueTask";
 import AuthNotify from "../../../utils/Common/AuthNotify";
 import CreateDistribution from "../../../components/ManagerComponents/DistributionPlanModal/CreateDistribuionPlan/CreateDistribution";
 import EditDistribution from "../../../components/ManagerComponents/DistributionPlanModal/EditDistribuitonPlan/EditDistribution";
@@ -314,17 +316,42 @@ export default function DistributionPage() {
       },
       {
         title: "Hành động",
-        width: 100,
+        width: 160,
         render: (_, detail) => (
-          <Button
-            size="small"
-            onClick={() => {
-              setSelectedDetail(detail);
-              setOpenEditDetail(true);
-            }}
-          >
-            Sửa
-          </Button>
+          <Space size="small">
+            <Button
+              size="small"
+              onClick={() => {
+                setSelectedDetail(detail);
+                setOpenEditDetail(true);
+              }}
+            >
+              Sửa
+            </Button>
+            <Popconfirm
+              title="Xóa người nhận khỏi đợt này?"
+              onConfirm={async () => {
+                try {
+                  const id = detail.detailId || detail.id;
+                  if (!id) {
+                    AuthNotify.error("Không xác định được ID chi tiết");
+                    return;
+                  }
+                  await deletePeriodicAidDistributionDetail(id);
+                  AuthNotify.success("Đã xóa khỏi đợt phân phối");
+                  // reload details for this distribution
+                  loadExpandedDetails(record.distributionId);
+                } catch (err) {
+                  console.error(err);
+                  AuthNotify.error("Xóa thất bại");
+                }
+              }}
+            >
+              <Button size="small" danger>
+                Xóa
+              </Button>
+            </Popconfirm>
+          </Space>
         ),
       },
     ];
