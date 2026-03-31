@@ -192,6 +192,9 @@ export default function ApprovalManagement() {
     },
   ];
 
+  const pendingCount = data.filter((t) => t.isPending).length;
+  const approvedCount = data.filter((t) => !t.isPending).length;
+
   /* ================= UI ================= */
 
   return (
@@ -232,7 +235,7 @@ export default function ApprovalManagement() {
       </div>
 
       <Tabs defaultActiveKey="1">
-        <Tabs.TabPane tab="Chờ phê duyệt" key="1">
+        <Tabs.TabPane tab={`Chờ phê duyệt (${pendingCount})`} key="1">
           <Table
             columns={columns}
             dataSource={filteredData.filter((t) => t.isPending)}
@@ -241,7 +244,7 @@ export default function ApprovalManagement() {
             bordered
           />
         </Tabs.TabPane>
-        <Tabs.TabPane tab="Đã phê duyệt" key="2">
+        <Tabs.TabPane tab={`Đã phê duyệt (${approvedCount})`} key="2">
           <Table
             columns={columns}
             dataSource={filteredData.filter((t) => !t.isPending)}
