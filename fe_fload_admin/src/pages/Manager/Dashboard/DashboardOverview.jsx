@@ -25,7 +25,6 @@ export default function DashboardOverview() {
   const [summaryDetailData, setSummaryDetailData] = useState(null);
   const [summaryDetailLoading, setSummaryDetailLoading] = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
-  const [syncedSummary, setSyncedSummary] = useState(null);
 
   const normalize = (res) => res?.data || res || {};
 
@@ -35,27 +34,16 @@ export default function DashboardOverview() {
     try {
       setLoading(true);
 
-      const [dashboardRes, completedRequests, totalDetail, openDetail, assignedDetail, overdueDetail, campaignDetail, stockDetail] = await Promise.all([
+      const [dashboardRes, completedRequests] = await Promise.all([
         getDashboardManagement(),
         getCompletedRequestsCount(),
-        getDashboardSummaryDetail("total"),
-        getDashboardSummaryDetail("open"),
-        getDashboardSummaryDetail("assigned"),
-        getDashboardSummaryDetail("overdue"),
-        getDashboardSummaryDetail("campaign"),
-        getDashboardSummaryDetail("stock"),
       ]);
 
-      setData(normalize(dashboardRes));
+      const dashboardData = normalize(dashboardRes);
+
+      setData(dashboardData);
       setCompletedCount(completedRequests);
-      setSyncedSummary({
-        totalRequests: Number(totalDetail?.total ?? 0),
-        openRequests: Number(openDetail?.total ?? 0),
-        activeAssignments: Number(assignedDetail?.total ?? 0),
-        overdueRequests: Number(overdueDetail?.total ?? 0),
-        activeCampaigns: Number(campaignDetail?.total ?? 0),
-        inventoryAlertCount: Number(stockDetail?.total ?? 0),
-      });
+
     } catch (err) {
       console.error(err);
       message.error("Lỗi tải dashboard");
@@ -68,6 +56,8 @@ export default function DashboardOverview() {
     fetchData();
   }, []);
 
+  /* ================= CLICK CARD ================= */
+
   const handleSummaryCardClick = async (summaryKey) => {
     try {
       setActiveSummaryKey(summaryKey);
@@ -78,10 +68,10 @@ export default function DashboardOverview() {
       const detailData = normalize(res);
 
       setSummaryDetailData(detailData);
-      console.log(`Dashboard summary detail [${summaryKey}]`, detailData);
+
     } catch (err) {
       console.error(err);
-      message.error("Loi tai du lieu chi tiet cho the dashboard");
+      message.error("Lỗi tải dữ liệu chi tiết");
     } finally {
       setSummaryDetailLoading(false);
     }
@@ -92,80 +82,80 @@ export default function DashboardOverview() {
     setSummaryDetailData(null);
   };
 
-  if (!data) return null;
+  /* ================= LOADING ================= */
 
-  const summaryForCards = syncedSummary || data.summary;
+  if (loading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  /* ================= SAFE DATA ================= */
+
+  const summaryForCards = data?.summary ?? {};
+
+  /* ================= UI ================= */
 
   return (
-<>
-  {loading && (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(0,0,0,0.4)",
-        zIndex: 9999,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Spin size="large" tip="Đang tải dashboard..." />
+    <div className="dashboard">
+
+      {/* SUMMARY */}
+      <SummaryCards
+        summary={summaryForCards}
+        activeKey={activeSummaryKey}
+        onClickItem={handleSummaryCardClick}
+        completedValue={completedCount}
+      />
+
+      {/* DETAIL PANEL */}
+      <SummaryDetailPanel
+        summaryKey={activeSummaryKey}
+        loading={summaryDetailLoading}
+        data={summaryDetailData}
+        onClear={handleCloseSummaryModal}
+      />
+
+      {/* CHART */}
+      <Row style={{ marginTop: 20 }}>
+        <Col span={24}>
+          <RescueTrendChart data={data?.rescueTrends} />
+        </Col>
+      </Row>
+
+      {/* TEAM + INVENTORY */}
+      <Row gutter={16} style={{ marginTop: 20 }}>
+        <Col span={12}>
+          <TeamStatus data={data?.teamStatusOverview} />
+        </Col>
+
+        <Col span={12}>
+          <InventoryAlerts data={data?.inventoryAlerts} />
+        </Col>
+      </Row>
+
+      {/* CAMPAIGN */}
+      <Row style={{ marginTop: 20 }}>
+        <Col span={24}>
+          <CampaignProgress data={data?.campaignProgress} />
+        </Col>
+      </Row>
+
+      {/* ACTIVITIES */}
+      <Row style={{ marginTop: 20 }}>
+        <Col span={24}>
+          <RecentActivities data={data?.recentActivities} />
+        </Col>
+      </Row>
+
     </div>
-  )}
-
-  <div className="dashboard">
-  <div className="dashboard">
-    
-    <SummaryCards
-      summary={summaryForCards}
-      activeKey={activeSummaryKey}
-      onClickItem={handleSummaryCardClick}
-      completedValue={completedCount}
-    />
-
-    <SummaryDetailPanel
-      summaryKey={activeSummaryKey}
-      loading={summaryDetailLoading}
-      data={summaryDetailData}
-      onClear={handleCloseSummaryModal}
-    />
-
-    <Row style={{ marginTop: 20 }}>
-      <Col span={24}>
-        <RescueTrendChart data={data?.rescueTrends} />
-      </Col>
-    </Row>
-
-    <Row gutter={16} style={{ marginTop: 20 }}>
-      <Col span={12}>
-        <TeamStatus data={data?.teamStatusOverview} />
-      </Col>
-
-      <Col span={12}>
-        <InventoryAlerts data={data?.inventoryAlerts} />
-      </Col>
-    </Row>
-
-    <Row style={{ marginTop: 20 }}>
-      <Col span={24}>
-        <CampaignProgress data={data?.campaignProgress} />
-      </Col>
-    </Row>
-
-    <Row style={{ marginTop: 20 }}>
-      <Col span={24}>
-        <RecentActivities data={data?.recentActivities} />
-      </Col>
-    </Row>
-
-  </div>
-  </div>
-</>
-    
- 
   );
 }

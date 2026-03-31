@@ -34,7 +34,7 @@ export default function CreateCampaign({ open, onClose, onSuccess }) {
         year: Number(values.year),
 
         // 🔥 FIX QUAN TRỌNG
-        status: "pending",
+        status: "active",
 
         createdByAdminId: Number(admin.userId || admin.id),
       };
