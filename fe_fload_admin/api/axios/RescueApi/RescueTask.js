@@ -435,3 +435,110 @@ export const deletePeriodicAidDistributionDetail = async (id) => {
     throw error;
   }
 };
+export const confirmAllDistributionDetail = async (distributionId, beneficiaryId) => {
+  try {
+    if (!distributionId || !beneficiaryId) {
+      throw new Error("Thiếu distributionId hoặc beneficiaryId");
+    }
+
+    const response = await axiosInstance.put(
+      `/api/periodic-aid-distribution-details/distribution/${distributionId}/beneficiary/${beneficiaryId}/confirm-all`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("CONFIRM ALL DISTRIBUTION DETAIL ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể xác nhận tất cả"
+    );
+  }
+};
+export const getSupplyPlansByCampaign = async (campaignId) => {
+  try {
+    if (!campaignId) {
+      throw new Error("Thiếu campaignId");
+    }
+
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-supply-plans/by-campaign/${campaignId}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET SUPPLY PLANS BY CAMPAIGN ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể lấy danh sách kế hoạch"
+    );
+  }
+};
+export const getReliefWarehouses = async () => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/relief-warehouses`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RELIEF WAREHOUSES ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể lấy danh sách kho cứu trợ"
+    );
+  }
+};
+export const getReliefItems = async () => {
+  try {
+    const response = await axiosInstance.get(
+      `/api/relief-items`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET RELIEF ITEMS ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể lấy danh sách vật phẩm"
+    );
+  }
+};
+export const getBeneficiariesByCampaign = async (campaignId) => {
+  try {
+    if (!campaignId) {
+      throw new Error("Thiếu campaignId");
+    }
+
+    const response = await axiosInstance.get(
+      `/api/periodic-aid-beneficiaries/by-campaign/${campaignId}`
+    );
+
+    return response.data;
+
+  } catch (error) {
+
+    console.error("GET BENEFICIARIES BY CAMPAIGN ERROR:", error);
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "Không thể lấy danh sách người nhận"
+    );
+  }
+};

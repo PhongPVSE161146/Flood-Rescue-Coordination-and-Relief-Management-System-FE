@@ -1,208 +1,199 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Spin, Tag, Divider, Button } from "antd";
+import { Spin, Divider, Button, Table, Input } from "antd";
 
 import {
-  getDistributionById,
-  getAllRescueTeams,
   getPeriodicAidCampaignById,
+  getSupplyPlansByCampaign,
+  getReliefItems,
+  getReliefWarehouses,
+  getBeneficiariesByCampaign
 } from "../../../../../api/axios/RescueApi/RescueTask";
-
-import "./DistributionDetail.css";
 
 export default function DistributionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState(null);
   const [campaign, setCampaign] = useState(null);
-  const [teamMap, setTeamMap] = useState({});
+  const [plans, setPlans] = useState([]);
+  const [beneficiaries, setBeneficiaries] = useState([]);
+  const [itemMap, setItemMap] = useState({});
+  const [warehouseMap, setWarehouseMap] = useState({});
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
-  /* ================= STATUS ================= */
-
-  const normalizeStatus = (status) => {
-    const map = {
-      "đang chờ": "pending",
-      "đã nhận": "accepted",
-      "hoàn thành": "completed",
-      "từ chối": "rejected",
-    };
-
-    return map[status?.toLowerCase()] || status?.toLowerCase();
+  const toArray = (res) => {
+    if (!res) return [];
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res.items)) return res.items;
+    if (Array.isArray(res.data)) return res.data;
+    if (Array.isArray(res.data?.items)) return res.data.items;
+    return [];
   };
 
-  const renderStatus = (status) => {
-    const map = {
-      pending: { color: "gold", text: "🟡 Chờ xác nhận" },
-      accepted: { color: "blue", text: "🔵 Đã nhận nhiệm vụ" },
-      completed: { color: "green", text: "✔ Hoàn thành nhiệm vụ" },
-      rejected: { color: "red", text: "❌ Đã từ chối nhiệm vụ" },
-    };
-
-    const key = normalizeStatus(status);
-    const s = map[key] || { color: "default", text: status };
-
-    return <Tag color={s.color}>{s.text}</Tag>;
-  };
-
-  /* ================= LOAD DATA ================= */
-
-  const fetchDetail = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
 
-      const [detail, teamRes] = await Promise.all([
-        getDistributionById(id),
-        getAllRescueTeams(),
+      const [
+        campaignRes,
+        plansRes,
+        itemsRes,
+        warehouseRes,
+        beneficiaryRes
+      ] = await Promise.all([
+        getPeriodicAidCampaignById(id),
+        getSupplyPlansByCampaign(id),
+        getReliefItems(),
+        getReliefWarehouses(),
+        getBeneficiariesByCampaign(id), // 🔥 NEW
       ]);
 
-      /* ===== DEBUG (QUAN TRỌNG) ===== */
-      console.log("TEAM RES:", teamRes);
+      setCampaign(campaignRes);
+      setPlans(toArray(plansRes));
+      setBeneficiaries(toArray(beneficiaryRes));
 
-      /* ===== CAMPAIGN ===== */
-      const campaignId = detail.campaignId || detail.campaignID;
-
-      if (campaignId) {
-        const campaignData = await getPeriodicAidCampaignById(campaignId);
-        setCampaign(campaignData);
-      }
-
-      /* ===== TEAM MAP FIX CHUẨN ===== */
-      // handle mọi kiểu API trả về
-      const teams =
-        teamRes?.items ||
-        teamRes?.data?.items ||
-        teamRes?.data ||
-        teamRes ||
-        [];
-
-      const map = {};
-
-      teams.forEach((t) => {
-        const teamId =
-          t.rcid ||
-          t.rcId ||
-          t.rescueTeamId ||
-          t.teamId ||
-          t.id;
-
-        const teamName =
-          t.rcName ||
-          t.teamName ||
-          t.name ||
-          t.rescueTeamName;
-
-        if (teamId) {
-          map[String(teamId)] = teamName;
-        }
+      /* ITEM */
+      const itemMapTemp = {};
+      toArray(itemsRes).forEach((i) => {
+        itemMapTemp[i.reliefItemId || i.id] =
+          i.itemName || i.name;
       });
+      setItemMap(itemMapTemp);
 
-      console.log("TEAM MAP:", map);
-      console.log("RESCUE TEAM ID:", detail.rescueTeamId);
-
-      setTeamMap(map);
-      setData(detail);
+      /* WAREHOUSE */
+      const warehouseMapTemp = {};
+      toArray(warehouseRes).forEach((w) => {
+        warehouseMapTemp[w.warehouseId || w.id] =
+          w.warehouseName || w.name;
+      });
+      setWarehouseMap(warehouseMapTemp);
 
     } catch (err) {
-      console.error("FETCH DETAIL ERROR:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDetail();
+    fetchData();
   }, [id]);
 
-  /* ================= UI ================= */
+  /* ================= MERGE DATA ================= */
 
-  if (loading) {
-    return (
-      <div className="detail-loading">
-        <Spin size="large" />
-      </div>
-    );
-  }
+  const tableData = beneficiaries
+  
+    .map((b) => {
+      const plan = plans[0]; // 👉 tạm gán 1 plan (nếu backend chưa link)
 
-  if (!data) {
-    return <p style={{ textAlign: "center" }}>Không có dữ liệu</p>;
-  }
+      return {
+        key: b.beneficiaryId,
 
-  const teamName =
-    teamMap[String(data.rescueTeamId)] ||
-    teamMap[data.rescueTeamId];
+        name: b.fullName,
+        phone: b.phone,
+        address: b.address,
+        group: b.targetGroup,
+
+        itemName: plan
+          ? itemMap[plan.reliefItemId] || "—"
+          : "—",
+
+          people: b.householdSize, 
+        approved: plan?.approvedQuantity || 0,
+
+        warehouseName: plan
+          ? warehouseMap[plan.warehouseId] || "—"
+          : "—",
+
+        status: b.status,
+      };
+    })
+    .filter((row) => {
+      return (
+        row.name?.toLowerCase().includes(search.toLowerCase()) ||
+        row.phone?.includes(search)
+      );
+    });
+    const totalHouseholds = tableData.length;
+
+  /* ================= COLUMNS ================= */
+
+  const columns = [
+    {
+      title: "Người nhận",
+      dataIndex: "name",
+    },
+    {
+      title: "SĐT",
+      dataIndex: "phone",
+    },
+    {
+      title: "Địa chỉ",
+      dataIndex: "address",
+    },
+    {
+      title: "Số người",
+      dataIndex: "people",
+    },
+    {
+      title: "Đối tượng",
+      dataIndex: "group",
+    },
+    {
+      title: "Vật phẩm",
+      dataIndex: "itemName",
+    },
+    {
+      title: "Số lượng hỗ trợ",
+      render: (_, r) => (
+        <b>{r.approved} </b>
+      ),
+    },
+    {
+      title: "Kho",
+      dataIndex: "warehouseName",
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+    },
+  ];
+
+  if (loading) return <Spin />;
 
   return (
-    <div className="detail-page">
+    <div style={{ padding: 20 }}>
 
-      {/* HEADER */}
-      <div className="detail-header">
-        <Button onClick={() => navigate(-1)}>← Quay lại</Button>
+      <Button onClick={() => navigate(-1)}>← Quay lại</Button>
 
-        <h2>Chi tiết cứu trợ: #{data.distributionId}</h2>
-
-        {renderStatus(data.status)}
-      </div>
+      <h2>Chi tiết chiến dịch</h2>
 
       <Divider />
 
-      {/* MAIN */}
-      <div className="detail-box">
+      <p><b>Tên chiến dịch:</b> {campaign?.campaignName}</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+  
+  {/* LEFT */}
+  <Input
+    placeholder="Tìm tên hoặc SĐT..."
+    style={{ maxWidth: 300 }}
+    onChange={(e) => setSearch(e.target.value)}
+  />
 
-        <div className="detail-row">
-          <span>Tên chiến dịch</span>
-          <b>{campaign?.campaignName || "—"}</b>
-        </div>
+  {/* RIGHT 👉 TỔNG */}
+  <div style={{ fontWeight: 600 }}>
+    Tổng: <span style={{ color: "#1890ff" }}>{totalHouseholds}</span> người nhận
+  </div>
 
-        {/* <div className="detail-row">
-          <span> Khu vực</span>
-          <b>{campaign?.areaName || "—"}</b>
-        </div> */}
+</div>
 
-        <div className="detail-row">
-          <span> Thời gian</span>
-          <b>
-            {campaign
-              ? `Tháng ${campaign.month} / ${campaign.year}`
-              : "—"}
-          </b>
-        </div>
-
-        <div className="detail-row">
-          <span> Người tạo chiến dịch</span>
-          <b>{campaign?.adminName || "—"}</b>
-        </div>
-
-        <div className="detail-row">
-          <span> Thời gian tạo chiến dịch</span>
-          <b>
-            {campaign?.createdAt
-              ? new Date(campaign.createdAt).toLocaleString("vi-VN")
-              : "—"}
-          </b>
-        </div>
-
-        {/* 🔥 TEAM FIXED */}
-        <div className="detail-row">
-          <span>Tên đội </span>
-          <b>
-            {teamName || `Team ${data.rescueTeamId}`}
-          </b>
-        </div>
-
-       
-
-      </div>
-
-      <Divider />
-
-      {/* NOTE */}
-      <div className="detail-note-box">
-        <h3> Ghi chú</h3>
-        <p>{data.note || "Không có ghi chú"}</p>
-      </div>
-
+<Table
+  columns={columns}
+  dataSource={tableData}
+  pagination={{ pageSize: 5 }}
+  bordered
+/>
     </div>
   );
 }

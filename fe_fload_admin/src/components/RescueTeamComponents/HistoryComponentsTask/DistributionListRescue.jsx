@@ -280,33 +280,35 @@ setCampaignMap(cmap);
             <div key={item.distributionId} className="rm-card">
   
               {/* ===== TOP ===== */}
-              <div className="rm-top">
-                <div className="rm-avatar">
-                  #{item.distributionId}
-                </div>
-  
-                <div>
-  
-                  <h4>
-                    Tên chiến dịch: {campaign?.campaignName || `Chiến dịch ${item.campaignId}`}
-                  </h4>
-  
-            
-                  <div className="rm-campaign-info">
-  <span className="rm-date">
-    Lịch: {campaign
-      ? `Tháng ${campaign.month}/${campaign.year}`
-      : "Không rõ"}
-  </span>
+              <div
+  className="rm-top"
+  style={{ cursor: "pointer" }}
+  onClick={() =>
+    navigate(`/rescueTeam/cuu-tro/${item.campaignId || item.campaignID}`)
+  }
+>
+  <div className="rm-avatar">
+    #{item.distributionId}
+  </div>
+
+  <div>
+    <h4>
+      Tên chiến dịch: {campaign?.campaignName || `Chiến dịch ${item.campaignId}`}
+    </h4>
+
+    <div className="rm-campaign-info">
+      <span className="rm-date">
+        Lịch: {campaign
+          ? `Tháng ${campaign.month}/${campaign.year}`
+          : "Không rõ"}
+      </span>
+    </div>
+
+    <span>
+      Tên đội: {teamMap[item.rescueTeamId] || `Team ${item.rescueTeamId}`}
+    </span>
+  </div>
 </div>
-  
-                  <span>
-                    Tên đội: {teamMap[item.rescueTeamId] || `Team ${item.rescueTeamId}`}
-                  </span>
-  
-                </div>
-              </div>
-  
               {/* ===== NOTE ===== */}
               <div className="rm-address">
                 Ghi chú: {item.note || "Không có"}

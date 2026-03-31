@@ -65,15 +65,30 @@ export default function TaskDistributionDetailPage() {
 
   const renderStatus = (status) => {
     const map = {
+      // EN
       accepted: { text: "Đã nhận", color: "blue" },
       rejected: { text: "Từ chối", color: "red" },
       "in progress": { text: "Đang phát", color: "processing" },
       completed: { text: "Hoàn thành", color: "green" },
+      pending : { text: "Chờ xử lý", color: "orange" },
+  
+      // VI (🔥 thêm)
+      "đã nhận": { text: "Đã nhận", color: "blue" },
+      "từ chối": { text: "Từ chối", color: "red" },
+      "đang phát": { text: "Đang phát", color: "processing" },
+      "hoàn thành": { text: "Hoàn thành", color: "green" },
+      "chờ xử lý": { text: "Chờ xử lý", color: "orange" },
     };
-
-    const key = status?.toLowerCase();
-    const s = map[key] || { text: status, color: "default" };
-
+  
+    const key = String(status || "")
+      .trim()
+      .toLowerCase();
+  
+    const s = map[key] || {
+      text: status || "Không rõ",
+      color: "default",
+    };
+  
     return <Tag color={s.color}>{s.text}</Tag>;
   };
 

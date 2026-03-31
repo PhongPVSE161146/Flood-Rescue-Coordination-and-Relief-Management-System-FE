@@ -175,18 +175,19 @@ export default function TaskDashboardForTeam() {
   const renderPie = (stats) => {
     const pieData = [
       { name: "Đang chờ", value: stats.pending },
-      { name: "Đang phát", value: stats.in_progress }, // ✅ thêm
       { name: "Đã nhận", value: stats.accepted },
       { name: "Hoàn thành", value: stats.completed },
       { name: "Từ chối", value: stats.rejected },
+      { name: "Đang phát", value: stats.in_progress },
     ];
-    const COLORS = [
-      "#faad14", // pending
-      "#722ed1", // in_progress (màu tím cho khác biệt)
-      "#1890ff", // accepted
-      "#52c41a", // completed
-      "#ff4d4f", // rejected
-    ];
+    const COLOR_MAP = {
+      "Đang chờ": "#faad14",
+      "Đang phát": "#722ed1",
+      "Đã nhận": "#1890ff",
+      "Hoàn thành": "#52c41a",
+      "Từ chối": "#ff4d4f",
+    };
+    
 
     return (
       <Card title="Biểu đồ nhiệm vụ" style={{ marginTop: 16 }}>
@@ -194,12 +195,16 @@ export default function TaskDashboardForTeam() {
         <ResponsiveContainer>
           <PieChart>
             <Pie
-              data={pieData}
+              data={
+                pieData.some(item => item.name === "Đang phát" && item.value > 0)
+                  ? pieData
+                  : pieData.filter(item => item.name !== "Đang phát")
+              }
               dataKey="value"
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius={70}   // 🔥 donut
+              innerRadius={70}
               outerRadius={100}
               paddingAngle={3}
               label={({ percent }) =>
@@ -209,7 +214,7 @@ export default function TaskDashboardForTeam() {
               {pieData.map((entry, index) => (
                 <Cell
                   key={index}
-                  fill={COLORS[index]}
+                  fill={COLOR_MAP[entry.name]}
                   style={{ cursor: "pointer" }}
                 />
               ))}
