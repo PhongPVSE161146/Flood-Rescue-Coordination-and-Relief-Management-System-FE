@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Table, Button, Popconfirm, message } from "antd";
+import { useEffect, useMemo, useState } from "react";
+import { Table, Button, Popconfirm, message, Input, Select, InputNumber, Space } from "antd";
 
 import {
   getSupplyPlansByCampaign,
@@ -30,6 +30,15 @@ export default function SupplyPlanPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selected, setSelected] = useState(null);
+
+  // ================= FILTER =================
+  const [planQuery, setPlanQuery] = useState("");
+  const [warehouseFilterId, setWarehouseFilterId] = useState(null);
+  const [itemFilterId, setItemFilterId] = useState(null);
+  const [plannedMin, setPlannedMin] = useState(null);
+  const [plannedMax, setPlannedMax] = useState(null);
+  const [approvedMin, setApprovedMin] = useState(null);
+  const [approvedMax, setApprovedMax] = useState(null);
 
   /* ================= GET CURRENT USER ================= */
 
@@ -126,6 +135,83 @@ export default function SupplyPlanPage() {
     return warehouses.find(x => x.warehouseId === id)?.warehouseName || "—";
   };
 
+  const warehouseOptions = useMemo(() => {
+    return (Array.isArray(warehouses) ? warehouses : []).map((w) => ({
+      value: w.warehouseId,
+      label: `${w.warehouseName}${w.areaName ? ` - ${w.areaName}` : ""}`,
+    }));
+  }, [warehouses]);
+
+  const itemOptions = useMemo(() => {
+    return (Array.isArray(reliefItems) ? reliefItems : []).map((it) => ({
+      value: it.reliefItemId,
+      label: `${it.itemName}${it.unit ? ` (${it.unit})` : ""}`,
+    }));
+  }, [reliefItems]);
+
+  const filteredList = useMemo(() => {
+    const q = planQuery.trim().toLowerCase();
+
+    return list.filter((r) => {
+      const matchesQuery =
+        !q ||
+        String(r.supplyPlanId ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(getWarehouseName(r.warehouseId) ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(getItemName(r.reliefItemId) ?? "")
+          .toLowerCase()
+          .includes(q);
+
+      const matchesWarehouse =
+        warehouseFilterId == null || r.warehouseId === warehouseFilterId;
+      const matchesItem = itemFilterId == null || r.reliefItemId === itemFilterId;
+
+      const plannedRaw = r.plannedQuantity ?? 0;
+      const approvedRaw = r.approvedQuantity ?? 0;
+      const planned =
+        typeof plannedRaw === "number" ? plannedRaw : Number(plannedRaw);
+      const approved =
+        typeof approvedRaw === "number" ? approvedRaw : Number(approvedRaw);
+
+      const matchesPlannedMin =
+        plannedMin == null ||
+        (!Number.isNaN(planned) && planned >= plannedMin);
+      const matchesPlannedMax =
+        plannedMax == null ||
+        (!Number.isNaN(planned) && planned <= plannedMax);
+      const matchesApprovedMin =
+        approvedMin == null ||
+        (!Number.isNaN(approved) && approved >= approvedMin);
+      const matchesApprovedMax =
+        approvedMax == null ||
+        (!Number.isNaN(approved) && approved <= approvedMax);
+
+      return (
+        matchesQuery &&
+        matchesWarehouse &&
+        matchesItem &&
+        matchesPlannedMin &&
+        matchesPlannedMax &&
+        matchesApprovedMin &&
+        matchesApprovedMax
+      );
+    });
+  }, [
+    list,
+    planQuery,
+    warehouseFilterId,
+    itemFilterId,
+    plannedMin,
+    plannedMax,
+    approvedMin,
+    approvedMax,
+    warehouses,
+    reliefItems,
+  ]);
+
   /* ================= TABLE ================= */
 
   const columns = [
@@ -202,10 +288,91 @@ export default function SupplyPlanPage() {
         </Button>
       </div>
 
+      {/* FILTER BAR */}
+      <div style={{ marginBottom: 16 }}>
+        <Space wrap style={{ width: "100%", justifyContent: "flex-start" }}>
+          <Input
+            allowClear
+            placeholder="Tìm theo ID / kho / vật phẩm"
+            value={planQuery}
+            onChange={(e) => setPlanQuery(e.target.value)}
+            style={{ width: 260 }}
+          />
+
+          <Select
+            allowClear
+            showSearch
+            placeholder="Lọc theo kho"
+            value={warehouseFilterId}
+            onChange={setWarehouseFilterId}
+            style={{ width: 240 }}
+            options={warehouseOptions}
+            optionFilterProp="label"
+          />
+
+          <Select
+            allowClear
+            showSearch
+            placeholder="Lọc theo vật phẩm"
+            value={itemFilterId}
+            onChange={setItemFilterId}
+            style={{ width: 260 }}
+            options={itemOptions}
+            optionFilterProp="label"
+          />
+
+          <InputNumber
+            min={0}
+            placeholder="SL dự kiến tối thiểu"
+            value={plannedMin}
+            onChange={setPlannedMin}
+            style={{ width: 200 }}
+          />
+
+          <InputNumber
+            min={0}
+            placeholder="SL dự kiến tối đa"
+            value={plannedMax}
+            onChange={setPlannedMax}
+            style={{ width: 200 }}
+          />
+
+          <InputNumber
+            min={0}
+            placeholder="SL duyệt tối thiểu"
+            value={approvedMin}
+            onChange={setApprovedMin}
+            style={{ width: 190 }}
+          />
+
+          <InputNumber
+            min={0}
+            placeholder="SL duyệt tối đa"
+            value={approvedMax}
+            onChange={setApprovedMax}
+            style={{ width: 190 }}
+          />
+
+          <Button
+            onClick={() => {
+              setPlanQuery("");
+              setWarehouseFilterId(null);
+              setItemFilterId(null);
+              setPlannedMin(null);
+              setPlannedMax(null);
+              setApprovedMin(null);
+              setApprovedMax(null);
+            }}
+          >
+            Xóa filter
+          </Button>
+        </Space>
+      </div>
+
       <Table
         rowKey="supplyPlanId"
         columns={columns}
-        dataSource={list}
+        dataSource={filteredList}
         loading={loading}
         pagination={{
           pageSize: 6,
