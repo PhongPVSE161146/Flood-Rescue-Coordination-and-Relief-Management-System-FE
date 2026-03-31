@@ -156,31 +156,31 @@ export default function DistributionDetailPage() {
       title: "Ghi chú",
       dataIndex: "note",
     },
-    {
-      title: "Hành động",
-      render: (_, record) => {
-        const isCompleted = record.status?.toLowerCase() === "completed";
+    // {
+    //   title: "Hành động",
+    //   render: (_, record) => {
+    //     const isCompleted = record.status?.toLowerCase() === "completed";
 
-        return (
-          <Button
-            type="primary"
-            size="small"
-            disabled={isCompleted}
-            style={{
-              opacity: isCompleted ? 0.5 : 1,
-              cursor: isCompleted ? "not-allowed" : "pointer",
-            }}
-            onClick={() => {
-              if (isCompleted) return;
-              setSelected(record);
-              setOpenEdit(true);
-            }}
-          >
-            Sửa
-          </Button>
-        );
-      },
-    },
+    //     return (
+    //       <Button
+    //         type="primary"
+    //         size="small"
+    //         disabled={isCompleted}
+    //         style={{
+    //           opacity: isCompleted ? 0.5 : 1,
+    //           cursor: isCompleted ? "not-allowed" : "pointer",
+    //         }}
+    //         onClick={() => {
+    //           if (isCompleted) return;
+    //           setSelected(record);
+    //           setOpenEdit(true);
+    //         }}
+    //       >
+    //         Sửa
+    //       </Button>
+    //     );
+    //   },
+    // },
   ];
 
   /* ================= UI ================= */
