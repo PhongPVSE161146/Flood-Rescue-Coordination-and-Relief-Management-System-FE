@@ -140,13 +140,13 @@ const validateRescueRequest = (data) => {
     };
 
   }
-  else if (data.specialNeeds.length > 50) {
+  else if (data.specialNeeds.length > 250) {
 
     newErrors.specialNeeds = true;
 
     newErrors.messages = {
       ...(newErrors.messages || {}),
-      specialNeeds: "Nhu cầu đặc biệt tối đa 50 ký tự"
+      specialNeeds: "Nhu cầu đặc biệt tối đa 250 ký tự"
     };
 
   }

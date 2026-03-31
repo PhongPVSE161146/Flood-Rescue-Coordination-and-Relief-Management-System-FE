@@ -393,13 +393,13 @@ const EmergencyRequestForm = ({
                   specialNeeds: "Vui lòng nhập nhu cầu đặc biệt",
                 },
               }));
-            } else if (value.length > 50) {
+            } else if (value.length > 250) {
               setErrors((prev) => ({
                 ...prev,
                 specialNeeds: true,
                 messages: {
                   ...(prev.messages || {}),
-                  specialNeeds: "Nhu cầu đặc biệt tối đa 50 ký tự",
+                  specialNeeds: "Nhu cầu đặc biệt tối đa 250 ký tự",
                 },
               }));
             } else {
@@ -506,7 +506,7 @@ MÔ TẢ CHI TIẾT
           className="emergency-upload"
           fileList={form.images}
           onChange={({ fileList }) => {
-            if (fileList.length > 5) {
+            if (fileList.length > 4) {
               AuthNotify.warning(
                 "Quá số lượng ảnh",
                 "Chỉ được tải tối đa 4 ảnh"
