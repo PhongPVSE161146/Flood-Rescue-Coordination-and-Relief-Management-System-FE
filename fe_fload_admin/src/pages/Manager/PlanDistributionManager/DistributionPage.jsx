@@ -248,7 +248,21 @@ export default function DistributionPage() {
     }
 
     if (!details || details.length === 0) {
-      return <Empty description="Không có người nhận" />;
+      return (
+        <div style={{ padding: "12px 16px" }}>
+          <Empty description="Không có người nhận" style={{ marginBottom: 16 }} />
+
+          <Button
+            type="primary"
+            onClick={() => {
+              setSelectedDistributionForAdd(record);
+              setOpenAddDetail(true);
+            }}
+          >
+            + Thêm người nhận
+          </Button>
+        </div>
+      );
     }
 
     const detailColumns = [

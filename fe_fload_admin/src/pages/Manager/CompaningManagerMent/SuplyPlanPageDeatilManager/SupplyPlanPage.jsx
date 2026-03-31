@@ -9,6 +9,7 @@ import {
 } from "../../../../../api/axios/ManagerApi/periodicAidApi";
 
 import { getAllAidCampaigns } from "../../../../../api/axios/AdminApi/suplyingApi";
+import { getAllUser } from "../../../../../api/axios/AdminApi/userApi";
 
 import CreateSupplyPlan from "../../../../components/ManagerComponents/AidSuplyManager/CreateYTableSuplan/CreateSupplyPlan";
 import EditSupplyPlan from "../../../../components/ManagerComponents/AidSuplyManager/EditTableSuplylan/EditSupplyPlan";
@@ -24,6 +25,7 @@ export default function SupplyPlanPage() {
   const [reliefItems, setReliefItems] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [warehouses, setWarehouses] = useState([]); // ✅ thêm
+  const [users, setUsers] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -73,11 +75,12 @@ export default function SupplyPlanPage() {
     try {
       setLoading(true);
 
-      const [planRes, itemRes, campaignRes, warehouseRes] = await Promise.all([
+      const [planRes, itemRes, campaignRes, warehouseRes, userRes] = await Promise.all([
         getSupplyPlansByCampaign(id),
         getAllReliefItems(),
         getAllAidCampaigns(),
-        getAllWarehouses() // ✅ thêm API kho
+        getAllWarehouses(), // ✅ thêm API kho
+        getAllUser(),
       ]);
 
       const plans = planRes?.items || planRes?.data || planRes || [];
@@ -90,6 +93,7 @@ export default function SupplyPlanPage() {
       setReliefItems(items);
       setCampaigns(camps);
       setWarehouses(warehousesData); // ✅ set kho
+      setUsers(Array.isArray(userRes) ? userRes : userRes?.items || userRes?.data || []);
 
     } catch (err) {
       console.error(err);
@@ -133,6 +137,34 @@ export default function SupplyPlanPage() {
   // ✅ FIX QUAN TRỌNG
   const getWarehouseName = (id) => {
     return warehouses.find(x => x.warehouseId === id)?.warehouseName || "—";
+  };
+
+  const userMap = useMemo(() => {
+    const map = {};
+    (Array.isArray(users) ? users : []).forEach((u) => {
+      const id = u?.userId ?? u?.id;
+      if (id == null) return;
+      const name = u?.fullName ?? u?.name ?? u?.userName ?? "";
+      if (!String(id).trim()) return;
+      map[String(id)] = name || `User ${id}`;
+    });
+    return map;
+  }, [users]);
+
+  const getCreatorName = (record) => {
+    const direct =
+      record?.createdByManagerName ||
+      record?.createdByName ||
+      record?.adminName ||
+      record?.fullName ||
+      record?.name;
+
+    if (direct) return direct;
+
+    const id = record?.createdByManagerId ?? record?.createdById ?? record?.createdByUserId;
+    if (id == null) return "—";
+    const key = String(id);
+    return userMap[key] || `User ${id}`;
   };
 
   const warehouseOptions = useMemo(() => {
@@ -241,9 +273,15 @@ export default function SupplyPlanPage() {
       render: (_, record) => record.approvedQuantity ?? 0,
     },
     {
-      title: "Người tạo",
+      title: "Số lượng chưa phát",
       render: (_, record) =>
-        getUserName(record.createdByManagerId),
+        record.undistributedQuantity ??
+        record.undistributed_quantity ??
+        0,
+    },
+    {
+      title: "Người tạo",
+      render: (_, record) => getCreatorName(record),
     },
     {
       title: "Ngày tạo",

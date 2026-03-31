@@ -1,8 +1,11 @@
-import { Modal, Form, Input, InputNumber, message } from "antd";
+import { Modal, Form, Input, InputNumber } from "antd";
+import { useState } from "react";
 import { createBeneficiary } from "../../../../../api/axios/AdminApi/suplyingApi";
 import AuthNotify from "../../../../utils/Common/AuthNotify";
+
 export default function CreateBeneficiary({ open, onClose, onSuccess, campaignId }) {
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   /* ================= GET ADMIN ================= */
   const getAdminId = () => {
@@ -21,6 +24,7 @@ export default function CreateBeneficiary({ open, onClose, onSuccess, campaignId
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const values = await form.validateFields();
 
       // 🔥 validate campaignId
@@ -56,13 +60,21 @@ export default function CreateBeneficiary({ open, onClose, onSuccess, campaignId
 
       console.log("🚀 PAYLOAD:", payload);
 
-      await createBeneficiary(payload);
+      const res = await createBeneficiary(payload);
 
       AuthNotify.success("Tạo thành công");
 
       form.resetFields();
       onClose();
-      onSuccess?.();
+
+      // Nếu API trả về object beneficiary thì đẩy lên cha để cập nhật list ngay
+      const created =
+        res?.data ||
+        res?.item ||
+        res ||
+        null;
+
+      onSuccess?.(created);
 
     } catch (err) {
       console.error("❌ CREATE ERROR:", err);
@@ -71,6 +83,8 @@ export default function CreateBeneficiary({ open, onClose, onSuccess, campaignId
         err?.response?.data?.message ||
         "Tạo thất bại"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,7 +101,8 @@ export default function CreateBeneficiary({ open, onClose, onSuccess, campaignId
       onOk={handleSubmit}
       okText="Tạo"
       cancelText="Hủy"
-      destroyOnClose
+      confirmLoading={loading}
+      destroyOnHidden
     >
       <Form form={form} layout="vertical">
 

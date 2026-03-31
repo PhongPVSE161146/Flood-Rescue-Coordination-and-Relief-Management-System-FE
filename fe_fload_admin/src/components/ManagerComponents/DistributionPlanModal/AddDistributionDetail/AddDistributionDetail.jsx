@@ -4,6 +4,8 @@ import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import {
   createDistributionDetail,
   getSupplyPlansByCampaign,
+  getAllDistributions,
+  getDistributionDetailsByDistribution,
 } from "../../../../../api/axios/ManagerApi/periodicAidApi";
 import { getBeneficiariesByCampaign } from "../../../../../api/axios/AdminApi/suplyingApi";
 import AuthNotify from "../../../../utils/Common/AuthNotify";
@@ -23,6 +25,7 @@ export default function AddDistributionDetail({
   const [loadingData, setLoadingData] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedReliefItemId, setSelectedReliefItemId] = useState(null);
 
   const normalize = (res) => res?.items || res?.data || res || [];
 
@@ -31,18 +34,24 @@ export default function AddDistributionDetail({
   const availableReliefItems = useMemo(() => {
     return supplyPlans
       .filter((plan) => {
-        const undistributed = plan.undistributed_quantity || plan.undistributedQuantity || 0;
-        const approved = plan.approved_quantity || plan.approvedQuantity || 0;
-        return undistributed > 0 || approved > 0;
+        const undistributedQuantity =
+          plan.undistributedQuantity ??
+          plan.undistributed_quantity ??
+          0;
+        // Chỉ hiển thị các vật phẩm còn "chưa phát"
+        return undistributedQuantity > 0;
       })
       .map((plan) => {
-        const undistributed = plan.undistributed_quantity || plan.undistributedQuantity || 0;
+        const undistributedQuantity =
+          plan.undistributedQuantity ??
+          plan.undistributed_quantity ??
+          0;
         const itemName = plan.itemName || plan.reliefItemName || `Vật phẩm #${plan.relief_item_id || plan.reliefItemId}`;
         
         return {
           value: plan.relief_item_id || plan.reliefItemId,
-          label: `${itemName} (Còn lại: ${undistributed})`,
-          undistributed: undistributed,
+          label: `${itemName} (Chưa phát: ${undistributedQuantity})`,
+          undistributed: undistributedQuantity,
           itemName: itemName,
           planId: plan.supply_plan_id || plan.supplyPlanId,
         };
@@ -52,28 +61,82 @@ export default function AddDistributionDetail({
   /* ================= LOAD DATA ================= */
 
   useEffect(() => {
-    if (open && campaignId) {
+    if (open && campaignId && distributionId != null) {
       loadData();
     }
-  }, [open, campaignId]);
+  }, [open, campaignId, distributionId]);
 
   const loadData = async () => {
     try {
       setLoadingData(true);
       setSelectedItems([]);
       setSelectedBeneficiary(null);
+      setSelectedReliefItemId(null);
       form.resetFields();
       itemForm.resetFields();
 
-      const [benefRes, planRes] = await Promise.all([
+      const [benefRes, planRes, detailsRes, allDistRes] = await Promise.all([
         getBeneficiariesByCampaign(campaignId),
         getSupplyPlansByCampaign(campaignId),
+        getDistributionDetailsByDistribution(distributionId),
+        getAllDistributions(),
       ]);
 
       const benefList = normalize(benefRes);
       const planList = normalize(planRes);
+      const detailsList = normalize(detailsRes);
 
-      setBeneficiaries(benefList);
+      const normalizeId = (x) =>
+        x == null ? null : String(x);
+
+      const currentBeneficiaryIds = new Set(
+        detailsList
+          .map((d) => normalizeId(d?.beneficiaryId))
+          .filter((x) => x != null)
+      );
+
+      // Collect beneficiaries already assigned in ANY distribution under this campaign
+      const allDistributions = normalize(allDistRes);
+      const distForCampaign = allDistributions.filter((d) => {
+        const cId = normalizeId(d?.campaignId ?? d?.campaignID);
+        return cId != null && cId === normalizeId(campaignId);
+      });
+
+      const distributionIds = distForCampaign
+        .map((d) => normalizeId(d?.distributionId ?? d?.distributionID))
+        .filter((x) => x != null);
+
+      let campaignBeneficiaryIds = new Set();
+      if (distributionIds.length > 0) {
+        const allDetailsList = await Promise.all(
+          distributionIds.map((did) =>
+            getDistributionDetailsByDistribution(did)
+              .then((res) => normalize(res))
+              .catch(() => [])
+          )
+        );
+
+        const assignedIds = allDetailsList
+          .flat()
+          .map((d) => normalizeId(d?.beneficiaryId))
+          .filter((x) => x != null);
+
+        campaignBeneficiaryIds = new Set(assignedIds);
+      }
+
+      // Keep: (A) beneficiaries not assigned in any distribution of this campaign
+      // OR (B) beneficiaries already assigned in the current distribution
+      const filteredBeneficiaries = benefList.filter((b) => {
+        const bId = normalizeId(b?.beneficiaryId);
+        if (bId == null) return false;
+
+        const isInCurrent = currentBeneficiaryIds.has(bId);
+        const isInAny = campaignBeneficiaryIds.has(bId);
+
+        return isInCurrent || !isInAny;
+      });
+
+      setBeneficiaries(filteredBeneficiaries);
       setSupplyPlans(planList);
     } catch (err) {
       console.error("Load data error:", err);
@@ -95,6 +158,24 @@ export default function AddDistributionDetail({
 
       if (!selectedItemObj) {
         message.error("Vật phẩm không hợp lệ");
+        return;
+      }
+
+      const reliefItemId = values.reliefItemId;
+      const selectedSumForThisReliefItem = selectedItems
+        .filter((x) => String(x.reliefItemId) === String(reliefItemId))
+        .reduce((acc, x) => acc + Number(x.distributedQuantity ?? 0), 0);
+
+      const maxRemaining = Number(selectedItemObj.undistributed ?? 0);
+      const remaining = maxRemaining - selectedSumForThisReliefItem;
+
+      if (remaining <= 0) {
+        message.error(`Chỉ còn ${maxRemaining} cho vật phẩm này`);
+        return;
+      }
+
+      if (Number(values.quantity ?? 1) > remaining) {
+        message.error(`Chỉ có thể thêm tối đa ${remaining} cho vật phẩm này`);
         return;
       }
 
@@ -212,6 +293,7 @@ export default function AddDistributionDetail({
         itemForm.resetFields();
         setSelectedItems([]);
         setSelectedBeneficiary(null);
+        setSelectedReliefItemId(null);
         onClose();
       }}
       width={700}
@@ -267,6 +349,7 @@ export default function AddDistributionDetail({
                   <Select
                     placeholder="Chọn vật phẩm từ kế hoạch cấp phát"
                     options={availableReliefItems}
+                    onChange={(value) => setSelectedReliefItemId(value)}
                   />
                 </Form.Item>
 
@@ -280,6 +363,35 @@ export default function AddDistributionDetail({
                   <InputNumber
                     min={1}
                     placeholder="Số lượng"
+                    max={
+                      (() => {
+                        if (selectedReliefItemId == null) return undefined;
+                        const selectedItemObj = availableReliefItems.find(
+                          (item) => item.value === selectedReliefItemId
+                        );
+                        const maxRemaining = Number(selectedItemObj?.undistributed ?? 0);
+
+                        const selectedSumForThisReliefItem = selectedItems
+                          .filter((x) => String(x.reliefItemId) === String(selectedReliefItemId))
+                          .reduce((acc, x) => acc + Number(x.distributedQuantity ?? 0), 0);
+
+                        const remaining = maxRemaining - selectedSumForThisReliefItem;
+                        return Number.isFinite(remaining) ? Math.max(0, remaining) : undefined;
+                      })()
+                    }
+                    disabled={
+                      (() => {
+                        if (selectedReliefItemId == null) return false;
+                        const selectedItemObj = availableReliefItems.find(
+                          (item) => item.value === selectedReliefItemId
+                        );
+                        const maxRemaining = Number(selectedItemObj?.undistributed ?? 0);
+                        const selectedSumForThisReliefItem = selectedItems
+                          .filter((x) => String(x.reliefItemId) === String(selectedReliefItemId))
+                          .reduce((acc, x) => acc + Number(x.distributedQuantity ?? 0), 0);
+                        return maxRemaining - selectedSumForThisReliefItem <= 0;
+                      })()
+                    }
                     style={{ width: "100%" }}
                   />
                 </Form.Item>
