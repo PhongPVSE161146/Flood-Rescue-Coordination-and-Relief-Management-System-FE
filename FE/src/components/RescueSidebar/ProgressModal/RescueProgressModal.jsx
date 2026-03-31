@@ -231,7 +231,7 @@ const isRejected =
     cursor: isButtonDisabled ? "not-allowed" : "pointer"
   }}
             >
-             {isButtonDisabled ? "✓ Đã xác nhận hoàn thành" : "✔ Xác nhận đã cứu trợ"}
+             {isButtonDisabled ? "✓ Đã xác nhận hoàn thành" : "✔ Xác nhận đã cứu hộ"}
             </Button>
           ]
         : []),

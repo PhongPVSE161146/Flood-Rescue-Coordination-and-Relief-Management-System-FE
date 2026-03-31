@@ -509,7 +509,7 @@ MÔ TẢ CHI TIẾT
             if (fileList.length > 5) {
               AuthNotify.warning(
                 "Quá số lượng ảnh",
-                "Chỉ được tải tối đa 5 ảnh"
+                "Chỉ được tải tối đa 4 ảnh"
               );
 
               setErrors((prev) => ({
@@ -517,7 +517,7 @@ MÔ TẢ CHI TIẾT
                 images: true,
                 messages: {
                   ...(prev.messages || {}),
-                  images: "Chỉ được tải tối đa 5 ảnh",
+                  images: "Chỉ được tải tối đa 4 ảnh",
                 },
               }));
 

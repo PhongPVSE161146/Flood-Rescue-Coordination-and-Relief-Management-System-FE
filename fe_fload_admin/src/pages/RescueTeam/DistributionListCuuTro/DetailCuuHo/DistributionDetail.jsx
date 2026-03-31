@@ -182,11 +182,7 @@ export default function DistributionDetail() {
       title: "Kho",
       dataIndex: "warehouseName",
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      render: renderStatus,
-    },
+   
   ];
 
   /* ================= UI ================= */

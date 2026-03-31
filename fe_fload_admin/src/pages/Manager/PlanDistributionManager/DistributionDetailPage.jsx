@@ -142,11 +142,11 @@ export default function DistributionDetailPage() {
       dataIndex: "priorityLevel",
       render: renderPriority,
     },
-    {
-      title: "TT người nhận",
-      dataIndex: "beneficiaryStatus",
-      render: renderBeneficiaryStatus,
-    },
+    // {
+    //   title: "TT người nhận",
+    //   dataIndex: "beneficiaryStatus",
+    //   render: renderBeneficiaryStatus,
+    // },
     {
       title: "TT phân phối",
       dataIndex: "status",
