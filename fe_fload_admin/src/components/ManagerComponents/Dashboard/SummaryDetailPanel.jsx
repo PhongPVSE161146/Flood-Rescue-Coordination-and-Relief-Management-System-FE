@@ -17,19 +17,56 @@ import {
 const { Paragraph, Text, Title } = Typography;
 
 const SUMMARY_TITLES = {
-  total: "Danh sach tong yeu cau",
-  open: "Danh sach yeu cau dang xu ly",
-  completed: "Danh sach yeu cau da hoan thanh",
-  overdue: "Danh sach yeu cau qua han",
-  campaign: "Danh sach chien dich dang thuc hien",
-  stock: "Danh sach canh bao kho",
+  total: "Danh sách tổng yêu cầu",
+  open: "Danh sách yêu cầu đang xử lý",
+  completed: "Danh sách yêu cầu đã hoàn thành",
+  overdue: "Danh sách yêu cầu quá hạn",
+  campaign: "Danh sách chiến dịch đang thực hiện",
+  stock: "Danh sách cảnh báo kho",
 };
 
 const IMAGE_FIELD_HINTS = ["image", "img", "photo", "avatar", "url"];
 const DATE_FIELD_HINTS = ["date", "time", "at"];
 const API_BASE = "https://api-rescue.purintech.id.vn";
+const LABEL_OVERRIDES = {
+  rescueRequestId: "Mã yêu cầu cứu hộ",
+  requestId: "Mã yêu cầu",
+  assignmentId: "Mã phân công",
+  rescueTeamId: "Mã đội cứu hộ",
+  vehicleId: "Mã phương tiện",
+  assignmentStatus: "Trạng thái phân công",
+  assignedBy: "Người phân công",
+  assignedAt: "Thời gian phân công",
+  completedAt: "Thời gian hoàn thành",
+  rejectReason: "Lý do từ chối",
+  requestType: "Loại yêu cầu",
+  contactPhone: "Số điện thoại liên hệ",
+  locationLat: "Vĩ độ",
+  locationLng: "Kinh độ",
+  urgencyLevelId: "Mức độ khẩn cấp",
+  urgencyScore: "Điểm khẩn cấp",
+  statusId: "Mã trạng thái",
+  createdAt: "Thời gian tạo",
+  fullName: "Họ tên",
+  address: "Địa chỉ",
+  victimCount: "Số nạn nhân",
+  availableRescueTool: "Thiết bị cứu hộ sẵn có",
+  specialNeeds: "Nhu cầu đặc biệt",
+  detailDescription: "Mô tả chi tiết",
+  rescueTeamNote: "Ghi chú đội cứu hộ",
+  areaId: "Mã khu vực",
+  warehouseId: "Mã kho",
+  warehouseName: "Tên kho",
+  reliefItemId: "Mã vật phẩm",
+  reliefItemName: "Tên vật phẩm",
+  quantity: "Số lượng",
+  threshold: "Ngưỡng cảnh báo",
+  note: "Ghi chú",
+  total: "Tổng",
+};
 
 const formatLabel = (value) =>
+  LABEL_OVERRIDES[String(value || "")] ||
   String(value || "")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .replace(/[_-]/g, " ")
@@ -72,11 +109,11 @@ const looksLikeImageField = (fieldName, value) =>
 
 const formatValue = (fieldName, value) => {
   if (value === null || value === undefined || value === "") {
-    return <Text type="secondary">Khong co</Text>;
+    return <Text type="secondary">Không có</Text>;
   }
 
   if (typeof value === "boolean") {
-    return <Tag color={value ? "green" : "red"}>{value ? "Co" : "Khong"}</Tag>;
+    return <Tag color={value ? "green" : "red"}>{value ? "Có" : "Không"}</Tag>;
   }
 
   if (looksLikeDateField(fieldName) && !Number.isNaN(Date.parse(value))) {
@@ -98,7 +135,7 @@ const formatValue = (fieldName, value) => {
   if (isHttpUrl(value)) {
     return (
       <a href={value} target="_blank" rel="noreferrer">
-        Mo lien ket
+        Mở liên kết
       </a>
     );
   }
@@ -140,7 +177,13 @@ const buildSummaryFields = (value) => {
   }
 
   return Object.entries(value)
-    .filter(([key, fieldValue]) => key !== "items" && isPrimitive(fieldValue))
+    .filter(
+      ([key, fieldValue]) =>
+        key !== "items" && // bỏ mảng items
+        key !== "note" && // không hiển thị ghi chú ở bảng tóm tắt
+        key !== "total" && // tránh hiển thị "Tổng bản ghi" bị lặp
+        isPrimitive(fieldValue)
+    )
     .map(([key, fieldValue]) => ({
       key,
       label: formatLabel(key),
@@ -167,11 +210,25 @@ const normalizeRows = (rows) =>
     return { key: index, value: row };
   });
 
-const isRescueRequestRow = (row) =>
-  row &&
-  typeof row === "object" &&
-  !Array.isArray(row) &&
-  Object.prototype.hasOwnProperty.call(row, "rescueRequestId");
+const isRescueRequestRow = (row) => {
+  if (
+    !row ||
+    typeof row !== "object" ||
+    Array.isArray(row) ||
+    !Object.prototype.hasOwnProperty.call(row, "rescueRequestId")
+  ) {
+    return false;
+  }
+
+  // Phân công cứu hộ (RescueAssignments) cũng có rescueRequestId,
+  // nên cần phân biệt: request thực sự thường có thêm các field này.
+  const hasRequestSpecificFields =
+    Object.prototype.hasOwnProperty.call(row, "statusId") ||
+    Object.prototype.hasOwnProperty.call(row, "requestType") ||
+    Object.prototype.hasOwnProperty.call(row, "urgencyLevelId");
+
+  return hasRequestSpecificFields;
+};
 
 const buildRescueRequestColumns = () => [
   {
@@ -183,7 +240,7 @@ const buildRescueRequestColumns = () => [
     title: "Request Type",
     dataIndex: "requestType",
     key: "requestType",
-    render: (value) => value || <Text type="secondary">Khong co</Text>,
+    render: (value) => value || <Text type="secondary">Không có</Text>,
   },
   {
     title: "Contact Phone",
@@ -231,7 +288,7 @@ const buildColumns = (rows) => {
   if (!sampleRow) {
     return [
       {
-        title: "Gia tri",
+        title: "Giá trị",
         dataIndex: "value",
         key: "value",
         render: (value) => formatValue("value", value),
@@ -309,7 +366,7 @@ const getRequestImages = (request) => {
   )];
 };
 
-const detailText = (value, fallback = "Khong co") =>
+const detailText = (value, fallback = "Không có") =>
   value === null || value === undefined || value === "" ? fallback : String(value);
 
 export default function SummaryDetailPanel({
@@ -322,7 +379,7 @@ export default function SummaryDetailPanel({
     return null;
   }
 
-  const title = SUMMARY_TITLES[summaryKey] || "Chi tiet dashboard";
+  const title = SUMMARY_TITLES[summaryKey] || "Chi tiết dashboard";
   const rows = extractArrayData(data);
   const normalizedRows = rows ? normalizeRows(rows) : [];
   const isRescueRequestTable = normalizedRows.some(isRescueRequestRow);
@@ -357,18 +414,18 @@ export default function SummaryDetailPanel({
     <Card className="summary-detail-panel">
       <div className="summary-detail-header">
         <div>
-          <Text className="summary-detail-eyebrow">Chi tiet theo the</Text>
+          <Text className="summary-detail-eyebrow">Chi tiết theo thẻ</Text>
           <Title level={4} className="summary-detail-title">
             {title}
           </Title>
           <Paragraph className="summary-detail-subtitle">
             {loading
-              ? "Dang tai du lieu chi tiet..."
-              : `Dang hien thi ${totalCount} ban ghi`}
+              ? "Đang tải dữ liệu chi tiết..."
+              : `Đang hiển thị ${totalCount} bản ghi`}
           </Paragraph>
         </div>
 
-        <Button onClick={onClear}>Dong chi tiet</Button>
+        <Button onClick={onClear}>Đóng chi tiết</Button>
       </div>
 
       {loading ? (
@@ -376,25 +433,16 @@ export default function SummaryDetailPanel({
           <Spin size="large" />
         </div>
       ) : !data ? (
-        <Empty description="Chua co du lieu chi tiet" />
+        <Empty description="Chưa có dữ liệu chi tiết" />
       ) : (
         <>
           <Row gutter={[16, 16]} className="summary-detail-metrics">
-            <Col xs={24} sm={12} lg={8}>
+            <Col xs={24}>
               <div className="summary-detail-stat">
-                <span className="summary-detail-stat-label">Tong ban ghi</span>
+                <span className="summary-detail-stat-label">Tổng bản ghi</span>
                 <strong className="summary-detail-stat-value">{totalCount}</strong>
               </div>
             </Col>
-
-            {note ? (
-              <Col xs={24} sm={12} lg={16}>
-                <div className="summary-detail-note">
-                  <span className="summary-detail-stat-label">Ghi chu</span>
-                  <span>{note}</span>
-                </div>
-              </Col>
-            ) : null}
           </Row>
 
           {summaryFields.length > 0 ? (
@@ -444,13 +492,13 @@ export default function SummaryDetailPanel({
           footer={null}
           width={1080}
           className="summary-detail-modal"
-          title={`Chi tiet rescue request #${selectedRow.rescueRequestId}`}
+          title={`Chi tiết yêu cầu cứu hộ #${selectedRow.rescueRequestId}`}
         >
           <div className="summary-detail-modal-grid">
             <div className="summary-detail-modal-main">
               <div className="summary-detail-hero">
                 <div>
-                  <Text className="summary-detail-eyebrow">Rescue Request</Text>
+                  <Text className="summary-detail-eyebrow">Yêu cầu cứu hộ</Text>
                   <Title level={3} className="summary-detail-modal-title">
                     #{selectedRow.rescueRequestId}
                   </Title>
@@ -460,26 +508,26 @@ export default function SummaryDetailPanel({
                 </div>
 
                 <div className="summary-detail-status-pill">
-                  <span>Status</span>
+                  <span>Trạng thái</span>
                   <strong>{detailText(selectedRow.statusId)}</strong>
                 </div>
               </div>
 
               <div className="summary-detail-section-card">
                 <Title level={5} className="summary-detail-section-title">
-                  Thong tin lien he
+                  Thông tin liên hệ
                 </Title>
                 <div className="summary-detail-info-grid">
                   <div className="summary-detail-info-item">
-                    <span>Ho ten</span>
+                    <span>Họ tên</span>
                     <strong>{detailText(selectedRow.fullName)}</strong>
                   </div>
                   <div className="summary-detail-info-item">
-                    <span>So dien thoai</span>
+                    <span>Số điện thoại</span>
                     <strong>{detailText(selectedRow.contactPhone)}</strong>
                   </div>
                   <div className="summary-detail-info-item summary-detail-info-item-full">
-                    <span>Dia chi</span>
+                    <span>Địa chỉ</span>
                     <strong>{detailText(selectedRow.address)}</strong>
                   </div>
                 </div>
@@ -487,31 +535,31 @@ export default function SummaryDetailPanel({
 
               <div className="summary-detail-section-card">
                 <Title level={5} className="summary-detail-section-title">
-                  Thong tin yeu cau
+                  Thông tin yêu cầu
                 </Title>
                 <div className="summary-detail-info-grid">
                   <div className="summary-detail-info-item">
-                    <span>Created At</span>
+                    <span>Thời gian tạo</span>
                     <strong>{formatValue("createdAt", selectedRow.createdAt)}</strong>
                   </div>
                   <div className="summary-detail-info-item">
-                    <span>Urgency Level Id</span>
+                    <span>Mức độ khẩn cấp</span>
                     <strong>{detailText(selectedRow.urgencyLevelId)}</strong>
                   </div>
                   <div className="summary-detail-info-item">
-                    <span>Urgency Score</span>
+                    <span>Điểm khẩn cấp</span>
                     <strong>{detailText(selectedRow.urgencyScore)}</strong>
                   </div>
                   <div className="summary-detail-info-item">
-                    <span>Victim Count</span>
+                    <span>Số nạn nhân</span>
                     <strong>{detailText(selectedRow.victimCount)}</strong>
                   </div>
                   <div className="summary-detail-info-item">
-                    <span>Available Rescue Tool</span>
+                    <span>Thiết bị cứu hộ sẵn có</span>
                     <strong>{detailText(selectedRow.availableRescueTool)}</strong>
                   </div>
                   <div className="summary-detail-info-item">
-                    <span>Special Needs</span>
+                    <span>Nhu cầu đặc biệt</span>
                     <strong>{detailText(selectedRow.specialNeeds)}</strong>
                   </div>
                 </div>
@@ -519,7 +567,7 @@ export default function SummaryDetailPanel({
 
               <div className="summary-detail-section-card">
                 <Title level={5} className="summary-detail-section-title">
-                  Mo ta chi tiet
+                  Mô tả chi tiết
                 </Title>
                 <div className="summary-detail-text-block">
                   {detailText(selectedRow.detailDescription)}
@@ -528,7 +576,7 @@ export default function SummaryDetailPanel({
 
               <div className="summary-detail-section-card">
                 <Title level={5} className="summary-detail-section-title">
-                  Ghi chu doi cuu ho
+                  Ghi chú đội cứu hộ
                 </Title>
                 <div className="summary-detail-text-block">
                   {detailText(selectedRow.rescueTeamNote)}
@@ -536,7 +584,7 @@ export default function SummaryDetailPanel({
               </div>
 
               <div className="summary-detail-gallery-block">
-                <Text className="summary-detail-gallery-title">Vi tri tren ban do</Text>
+                <Text className="summary-detail-gallery-title">Vị trí trên bản đồ</Text>
                 <div className="summary-detail-map-frame">
                   <iframe
                     title={`map-${selectedRow.rescueRequestId}`}
@@ -549,32 +597,32 @@ export default function SummaryDetailPanel({
 
             <div className="summary-detail-modal-side">
               <Card className="summary-detail-modal-info" bordered={false}>
-                <Text className="summary-detail-gallery-title">Thong tin nhanh</Text>
+                <Text className="summary-detail-gallery-title">Thông tin nhanh</Text>
                 <div className="summary-detail-quick-grid">
                   <div>
-                    <span>Status Id</span>
-                    <strong>{selectedRow.statusId ?? "Khong co"}</strong>
+                    <span>Mã trạng thái</span>
+                    <strong>{selectedRow.statusId ?? "Không có"}</strong>
                   </div>
                   <div>
-                    <span>Urgency Score</span>
-                    <strong>{selectedRow.urgencyScore ?? "Khong co"}</strong>
+                    <span>Điểm khẩn cấp</span>
+                    <strong>{selectedRow.urgencyScore ?? "Không có"}</strong>
                   </div>
                   <div>
-                    <span>Victim Count</span>
-                    <strong>{selectedRow.victimCount ?? "Khong co"}</strong>
+                    <span>Số nạn nhân</span>
+                    <strong>{selectedRow.victimCount ?? "Không có"}</strong>
                   </div>
                   <div>
-                    <span>Phone</span>
-                    <strong>{selectedRow.contactPhone ?? "Khong co"}</strong>
+                    <span>Điện thoại</span>
+                    <strong>{selectedRow.contactPhone ?? "Không có"}</strong>
                   </div>
                   <div>
-                    <span>Lat - Lng</span>
+                    <span>Vĩ độ - Kinh độ</span>
                     <strong>
                       {detailText(selectedRow.locationLat)}, {detailText(selectedRow.locationLng)}
                     </strong>
                   </div>
                   <div>
-                    <span>Area Id</span>
+                    <span>Mã khu vực</span>
                     <strong>{detailText(selectedRow.areaId)}</strong>
                   </div>
                 </div>
@@ -582,7 +630,7 @@ export default function SummaryDetailPanel({
 
               {allImages.length > 0 ? (
                 <div className="summary-detail-gallery-block">
-                  <Text className="summary-detail-gallery-title">Hinh anh hien truong</Text>
+                  <Text className="summary-detail-gallery-title">Hình ảnh hiện trường</Text>
                   <div className="summary-detail-gallery">
                     <Image.PreviewGroup>
                       {allImages.map((img, index) => (

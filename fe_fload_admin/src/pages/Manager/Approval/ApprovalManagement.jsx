@@ -12,6 +12,8 @@ import { getAllWarehouses } from "../../../../api/axios/ManagerApi/inventoryApi"
 
 import CreateTransactionModal from "../../../components/ManagerComponents/Approval/CreateTransactionModal";
 
+import { Tabs } from "antd";
+
 export default function ApprovalManagement() {
   const [data, setData] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -210,50 +212,26 @@ export default function ApprovalManagement() {
         </Button>
       </div>
 
-      <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-        <Select
-          placeholder="Chọn kho hàng"
-          onChange={handleWarehouseChange}
-          style={{ width: 200 }}
-          value={warehouseFilter}
-        >
-          {warehouses.map((wh) => (
-            <Select.Option key={wh.warehouseId} value={wh.warehouseId}>
-              {wh.warehouseName}
-            </Select.Option>
-          ))}
-        </Select>
-
-        <Select
-          placeholder="Chọn trạng thái phê duyệt"
-          onChange={handleApprovalChange}
-          style={{ width: 200 }}
-          value={approvalFilter}
-        >
-          <Select.Option value="pending">Chờ duyệt</Select.Option>
-          <Select.Option value="confirmed">Đã duyệt</Select.Option>
-        </Select>
-
-        <Select
-          placeholder="Chọn loại giao dịch"
-          onChange={handleTransactionTypeChange}
-          style={{ width: 200 }}
-          value={transactionTypeFilter}
-        >
-          <Select.Option value="IN">Nhập</Select.Option>
-          <Select.Option value="OUT">Xuất</Select.Option>
-        </Select>
-
-        <Button onClick={resetFilters}>Quay lại</Button>
-      </div>
-
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        loading={loading}
-        pagination={{ pageSize: 8 }}
-        bordered
-      />
+      <Tabs defaultActiveKey="1">
+        <Tabs.TabPane tab="Chờ phê duyệt" key="1">
+          <Table
+            columns={columns}
+            dataSource={filteredData.filter((t) => t.isPending)}
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            bordered
+          />
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Đã phê duyệt" key="2">
+          <Table
+            columns={columns}
+            dataSource={filteredData.filter((t) => !t.isPending)}
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            bordered
+          />
+        </Tabs.TabPane>
+      </Tabs>
 
       <CreateTransactionModal
         open={openCreate}
