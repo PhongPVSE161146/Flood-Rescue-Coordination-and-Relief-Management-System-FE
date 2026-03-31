@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,  } from "react";
 import {
   Card,
   Row,
@@ -14,8 +14,9 @@ import {
   Cell,
   Tooltip,
   Legend,
+  ResponsiveContainer
 } from "recharts";
-
+import { useNavigate } from "react-router-dom";
 import "./TaskDashboardForTeam.css";
 
 import {
@@ -46,11 +47,11 @@ export default function TaskDashboardForTeam() {
 
   const [assignmentPage, setAssignmentPage] = useState(1);
   const [distributionPage, setDistributionPage] = useState(1);
-
+  const [statusFilter, setStatusFilter] = useState("all");
   const [campaignMap, setCampaignMap] = useState({});
-
+  const [distributionFilter, setDistributionFilter] = useState("all");
   const pageSize = 5;
-
+  const navigate = useNavigate();
   const user =
     JSON.parse(localStorage.getItem("user")) ||
     JSON.parse(sessionStorage.getItem("user")) ||
@@ -117,6 +118,7 @@ export default function TaskDashboardForTeam() {
           if (status === "assigned") status = "pending";
 
           return {
+            id: a.assignmentId,
             name: req?.fullName || "Không rõ",
             phone: req?.contactPhone || "Không có",
             address: req?.address || "Chưa có",
@@ -169,7 +171,7 @@ export default function TaskDashboardForTeam() {
   /* ================= PIE ================= */
   const renderPie = (stats) => {
     const pieData = [
-      { name: "Chờ", value: stats.pending },
+      { name: "Đang chờ", value: stats.pending },
       { name: "Đã nhận", value: stats.accepted },
       { name: "Hoàn thành", value: stats.completed },
       { name: "Từ chối", value: stats.rejected },
@@ -178,61 +180,141 @@ export default function TaskDashboardForTeam() {
     const COLORS = ["#faad14", "#1890ff", "#52c41a", "#ff4d4f"];
 
     return (
-      <Card title="📈 Biểu đồ" style={{ marginTop: 16 }}>
-        <PieChart width={400} height={300}>
-          <Pie data={pieData} dataKey="value" outerRadius={100} label>
-            {pieData.map((_, i) => (
-              <Cell key={i} fill={COLORS[i]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
-      </Card>
+      <Card title="Biểu đồ nhiệm vụ" style={{ marginTop: 16 }}>
+      <div style={{ width: "100%", height: 320 }}>
+        <ResponsiveContainer>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={70}   // 🔥 donut
+              outerRadius={100}
+              paddingAngle={3}
+              label={({ percent }) =>
+                percent > 0 ? `${(percent * 100).toFixed(0)}%` : ""
+              }
+            >
+              {pieData.map((entry, index) => (
+                <Cell
+                  key={index}
+                  fill={COLORS[index]}
+                  style={{ cursor: "pointer" }}
+                />
+              ))}
+            </Pie>
+    
+            <Tooltip
+              formatter={(value, name) => [`${value} nhiệm vụ`, name]}
+            />
+    
+            <Legend verticalAlign="bottom" height={36} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
     );
   };
 
   /* ================= UI ASSIGNMENT ================= */
   const renderAssignment = () => {
     const stats = getStats(assignmentData);
-    const data = paginate(assignmentData, assignmentPage);
+    const filteredData =
+    statusFilter === "all"
+      ? assignmentData
+      : assignmentData.filter((x) => x.status === statusFilter);
+  
+  const data = paginate(filteredData, assignmentPage);
 
     return (
       <>
-        <Row gutter={12}>
-          <Col span={4}><Card>Tổng: {stats.total}</Card></Col>
-          <Col span={4}><Card>Chờ: {stats.pending}</Card></Col>
-          <Col span={4}><Card>Đã nhận: {stats.accepted}</Card></Col>
-          <Col span={6}><Card>Hoàn thành: {stats.completed}</Card></Col>
-          <Col span={6}><Card>Từ chối: {stats.rejected}</Card></Col>
-        </Row>
+      <Row gutter={12}>
+  <Col span={4}>
+    <Card 
+
+    onClick={() => {
+      setStatusFilter("all");
+      setAssignmentPage(1);
+    }}>
+      Tổng: {stats.total}
+    </Card>
+  </Col>
+
+  <Col span={4}>
+    <Card onClick={() => {
+      setStatusFilter("pending");
+      setAssignmentPage(1);
+    }}>
+      Đang chờ: {stats.pending}
+    </Card>
+  </Col>
+
+  <Col span={4}>
+    <Card onClick={() => {
+      setStatusFilter("accepted");
+      setAssignmentPage(1);
+    }}>
+      Đã nhận: {stats.accepted}
+    </Card>
+  </Col>
+
+  <Col span={6}>
+    <Card onClick={() => {
+      setStatusFilter("completed");
+      setAssignmentPage(1);
+    }}>
+      Hoàn thành: {stats.completed}
+    </Card>
+  </Col>
+
+  <Col span={6}>
+    <Card onClick={() => {
+      setStatusFilter("rejected");
+      setAssignmentPage(1);
+    }}>
+      Từ chối: {stats.rejected}
+    </Card>
+  </Col>
+</Row>
 
         {renderPie(stats)}
 
-        <Card title="📋 Danh sách cứu hộ" style={{ marginTop: 16 }}>
-          {data.map((item, i) => (
-            <div key={i} className="task-dashboard__item">
-              <div>
-                <b>{item.name}</b>
-                <div>📞 {item.phone}</div>
-                <div>📍 {item.address}</div>
-                <div>⏱ {item.time}</div>
-              </div>
-              <div
-  className={`task-dashboard__status task-dashboard__status--${item.status}`}
+        <Card title=" Danh sách nhiệm vụ cứu hộ" style={{ marginTop: 16 }}>
+        {data.length === 0 ? (
+  <div style={{ textAlign: "center", padding: 20 }}>
+    Không có dữ liệu
+  </div>
+) : (
+  data.map((item, i) => (
+<div
+  key={i}
+  className="task-dashboard__item"
+  onClick={() => navigate(`/rescueTeam/history/${item.id}`)}
 >
-  {mapStatusVN(item.status)}
-</div>
-            </div>
-          ))}
+  <div>
+    <b>Họ tên: {item.name}</b>
+    <div>SĐT: {item.phone}</div>
+    <div>Địa chỉ: {item.address}</div>
+    <div>⏱ Phân công lúc: {item.time}</div>
+  </div>
 
-          <Pagination
-            current={assignmentPage}
-            pageSize={pageSize}
-            total={assignmentData.length}
-            onChange={setAssignmentPage}
-            style={{ marginTop: 16, textAlign: "center" }}
-          />
+  <div
+    className={`task-dashboard__status task-dashboard__status--${item.status}`}
+  >
+    {mapStatusVN(item.status)}
+  </div>
+</div>
+  ))
+)}
+
+<Pagination
+  current={assignmentPage}
+  pageSize={pageSize}
+  total={filteredData.length}   
+  onChange={setAssignmentPage}
+/>
         </Card>
       </>
     );
@@ -241,43 +323,95 @@ export default function TaskDashboardForTeam() {
   /* ================= UI DISTRIBUTION ================= */
   const renderDistribution = () => {
     const stats = getStats(distributionData);
-    const data = paginate(distributionData, distributionPage);
+    const filteredData =
+    distributionFilter === "all"
+      ? distributionData
+      : distributionData.filter((x) => x.status === distributionFilter);
+  
+  const data = paginate(filteredData, distributionPage);
 
     return (
       <>
-        <Row gutter={12}>
-          <Col span={4}><Card>Tổng: {stats.total}</Card></Col>
-          <Col span={4}><Card>Chờ: {stats.pending}</Card></Col>
-          <Col span={4}><Card>Đã nhận: {stats.accepted}</Card></Col>
-          <Col span={6}><Card>Hoàn thành: {stats.completed}</Card></Col>
-          <Col span={6}><Card>Từ chối: {stats.rejected}</Card></Col>
-        </Row>
+      <Row gutter={12}>
+  <Col span={4}>
+    <Card onClick={() => {
+      setDistributionFilter("all");
+      setDistributionPage(1);
+    }} style={{ cursor: "pointer" }}>
+      Tổng: {stats.total}
+    </Card>
+  </Col>
+
+  <Col span={4}>
+    <Card onClick={() => {
+      setDistributionFilter("pending");
+      setDistributionPage(1);
+    }} style={{ cursor: "pointer" }}>
+      Đang chờ: {stats.pending}
+    </Card>
+  </Col>
+
+  <Col span={4}>
+    <Card onClick={() => {
+      setDistributionFilter("accepted");
+      setDistributionPage(1);
+    }} style={{ cursor: "pointer" }}>
+      Đã nhận: {stats.accepted}
+    </Card>
+  </Col>
+
+  <Col span={6}>
+    <Card onClick={() => {
+      setDistributionFilter("completed");
+      setDistributionPage(1);
+    }} style={{ cursor: "pointer" }}>
+      Hoàn thành: {stats.completed}
+    </Card>
+  </Col>
+
+  <Col span={6}>
+    <Card onClick={() => {
+      setDistributionFilter("rejected");
+      setDistributionPage(1);
+    }} style={{ cursor: "pointer" }}>
+      Từ chối: {stats.rejected}
+    </Card>
+  </Col>
+</Row>
 
         {renderPie(stats)}
 
-        <Card title="📋 Danh sách cứu trợ" style={{ marginTop: 16 }}>
-          {data.map((item, i) => (
-            <div key={i} className="task-dashboard__item">
-              <div>
-                <b>{item.campaignName}</b>
-                <div>⏱ {item.time}</div>
-              </div>
-              <div
-  className={`task-dashboard__status task-dashboard__status--${item.status}`}
->
-  {mapStatusVN(item.status)}
-</div>
-            </div>
-          ))}
+        <Card title=" Danh sách nhiệm vụ cứu trợ" style={{ marginTop: 16 }}>
+  {data.length === 0 ? (
+    <div style={{ textAlign: "center", padding: 20 }}>
+      Không có dữ liệu
+    </div>
+  ) : (
+    data.map((item, i) => (
+      <div key={i} className="task-dashboard__item">
+        <div>
+          <b>{item.campaignName}</b>
+          <div>⏱ {item.time}</div>
+        </div>
+        <div
+          className={`task-dashboard__status task-dashboard__status--${item.status}`}
+        >
+          {mapStatusVN(item.status)}
+        </div>
+      </div>
+    ))
+  )}
 
-          <Pagination
-            current={distributionPage}
-            pageSize={pageSize}
-            total={distributionData.length}
-            onChange={setDistributionPage}
-            style={{ marginTop: 16, textAlign: "center" }}
-          />
-        </Card>
+  {filteredData.length > 0 && (
+    <Pagination
+      current={distributionPage}
+      pageSize={pageSize}
+      total={filteredData.length} 
+      onChange={setDistributionPage}
+      style={{ marginTop: 16, textAlign: "center" }}
+    />
+  )}
+</Card>
       </>
     );
   };
@@ -285,26 +419,43 @@ export default function TaskDashboardForTeam() {
   /* ================= MAIN ================= */
   return (
     <div className="task-dashboard">
+  
       {loading ? (
-        <Spin size="large" />
+        <div className="task-dashboard__loading">
+          <Spin size="large" />
+          <p>Đang tải dữ liệu...</p>
+        </div>
       ) : (
-        <Tabs
-          activeKey={tab}
-          onChange={setTab}
-          items={[
-            {
-              key: "assignment",
-              label: "🚑 Cứu hộ",
-              children: renderAssignment(),
-            },
-            {
-              key: "distribution",
-              label: "🎁 Cứu trợ",
-              children: renderDistribution(),
-            },
-          ]}
-        />
+        <>
+          {/* TAB */}
+          <div className="task-dashboard__tabs">
+            <button
+              className={`task-dashboard__tab ${
+                tab === "assignment" ? "task-dashboard__tab--active" : ""
+              }`}
+              onClick={() => setTab("assignment")}
+            >
+              Nhiệm vụ cứu hộ
+            </button>
+  
+            <button
+              className={`task-dashboard__tab ${
+                tab === "distribution" ? "task-dashboard__tab--active" : ""
+              }`}
+              onClick={() => setTab("distribution")}
+            >
+              Nhiệm vụ cứu trợ
+            </button>
+          </div>
+  
+          {/* CONTENT */}
+          <div className="task-dashboard__content">
+            {tab === "assignment" && renderAssignment()}
+            {tab === "distribution" && renderDistribution()}
+          </div>
+        </>
       )}
+  
     </div>
   );
 }

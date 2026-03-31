@@ -1,6 +1,6 @@
 import { useState } from "react";
 import MissionHistory from "../../../components/RescueTeamComponents/HistoryComponentsTask/RescueMissionHistory/MissionHistory";
-import DistributionListRescue from "../../../components/RescueTeamComponents/HistoryComponentsTask/DistributionListRescue";
+import DistributionListRescueHistory from "../../../pages/RescueTeam/DistributionListCuuTro/ListTaskCompletedHistory/DistributionListRescueHistory";
 
 import "./HistoryNavigator.css";
 
@@ -17,14 +17,14 @@ export default function HistoryNavigator() {
           className={activeTab === "mission" ? "active" : ""}
           onClick={() => setActiveTab("mission")}
         >
-          📋 Lịch sử nhiệm vụ
+           Lịch sử nhiệm vụ
         </button>
 
         <button
           className={activeTab === "distribution" ? "active" : ""}
           onClick={() => setActiveTab("distribution")}
         >
-          🎁 Lịch sử cứu trợ
+           Lịch sử cứu trợ
         </button>
       </div>
 
@@ -33,7 +33,7 @@ export default function HistoryNavigator() {
 
         {activeTab === "mission" && <MissionHistory />}
 
-        {activeTab === "distribution" && <DistributionListRescue />}
+        {activeTab === "distribution" && <DistributionListRescueHistory />}
 
       </div>
 

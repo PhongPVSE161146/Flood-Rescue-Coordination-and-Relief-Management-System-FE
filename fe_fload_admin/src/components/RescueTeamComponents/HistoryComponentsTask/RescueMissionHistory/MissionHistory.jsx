@@ -1,7 +1,7 @@
 import "./MissionHistory.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Pagination, Spin } from "antd";
+import { Pagination, Spin, Select } from "antd";
 
 import {
   getAllAssignments,
@@ -30,7 +30,10 @@ export default function MissionHistory() {
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [filterName, setFilterName] = useState(null);
+  const [filterPhone, setFilterPhone] = useState(null);
+  const [filterAddress, setFilterAddress] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
   const pageSize = 3;
 
   const user =
@@ -159,12 +162,54 @@ export default function MissionHistory() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [missions]);
+  }, [filterName, filterPhone, filterAddress, filterStatus]);
 
-  const paginatedMissions = missions.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const nameOptions = [...new Set(missions.map(m => m.name))]
+  .filter(Boolean)
+  .map(v => ({ label: v, value: v }));
+
+const phoneOptions = [...new Set(missions.map(m => m.phone))]
+  .filter(Boolean)
+  .map(v => ({ label: v, value: v }));
+
+const addressOptions = [...new Set(missions.map(m => m.address))]
+  .filter(Boolean)
+  .map(v => ({ label: v, value: v }));
+
+const statusOptions = [
+  { label: "Tất cả trạng thái", value: "ALL" },
+  ...[...new Set(missions.map(m => m.status))]
+    .filter(Boolean)
+    .map(s => ({
+      label: STATUS_MAP[s]?.label || s,
+      value: s
+    }))
+];
+
+
+const filteredMissions = missions.filter(m => {
+
+  const matchName =
+    !filterName || m.name === filterName;
+
+  const matchPhone =
+    !filterPhone || m.phone === filterPhone;
+
+  const matchAddress =
+    !filterAddress || m.address === filterAddress;
+
+  const matchStatus =
+    !filterStatus ||
+    filterStatus === "ALL" ||
+    m.status === filterStatus;
+
+  return matchName && matchPhone && matchAddress && matchStatus;
+});
+
+const paginatedMissions = filteredMissions.slice(
+  (currentPage - 1) * pageSize,
+  currentPage * pageSize
+);
 
   /* ================= UI ================= */
 
@@ -174,10 +219,51 @@ export default function MissionHistory() {
       <div className="rm-header-fixed">
         <h3>Lịch sử nhiệm vụ</h3>
         <span style={{ color: "white", fontSize: 20 }}>
-          {missions.length} nhiệm vụ
+        {filteredMissions.length}
         </span>
       </div>
+      <div style={{ padding: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
 
+<Select
+  allowClear
+  showSearch
+  placeholder=" Tên"
+  options={nameOptions}
+  value={filterName}
+  onChange={setFilterName}
+  style={{ minWidth: 150 }}
+/>
+
+<Select
+  allowClear
+  showSearch
+  placeholder=" SĐT"
+  options={phoneOptions}
+  value={filterPhone}
+  onChange={setFilterPhone}
+  style={{ minWidth: 150 }}
+/>
+
+<Select
+  allowClear
+  showSearch
+  placeholder=" Địa chỉ"
+  options={addressOptions}
+  value={filterAddress}
+  onChange={setFilterAddress}
+  style={{ minWidth: 200 }}
+/>
+
+<Select
+  allowClear
+  placeholder=" Trạng thái"
+  options={statusOptions}
+  value={filterStatus}
+  onChange={setFilterStatus}
+  style={{ minWidth: 180 }}
+/>
+
+</div>
       <div className="rm-list-scroll">
 
         {loading && (
@@ -247,18 +333,17 @@ export default function MissionHistory() {
 
       </div>
 
-      {missions.length > pageSize && (
-        <div style={{ marginTop: 16, textAlign: "center" }}>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={missions.length}
-            onChange={setCurrentPage}
-            showSizeChanger={false}
-          />
-        </div>
-      )}
-
+      {filteredMissions.length > pageSize && (
+  <div style={{ marginTop: 16, textAlign: "center" }}>
+    <Pagination
+      current={currentPage}
+      pageSize={pageSize}
+      total={filteredMissions.length}
+      onChange={setCurrentPage}
+      showSizeChanger={false}
+    />
+  </div>
+)}
     </section>
   );
 }

@@ -243,14 +243,19 @@ export default function RescueMissionComplete() {
   useEffect(() => {
     if (id) fetchData();
   }, [id]);
+  const isRejected = detail?.assignmentStatus === "REJECTED";
 
+  const timelineSteps = isRejected
+    ? [{ key: "REJECTED", label: "Từ chối", icon: "❌" }]
+    : STATUS_STEPS;
 
   
   /* ===== TIMELINE ===== */
-
-  const currentIndex = STATUS_STEPS.findIndex(
-    s => s.key === detail?.assignmentStatus
-  );
+  const currentIndex = isRejected
+  ? 0
+  : STATUS_STEPS.findIndex(
+      s => s.key === detail?.assignmentStatus
+    );
 
   /* ================= UI ================= */
 
@@ -302,9 +307,9 @@ export default function RescueMissionComplete() {
        {/* TIMELINE */}
        <section className="rc-op-card">
  
-         <div className="rc-timeline">
+       <div className={`rc-timeline ${isRejected ? "center" : ""}`}>
  
-           {STATUS_STEPS.map((step, index) => {
+         {timelineSteps.map((step, index) => {
  
              const isDone = index < currentIndex;
              const isActive = index === currentIndex;
@@ -326,7 +331,7 @@ export default function RescueMissionComplete() {
                    </div>
                  </div>
  
-                 {index < STATUS_STEPS.length - 1 && (
+                 {index < timelineSteps.length - 1 && (
                    <div className={`rc-timeline__line ${isDone ? "done" : ""}`} />
                  )}
  
@@ -483,20 +488,7 @@ export default function RescueMissionComplete() {
  
    
  
-   <button
-     className={`rp-done ${
-       detail.assignmentStatus === "COMPLETED" ? "disabled" : ""
-     }`}
-     onClick={handleAction}
-     disabled={
-       actionLoading ||
-       detail.assignmentStatus === "COMPLETED"
-     }
-   >
-     {actionLoading
-       ? "⏳ Đang xử lý..."
-       : getActionText()}
-   </button>
+
  
  </div>
  
