@@ -20,15 +20,15 @@ export default function DistributionListRescue() {
   const [currentPage, setCurrentPage] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
 const [selectedId, setSelectedId] = useState(null);
-const [actionType, setActionType] = useState(""); 
+const [actionType, setActionType] = useState(""); // Completed | Rejected
 const [campaignMap, setCampaignMap] = useState({});
-const [filterCampaign, setFilterCampaign] = useState(null);
-const [filterStatus, setFilterStatus] = useState(null);
-const [campaignOptions, setCampaignOptions] = useState([]);
-
+const [selectedCampaign, setSelectedCampaign] = useState("");
+const [selectedStatus, setSelectedStatus] = useState("");
 const [note, setNote] = useState("");
   const navigate = useNavigate();
   const pageSize = 3;
+  const campaignOptions = Object.values(campaignMap);
+
   const openModal = (id, type) => {
     setSelectedId(id);
     setActionType(type);
@@ -62,22 +62,33 @@ const [note, setNote] = useState("");
   /* ================= LOAD ================= */
 
   const fetchDistributions = async () => {
-    
+
     try {
       setLoading(true);
   
       if (!user?.userId) return;
   
+      // 🔥 lấy danh sách team
       const teamRes = await getAllRescueTeams();
       const teams = teamRes?.data?.items || [];
-  
-      // map team
+  // 🔥 lấy campaign
+const campaigns = await getAllAidCampaigns();
+
+const cmap = {};
+campaigns.forEach(c => {
+  cmap[c.campaignID] = c;
+});
+
+setCampaignMap(cmap);
+
+      // 🔥 map id -> name
       const map = {};
       teams.forEach(t => {
         map[t.rcid] = t.rcName;
       });
       setTeamMap(map);
   
+      // 🔥 tìm team của user
       const myTeamId = await findMyTeamId(teams, user.userId);
   
       if (!myTeamId) {
@@ -85,44 +96,20 @@ const [note, setNote] = useState("");
         return;
       }
   
+      // 🔥 gọi API distribution
       const data = await getAllDistributions();
   
       const myList = data
-        .filter(d => d.rescueTeamId === myTeamId)
-        .filter(d => {
-          const status = d.status?.toLowerCase();
-          return status !== "rejected" && status !== "completed";
-        })
-        .sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
+      .filter(d => d.rescueTeamId === myTeamId)
+      .filter(d => {
+        const status = d.status?.toLowerCase();
+    
+        // ❌ loại rejected + completed
+        return status !== "rejected" && status !== "completed";
+      })
+      .sort((a, b) => new Date(b.distributedAt) - new Date(a.distributedAt));
   
       setList(myList);
-  
-      // 🔥 tạo dropdown từ list
-      const campaignMapTemp = new Map();
-  
-      myList.forEach(d => {
-        const id = d.campaignId || d.campaignID;
-  
-        if (!campaignMapTemp.has(id)) {
-          campaignMapTemp.set(id, {
-            value: id,
-            label: d.campaignName || `Chiến dịch ${id}`
-          });
-        }
-      });
-  
-      setCampaignOptions([
-        { label: "Tất cả chiến dịch", value: "ALL" },
-        ...Array.from(campaignMapTemp.values())
-      ]);
-  
-      // 🔥 map campaign để hiển thị
-      const cmap = {};
-      myList.forEach(d => {
-        const id = d.campaignId || d.campaignID;
-        cmap[id] = d;
-      });
-      setCampaignMap(cmap);
   
     } catch (err) {
       console.error("Load distribution error:", err);
@@ -178,33 +165,31 @@ const [note, setNote] = useState("");
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterCampaign, filterStatus]);
+  }, [list]);
 
 
+  const statusOptions = [
+    { value: "pending", label: "Đang chờ" },
+    { value: "accepted", label: "Đã nhận" },
+    { value: "in progress", label: "Đang phát" },
 
-const statusOptions = [
-  { label: "Tất cả trạng thái", value: "ALL" },
-  { label: "Đang chờ", value: "pending" },
-  { label: "Đã nhận", value: "accepted" },
-  { label: "Đang phát", value: "in progress" }
-];
+  ];
 
-const filteredList = list.filter(item => {
-
-  const matchCampaign =
-    !filterCampaign ||
-    filterCampaign === "ALL" ||
-    item.campaignId === filterCampaign ||
-    item.campaignID === filterCampaign;
-
-  const matchStatus =
-    !filterStatus ||
-    filterStatus === "ALL" ||
-    item.status?.toLowerCase() === filterStatus;
-
-  return matchCampaign && matchStatus;
-});
   /* ================= PAGINATION ================= */
+
+  const filteredList = list.filter(item => {
+    const matchCampaign =
+      !selectedCampaign ||
+      item.campaignId === selectedCampaign ||
+      item.campaignID === selectedCampaign;
+  
+    const matchStatus =
+      !selectedStatus ||
+      item.status?.toLowerCase() === selectedStatus;
+  
+    return matchCampaign && matchStatus;
+  });
+  
   const paginated = filteredList.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -241,26 +226,35 @@ const filteredList = list.filter(item => {
         {filteredList.length} đợt
         </span>
       </div>
-      <div style={{ padding: 10, display: "flex", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
 
-<Select
-  allowClear
-  showSearch
-  placeholder=" Chọn chiến dịch"
-  options={campaignOptions}
-  value={filterCampaign}
-  onChange={setFilterCampaign}
-  style={{ width: "50%" }}
-/>
+{/* Filter campaign */}
+<div className="rm-filter">
+  
+  <div className="rm-filter__item rm-filter__item--campaign">
+    <Select
+      placeholder="Chọn chiến dịch"
+      allowClear
+      className="rm-filter__select"
+      onChange={(value) => setSelectedCampaign(value)}
+      options={campaignOptions.map(c => ({
+        value: c.campaignID,
+        label: c.campaignName
+      }))}
+    />
+  </div>
 
-<Select
-  allowClear
-  placeholder=" Chọn trạng thái"
-  options={statusOptions}
-  value={filterStatus}
-  onChange={setFilterStatus}
-  style={{ width: "50%" }}
-/>
+  <div className="rm-filter__item rm-filter__item--status">
+    <Select
+      placeholder="Chọn trạng thái"
+      allowClear
+      className="rm-filter__select"
+      onChange={(value) => setSelectedStatus(value)}
+      options={statusOptions}
+    />
+  </div>
+
+</div>
 
 </div>
       <div className="rm-list-scroll">
@@ -286,33 +280,35 @@ const filteredList = list.filter(item => {
             <div key={item.distributionId} className="rm-card">
   
               {/* ===== TOP ===== */}
-              <div className="rm-top">
-                <div className="rm-avatar">
-                  #{item.distributionId}
-                </div>
-  
-                <div>
-  
-                  <h4>
-                    Tên chiến dịch: {campaign?.campaignName || `Chiến dịch ${item.campaignId}`}
-                  </h4>
-  
-             
-                  <div className="rm-campaign-info">
-  <span className="rm-date">
-    Lịch: {campaign
-      ? `Tháng ${campaign.month}/${campaign.year}`
-      : "Không rõ"}
-  </span>
+              <div
+  className="rm-top"
+  style={{ cursor: "pointer" }}
+  onClick={() =>
+    navigate(`/rescueTeam/cuu-tro/${item.campaignId || item.campaignID}`)
+  }
+>
+  <div className="rm-avatar">
+    #{item.distributionId}
+  </div>
+
+  <div>
+    <h4>
+      Tên chiến dịch: {campaign?.campaignName || `Chiến dịch ${item.campaignId}`}
+    </h4>
+
+    <div className="rm-campaign-info">
+      <span className="rm-date">
+        Lịch: {campaign
+          ? `Tháng ${campaign.month}/${campaign.year}`
+          : "Không rõ"}
+      </span>
+    </div>
+
+    <span>
+      Tên đội: {teamMap[item.rescueTeamId] || `Team ${item.rescueTeamId}`}
+    </span>
+  </div>
 </div>
-  
-                  <span>
-                    Tên đội: {teamMap[item.rescueTeamId] || `Team ${item.rescueTeamId}`}
-                  </span>
-  
-                </div>
-              </div>
-  
               {/* ===== NOTE ===== */}
               <div className="rm-address">
                 Ghi chú: {item.note || "Không có"}
@@ -394,14 +390,16 @@ const filteredList = list.filter(item => {
       </div>
   
       {/* PAGINATION */}
-      {filteredList.length > pageSize && (
-  <Pagination
-    current={currentPage}
-    pageSize={pageSize}
-    total={filteredList.length}
-    onChange={setCurrentPage}
-  />
-)}
+      {list.length > pageSize && (
+        <div style={{ marginTop: 16, textAlign: "center" }}>
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={list.length}
+            onChange={setCurrentPage}
+          />
+        </div>
+      )}
   
       {/* MODAL */}
       <Modal

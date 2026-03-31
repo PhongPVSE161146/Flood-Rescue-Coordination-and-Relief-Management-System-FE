@@ -1,7 +1,23 @@
-import { Modal, Form, Select, Input } from "antd";
-import { useEffect } from "react";
-import { updateDistributionDetail } from "../../../../../api/axios/ManagerApi/periodicAidApi";
+// src/components/EditDistributionDetailTask.jsx
+
+import { Modal } from "antd";
+import { useState } from "react";
+import { confirmAllDistributionDetail } from "../../../../../api/axios/RescueApi/RescueTask";
 import AuthNotify from "../../../../utils/Common/AuthNotify";
+
+// 🔥 helper check status (EN + VI)
+const isCompletedStatus = (status) => {
+  if (!status) return false;
+
+  const normalized = status.toString().trim().toLowerCase();
+
+  return [
+    "completed",
+    "complete",
+    "done",
+    "hoàn thành"
+  ].includes(normalized);
+};
 
 export default function EditDistributionDetailTask({
   open,
@@ -9,88 +25,79 @@ export default function EditDistributionDetailTask({
   data,
   onSuccess
 }) {
-  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
-  const isCompleted = data?.status?.toLowerCase() === "completed";
-
-  useEffect(() => {
-    if (data) {
-      form.setFieldsValue({
-        status: data.status?.toLowerCase(),
-        note: data.note,
-      });
-    }
-  }, [data]);
+  const isCompleted = isCompletedStatus(data?.status);
 
   const handleSubmit = async () => {
-    // 🔥 chặn sửa nếu completed
-    if (isCompleted) {
-      AuthNotify.warning("Không thể chỉnh sửa khi đã hoàn thành");
+    if (!data?.distributionId || !data?.beneficiaryId) {
+      AuthNotify.error("Thiếu thông tin phân phối");
       return;
     }
 
-    try {
-      const values = await form.validateFields();
+    if (isCompleted) {
+      AuthNotify.warning("Phiếu đã hoàn thành");
+      return;
+    }
 
-      await updateDistributionDetail(data.detailId, {
-        status: values.status,
-        note: values.note || "",
+    setLoading(true);
+
+    try {
+      await confirmAllDistributionDetail(
+        data.distributionId,
+        data.beneficiaryId
+      );
+
+      AuthNotify.success("Xác nhận thành công");
+
+      // cập nhật lại item (chuẩn hóa luôn status)
+      onSuccess({
+        ...data,
+        status: "completed"
       });
 
-      AuthNotify.success("Cập nhật thành công");
-
       onClose();
-      onSuccess();
-
     } catch (err) {
       console.error(err);
-      AuthNotify.error("Cập nhật thất bại");
+      AuthNotify.error("Xác nhận thất bại");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Modal
-      title="Sửa phân phối"
+      title={isCompleted ? "Không thể chỉnh sửa" : "Xác nhận phân phối"}
       open={open}
       onCancel={onClose}
       onOk={handleSubmit}
-      okText="Cập nhật"
+      okText="Xác nhận"
       cancelText="Hủy"
-      okButtonProps={{ disabled: isCompleted }} // 🔥 disable nút
+      okButtonProps={{
+        disabled: isCompleted,
+        loading: loading
+      }}
       destroyOnClose
     >
-      <Form
-        form={form}
-        layout="vertical"
-        disabled={isCompleted} // 🔥 disable toàn bộ form
-      >
-
-        <Form.Item
-          name="status"
-          label="Trạng thái"
-          rules={[{ required: true, message: "Chọn trạng thái" }]}
-        >
-          <Select
-            options={[
-            
-              { value: "in progress", label: "Đang phát" },
-              { value: "completed", label: "Hoàn thành" },
-          
-            ]}
-          />
-        </Form.Item>
-
-        <Form.Item name="note" label="Ghi chú">
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
-      </Form>
-
-      {/* 🔥 hiển thị cảnh báo */}
-      {isCompleted && (
-        <p style={{ color: "red", marginTop: 10 }}>
-          ⚠ Không thể chỉnh sửa vì đã hoàn thành
+      {isCompleted ? (
+        <p style={{ color: "red" }}>
+          ⚠ Phiếu này đã hoàn thành, không thể chỉnh sửa
         </p>
+      ) : (
+        <div>
+          <p>
+            Bạn có chắc muốn <b>xác nhận tất cả phân phối</b> cho người này?
+          </p>
+
+          <ul style={{ paddingLeft: 16 }}>
+            <li>
+              <b>ID phân phối:</b> {data?.distributionId}
+            </li>
+            <li>
+              <b>Người nhận:</b> {data?.fullName || "Không rõ"}
+            </li>
+          </ul>
+        </div>
       )}
     </Modal>
   );

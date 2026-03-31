@@ -145,17 +145,28 @@ const navigate = useNavigate();
   /* ================= STATUS ================= */
   const renderStatus = (status) => {
     const map = {
-      completed: { text: "Hoàn thành", color: "green" },
+      // EN
+      accepted: { text: "Đã nhận", color: "blue" },
       rejected: { text: "Từ chối", color: "red" },
+      "in progress": { text: "Đang phát", color: "processing" },
+      completed: { text: "Hoàn thành", color: "green" },
+  
+      // VI (🔥 thêm)
+      "đã nhận": { text: "Đã nhận", color: "blue" },
+      "từ chối": { text: "Từ chối", color: "red" },
+      "đang phát": { text: "Đang phát", color: "processing" },
+      "hoàn thành": { text: "Hoàn thành", color: "green" },
     };
-
-    const key = status?.toLowerCase()?.trim();
-
+  
+    const key = String(status || "")
+      .trim()
+      .toLowerCase();
+  
     const s = map[key] || {
-      text: status || "Không xác định",
+      text: status || "Không rõ",
       color: "default",
     };
-
+  
     return <Tag color={s.color}>{s.text}</Tag>;
   };
 
