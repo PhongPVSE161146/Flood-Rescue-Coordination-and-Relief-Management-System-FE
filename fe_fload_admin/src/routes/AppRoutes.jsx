@@ -33,7 +33,7 @@ import RescueReportPage from "../pages/RescueCoordinator/RescueReportPage/Rescue
 
 
 /* ================= RESCUE ================= */
-import RescueTask from "../pages/RescueTeam/RescueMission/RescueMission";
+import TaskNavigator from "../pages/RescueTeam/TaskRescueTeam/TaskNavigator";
 import MissionDetailRescue from "../pages/RescueTeam/RescueMission/DetailRescueMission/MissionDetailRescue";
 import HistoryNavigator from "../pages/RescueTeam/HistoryTastRescueTeam/HistoryNavigator";
 import MissionInProgress from "../pages/RescueTeam/RescueMissionProgress/MissionInProgress";
@@ -42,7 +42,7 @@ import TeamMembersMisionList from "../pages/RescueTeam/ListTeamRerscueMission/Te
 import DistributionDetail from "../pages/RescueTeam/DistributionListCuuTro/DetailCuuHo/DistributionDetail";
 import TaskDashboard from "../pages/RescueTeam/DashboardTaskRescue/TaskDashboardForTeam";
 import TaskDistributionDetailPage from "../pages/RescueTeam/DistributionListCuuTro/TaskCuuTroForTeam/TaskDistributionDetailPage";
-import DistributionListRescueHistory from "../pages/RescueTeam/DistributionListCuuTro/ListTaskCompletedHistory/DistributionListRescueHistory";
+
 
 export default function AppRoutes() {
   const isAuth = sessionStorage.getItem("isAuth") === "true";
@@ -126,7 +126,7 @@ export default function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route index element={<RescueTask />} />
+        <Route index element={<TaskNavigator />} />
         <Route path="mission/:id" element={<MissionDetailRescue />} />
         <Route path="history" element={<HistoryNavigator />} />
         <Route path="history/:id" element={<RescueMissionComplete />} />
@@ -135,7 +135,7 @@ export default function AppRoutes() {
         <Route path="/rescueTeam/cuu-tro/:id" element={<DistributionDetail />} />
         <Route path="dashboard-task" element={<TaskDashboard />} />
         <Route path="/rescueTeam/chi-tiet-tro/:id" element={<TaskDistributionDetailPage />} />
-        <Route path="history-cuu-tro" element={<DistributionListRescueHistory />} />
+    
         
 
       </Route>
