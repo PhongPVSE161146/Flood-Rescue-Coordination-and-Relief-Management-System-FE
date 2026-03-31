@@ -35,7 +35,7 @@ export default function DashboardOverview() {
       setLoading(true);
 
       const [dashboardRes, completedRequests] = await Promise.all([
-        getDashboardManagement(),
+        getDashboardManagement("2026-03-25", "2026-04-04"),
         getCompletedRequestsCount(),
       ]);
 

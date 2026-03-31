@@ -124,7 +124,7 @@ const menuByRole = {
       path: "/coordinator/mina",
     },
     {
-      label: "Hoàn thành & báo cáo",
+      label: "Báo cáo nhiệm vụ",
       icon: <BarChartOutlined />,
       path: "/coordinator/reports",
     },

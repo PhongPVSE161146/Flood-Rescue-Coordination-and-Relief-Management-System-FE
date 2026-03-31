@@ -2,11 +2,17 @@ import axiosInstance from "../../axiosInstance";
 
 /* ================= GET DASHBOARD MANAGEMENT ================= */
 
-export const getDashboardManagement = async () => {
+export const getDashboardManagement = async (fromDate, toDate) => {
   try {
 
     const response = await axiosInstance.get(
-      "/api/dashboard/management"
+      "/api/dashboard/management",
+      {
+        params: {
+          fromDate,
+          toDate,
+        },
+      }
     );
 
     return response.data;
