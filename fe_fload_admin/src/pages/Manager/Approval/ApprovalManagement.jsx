@@ -21,15 +21,10 @@ export default function ApprovalManagement() {
   const [openCreate, setOpenCreate] = useState(false);
   const [filter, setFilter] = useState("all");
   const [warehouseFilter, setWarehouseFilter] = useState(null); // New state for warehouse filter
-  const [approvalFilter, setApprovalFilter] = useState(null); // New state for approval filter
   const [transactionTypeFilter, setTransactionTypeFilter] = useState(null); // New state for IN/OUT filter
 
   const handleWarehouseChange = (value) => {
     setWarehouseFilter(value);
-  };
-
-  const handleApprovalChange = (value) => {
-    setApprovalFilter(value);
   };
 
   const handleTransactionTypeChange = (value) => {
@@ -39,7 +34,6 @@ export default function ApprovalManagement() {
   const resetFilters = () => {
     setFilter("all");
     setWarehouseFilter(null);
-    setApprovalFilter(null);
     setTransactionTypeFilter(null);
   };
 
@@ -101,8 +95,6 @@ export default function ApprovalManagement() {
     if (filter === "pending" && !t.isPending) return false;
     if (filter === "confirmed" && t.isPending) return false;
     if (warehouseFilter && t.warehouseId !== warehouseFilter) return false;
-    if (approvalFilter === "pending" && t.confirmedAt) return false;
-    if (approvalFilter === "confirmed" && !t.confirmedAt) return false;
     if (transactionTypeFilter && t.transactionType !== transactionTypeFilter) return false;
     return true;
   });
@@ -210,6 +202,33 @@ export default function ApprovalManagement() {
         <Button type="primary" onClick={() => setOpenCreate(true)}>
           + Tạo giao dịch
         </Button>
+      </div>
+
+      <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+        <Select
+          placeholder="Chọn kho hàng"
+          onChange={handleWarehouseChange}
+          style={{ width: 200 }}
+          value={warehouseFilter}
+        >
+          {warehouses.map((wh) => (
+            <Select.Option key={wh.warehouseId} value={wh.warehouseId}>
+              {wh.warehouseName}
+            </Select.Option>
+          ))}
+        </Select>
+
+        <Select
+          placeholder="Chọn loại giao dịch"
+          onChange={handleTransactionTypeChange}
+          style={{ width: 200 }}
+          value={transactionTypeFilter}
+        >
+          <Select.Option value="IN">Nhập</Select.Option>
+          <Select.Option value="OUT">Xuất</Select.Option>
+        </Select>
+
+        <Button onClick={resetFilters}>Quay lại</Button>
       </div>
 
       <Tabs defaultActiveKey="1">
