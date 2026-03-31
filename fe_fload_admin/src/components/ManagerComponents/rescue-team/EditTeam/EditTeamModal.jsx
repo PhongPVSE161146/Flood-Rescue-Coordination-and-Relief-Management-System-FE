@@ -82,7 +82,8 @@ export default function EditTeamModal({
     form.setFieldsValue({
       rcName: team.name,
       rcPhone: team.phone,
-      areaId: team.areaId
+      areaId: team.areaId,
+      rcStatus: team.status
     });
 
   }, [team]);
@@ -99,11 +100,10 @@ export default function EditTeamModal({
       setLoading(true);
 
       await updateRescueTeam(team.id, {
-
         rcName: values.rcName,
         rcPhone: values.rcPhone,
-        areaId: Number(values.areaId)
-
+        areaId: Number(values.areaId),
+        rcStatus: "onduty" // 👈 luôn luôn gán cứng
       });
 
       AuthNotify.success(
